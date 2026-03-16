@@ -1087,6 +1087,13 @@ function render(d) {
   if (DATA) { DATA._sO = sO; DATA._ov = ov; }
   if (DATA) DATA._sD = sD; /* sD definido após defDedup */
 
+  /* Atualiza tabela Defeitos por Estação sempre que render() é chamado
+     (filtros de modelo, linha, WO, serial, estação, turno, pareto, hora)
+     usa sO/sD recalculados com dados já filtrados neste ciclo de render */
+  try {
+    renderDashRow2(sO, sDkpi, defDedupKpi, ov);
+  } catch(e) { console.warn('[renderDashRow2 inline]', e); }
+
   /* Atualiza painel Monitor com dados atuais */
   pushMonitorData();
 }
@@ -1240,7 +1247,9 @@ function applyHourFilter() {
     var h = m ? m[1].padStart(2,'0')+'h' : '??';
     return h === HOUR_FILTER;
   });
-  var fo = DATA._rawOutRows;
+  /* Usa outRows já filtrado pelos filtros ativos (modelo, linha, WO, serial, estação)
+     e NÃO o _rawOutRows, para garantir que Total OUT respeite todos os filtros */
+  var fo = DATA.outRows || DATA._rawOutRows;
   /* KPI cards usam defRowsKpi (3 turnos fixos, sem filtro de hora) */
   render(Object.assign({}, DATA, {outRows: fo, defRows: filtered, defRowsKpi: DATA.defRowsKpi}));
 }
@@ -1312,8 +1321,9 @@ function updateParetoHighlight() {
   /* Atualiza DATA.defRows para hora-filtro usar como base */
   DATA.defRows = filteredDef;
 
-  /* Full re-render — KPI cards usam defRowsKpi (3 turnos fixos) */
-  render(Object.assign({}, d, {defRows: filteredDef, defRowsKpi: DATA.defRowsKpi || d.defRowsKpi}));
+  /* Full re-render — KPI cards usam defRowsKpi (3 turnos fixos)
+     outRows mantém os filtros ativos (modelo, linha, WO, serial, estação) */
+  render(Object.assign({}, d, {outRows: DATA.outRows || d.outRows, defRows: filteredDef, defRowsKpi: DATA.defRowsKpi || d.defRowsKpi}));
 
   /* Re-apply bar highlights + labels after render */
   setTimeout(function(){
