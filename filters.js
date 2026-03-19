@@ -148,28 +148,6 @@ function applyF() {
   var rawOut = d._rawOutRows || d.outRows;
   var rawDef = d._rawDefRows || d.defRows;
 
-  /* ── Lê filtro de datas (válido para todos os clientes) ── */
-  var elFrom = document.getElementById('filterDateFrom');
-  var elTo   = document.getElementById('filterDateTo');
-  var dateFrom = elFrom && elFrom.value ? elFrom.value : null; /* 'YYYY-MM-DD' ou null */
-  var dateTo   = elTo   && elTo.value   ? elTo.value   : null;
-
-  /* Retorna a parte YYYY-MM-DD de uma string de data/hora qualquer */
-  function extractDate(raw) {
-    var m = String(raw || '').match(/(\d{4}-\d{2}-\d{2})/);
-    return m ? m[1] : null;
-  }
-
-  /* Verifica se a data da falha está dentro do intervalo selecionado */
-  function inDateRange(failDateRaw) {
-    if (!dateFrom && !dateTo) return true;
-    var d = extractDate(failDateRaw);
-    if (!d) return true; /* sem data → não filtra */
-    if (dateFrom && d < dateFrom) return false;
-    if (dateTo   && d > dateTo)   return false;
-    return true;
-  }
-
   var fo = rawOut.filter(function(r) {
     return inSel('wo',  S(r[O.wo])) && inSel('mod', S(r[O.modelo])) &&
            inSel('ser', S(r[O.serial])) &&
@@ -188,7 +166,6 @@ function applyF() {
              inSel('lin', S(r[F.linha]) || m.linha || '') &&
              inSel('st', S(r[F.st])) && inSel('fd', fdv) && inSel('itm', itv) &&
              inSelDtc(S(r[F.descTec])) &&
-             inDateRange(S(r[F.failDate])) &&
              (!inclTrn || inSel('trn', getShift(S(r[F.failDate]))));
     });
   }
@@ -214,11 +191,6 @@ function clearAllF() {
     });
     updateMSLabel(key);
   });
-  /* Limpa também os filtros de data */
-  var elFrom = document.getElementById('filterDateFrom');
-  var elTo   = document.getElementById('filterDateTo');
-  if (elFrom) elFrom.value = '';
-  if (elTo)   elTo.value   = '';
   render(DATA);
 }
 

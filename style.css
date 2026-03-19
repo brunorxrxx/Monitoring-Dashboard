@@ -368,18 +368,6 @@ header{
 }
 .btn-cf:hover{ border-color:#8b1a1a; color:#8b1a1a; background:rgba(139,26,26,0.05); }
 
-/* ════ FILTRO DE DATA ════ */
-.fbar-date-g{ min-width:130px !important; }
-.fbar-date-input{
-  height:30px; padding:0 8px; border:1.5px solid var(--ln2);
-  border-radius:5px; font-size:11px; color:var(--t2);
-  background:#FFFFFF; cursor:pointer;
-  transition:border-color var(--tr-fast);
-  width:100%;
-}
-.fbar-date-input:focus{ outline:none; border-color:#1e3a5f; }
-.fbar-date-input::-webkit-calendar-picker-indicator{ opacity:0.5; cursor:pointer; }
-
 /* ════ TABS ════ */
 .tab-bar{
   display:flex; border-bottom:2px solid var(--ln); margin-bottom:14px;
