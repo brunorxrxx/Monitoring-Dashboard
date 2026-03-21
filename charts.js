@@ -202,26 +202,46 @@ function render(d) {
 
   function parc(st) { var df = sD[st] || 0, t = sO[st] ? sO[st].total : 0; return t ? 1 - df / t : null; }
   function yc(v)    { return !v ? 'var(--t3)' : v >= THRESH.green ? 'var(--green)' : v >= THRESH.warn ? 'var(--amber)' : v >= THRESH.amber ? 'var(--amber)' : 'var(--red)'; }
-  function kpiCls(v){ if (!v || v === null) return ''; if (v < THRESH.warn) return ' kpi-crit'; if (v < THRESH.green) return ' warn'; return ''; }
+  /* kpiCls: define classe de fundo do card por threshold
+     ≥ 99%        → kpi-ok   (fundo verde   #49c351)
+     < 99% ≥ 98%  → warn     (fundo amarelo #FFFF00)
+     < 98%        → kpi-crit (fundo vermelho #FF0000) */
+  function kpiCls(v){ if (!v || v === null) return ''; if (v < 0.98) return ' kpi-crit'; if (v < THRESH.green) return ' warn'; return ' kpi-ok'; }
   function yct(v)   { return v === null ? 'var(--t3)' : v <= 0.01 ? 'var(--green)' : v <= 0.03 ? 'var(--amber)' : 'var(--red)'; }
 
-  /* ── Produção SMT / BE por cliente ── */
+  /* ── Produção SMT / BE por cliente ──
+     Sempre usa _rawOutRows (dados sem filtro de estação/linha/etc.)
+     para que os cards SMT PRODUTION e B.E PRODUTION fiquem fixos
+     independente dos filtros aplicados pelo usuário. */
+  var sO_fixed = {};
+  var _rawOut = (DATA && DATA._rawOutRows) ? DATA._rawOutRows : outRows;
+  _rawOut.forEach(function(r) {
+    var st = S(r[O.st]) || 'N/A';
+    if (!sO_fixed[st]) sO_fixed[st] = { total: 0, pass: 0, fail: 0 };
+    sO_fixed[st].total += N(r[O.total]);
+    sO_fixed[st].pass  += N(r[O.pass]);
+    sO_fixed[st].fail  += N(r[O.fail]);
+  });
+  if (CURRENT_CLIENT === 'asus' && sO_fixed['AVIPK']) {
+    sO_fixed['PACK-QA'] = { total: sO_fixed['AVIPK'].total, pass: sO_fixed['AVIPK'].pass, fail: sO_fixed['AVIPK'].fail };
+  }
+
   var smtProd;
   if (CURRENT_CLIENT === 'huawei') {
-    smtProd = sO['FT2_MP1'] ? sO['FT2_MP1'].pass : (sO['S_VI_T'] ? sO['S_VI_T'].total : 0);
+    smtProd = sO_fixed['FT2_MP1'] ? sO_fixed['FT2_MP1'].pass : (sO_fixed['S_VI_T'] ? sO_fixed['S_VI_T'].total : 0);
   } else {
-    smtProd = sO['S_VI_T'] ? sO['S_VI_T'].total : 0;
+    smtProd = sO_fixed['S_VI_T'] ? sO_fixed['S_VI_T'].total : 0;
   }
   var beProd;
   if (CURRENT_CLIENT === 'hp') {
-    beProd = sO['FVI2'] ? sO['FVI2'].total : 0;
+    beProd = sO_fixed['FVI2'] ? sO_fixed['FVI2'].total : 0;
   } else if (CURRENT_CLIENT === 'huawei') {
-    beProd = sO['ST-MP9'] ? sO['ST-MP9'].pass : (sO['ST-MP1'] ? sO['ST-MP1'].pass : 0);
+    beProd = sO_fixed['ST-MP9'] ? sO_fixed['ST-MP9'].pass : (sO_fixed['ST-MP1'] ? sO_fixed['ST-MP1'].pass : 0);
   } else if (CURRENT_CLIENT === 'asus') {
-    var _stOutFixed = (DATA && DATA.stOut) ? DATA.stOut : sO;
+    var _stOutFixed = (DATA && DATA.stOut) ? DATA.stOut : sO_fixed;
     beProd = _stOutFixed['AVIPK'] ? _stOutFixed['AVIPK'].total : 0;
   } else {
-    beProd = (sO['FBT'] ? sO['FBT'].total : 0) + (sO['F2'] ? sO['F2'].total : 0);
+    beProd = (sO_fixed['FBT'] ? sO_fixed['FBT'].total : 0) + (sO_fixed['F2'] ? sO_fixed['F2'].total : 0);
   }
 
   /* ── KPI row ── */
@@ -233,11 +253,11 @@ function render(d) {
     '<div class="kpi kpi-prod" style="--kc:var(--blue)"><div class="kpi-l">SMT PRODUTION</div><div class="kpi-v">' + fmt(smtProd) + '</div></div>' +
     '<div class="kpi" style="--kc:var(--red)"><div class="kpi-l">TOTAL FALHAS</div><div class="kpi-v">' + fmt(totFDedup) + '</div></div>' +
     '<div class="kpi' + kpiCls(oSMT) + '" style="--kc:' + yc(oSMT) + '"><div class="kpi-l">OVERALL SMT</div><div class="kpi-v">' + pct(oSMT) + '</div></div>' +
-    '<div class="kpi' + kpiCls(oBE) + '" style="--kc:' + yc(oBE) + '"><div class="kpi-l">OVERALL B.E.</div><div class="kpi-v">' + pct(oBE) + '</div></div>' +
+    '<div class="kpi' + kpiCls(oBE)  + '" style="--kc:' + yc(oBE)  + '"><div class="kpi-l">OVERALL B.E.</div><div class="kpi-v">' + pct(oBE) + '</div></div>' +
     '<div class="kpi kpi-pair' + kpiCls(ov) + (taxaAlerta ? ' kpi-taxa-alert' : '') + '" style="--kc:' + yc(ov) + '">' +
       '<div class="kpi-pair-inner">' +
         '<div class="kpi-pair-side"><div class="kpi-l">OVERALL OFICIAL</div><div class="kpi-v kpi-v-fit">' + pct(ov) + '</div></div>' +
-        '<div class="kpi-pair-side"><div class="kpi-l">TAXA DE DEFEITO</div><div class="kpi-v kpi-v-fit kpi-taxa' + (taxaAlerta ? ' kpi-taxa-blink' : '') + '" style="color:' + yct(taxaDef) + '">' + taxaStr + '</div></div>' +
+        '<div class="kpi-pair-side"><div class="kpi-l">TAXA DE DEFEITO</div><div class="kpi-v kpi-v-fit kpi-taxa">' + taxaStr + '</div></div>' +
       '</div>' +
     '</div>';
 
@@ -310,16 +330,19 @@ function render(d) {
   });
   var hK = Object.keys(hrA).filter(function(k) { return k !== '??'; }).sort();
   var hV = hK.map(function(k) { return hrA[k]; });
-  var mxH = Math.max.apply(null, hV.concat([1]));
   var bdHrEl = document.getElementById('bdHr'); if (bdHrEl) bdHrEl.textContent = totFDedup + ' falhas';
+
+  /* Cor por threshold: >= 3 falhas = vermelho, < 3 = azul */
+  function hrBgColor(v)   { return v >= 3 ? 'rgba(139,26,26,0.75)' : 'rgba(30,58,95,0.5)'; }
+  function hrBordColor(v) { return v >= 3 ? '#ff3d5a' : '#4d79ff'; }
 
   var cHourEl = document.getElementById('cHour');
   if (cHourEl) {
     CHARTS.hr = new Chart(cHourEl.getContext('2d'), {
       type: 'bar',
       data: { labels: hK, datasets: [{ label: 'Falhas', data: hV, borderRadius: 4, borderWidth: 1.5,
-        backgroundColor: hV.map(function(v) { return v === mxH ? 'rgba(139,26,26,0.75)' : 'rgba(30,58,95,0.5)'; }),
-        borderColor: hV.map(function(v) { return v === mxH ? '#ff3d5a' : '#4d79ff'; }) }] },
+        backgroundColor: hV.map(hrBgColor),
+        borderColor:     hV.map(hrBordColor) }] },
       options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 24 } },
         plugins: { legend: { display: false },
           tooltip: { callbacks: { label: function(ctx) { return ' Falhas: ' + ctx.raw; } } } },
@@ -490,12 +513,13 @@ function applyHourFilter() {
   if (!DATA || !DATA.defRows) return;
   if (CHARTS.hr) {
     var hK = CHARTS.hr.data.labels, hV = CHARTS.hr.data.datasets[0].data;
-    var mxH = Math.max.apply(null, hV.concat([1]));
     CHARTS.hr.data.datasets[0].backgroundColor = hK.map(function(l, i) {
-      return HOUR_FILTER === null ? (hV[i] === mxH ? '#ff3d5a66' : '#4d79ff30') : l === HOUR_FILTER ? '#00d4ff99' : '#4d79ff18';
+      if (HOUR_FILTER !== null) return l === HOUR_FILTER ? '#00d4ff99' : '#4d79ff18';
+      return hV[i] >= 3 ? '#ff3d5a66' : '#4d79ff30';
     });
     CHARTS.hr.data.datasets[0].borderColor = hK.map(function(l, i) {
-      return HOUR_FILTER === null ? (hV[i] === mxH ? '#ff3d5a' : '#4d79ff') : l === HOUR_FILTER ? '#00d4ff' : '#4d79ff44';
+      if (HOUR_FILTER !== null) return l === HOUR_FILTER ? '#00d4ff' : '#4d79ff44';
+      return hV[i] >= 3 ? '#ff3d5a' : '#4d79ff';
     });
     CHARTS.hr.update('none');
   }
@@ -598,11 +622,10 @@ function rebuildTimeCharts(filteredRows, d) {
   if (CHARTS.hr) {
     var hK = Object.keys(hrA).filter(function(k) { return k !== '??'; }).sort();
     var hV = hK.map(function(k) { return hrA[k]; });
-    var mxH = Math.max.apply(null, hV.concat([1]));
     CHARTS.hr.data.labels = hK;
     CHARTS.hr.data.datasets[0].data = hV;
-    CHARTS.hr.data.datasets[0].backgroundColor = hV.map(function(v) { return v === mxH ? '#ff3d5a66' : '#4d79ff30'; });
-    CHARTS.hr.data.datasets[0].borderColor = hV.map(function(v) { return v === mxH ? '#ff3d5a' : '#4d79ff'; });
+    CHARTS.hr.data.datasets[0].backgroundColor = hV.map(function(v) { return v >= 3 ? '#ff3d5a66' : '#4d79ff30'; });
+    CHARTS.hr.data.datasets[0].borderColor = hV.map(function(v) { return v >= 3 ? '#ff3d5a' : '#4d79ff'; });
     CHARTS.hr.update();
   }
   var tA = { '1ºT': 0, '2ºT': 0, '3ºT': 0 };

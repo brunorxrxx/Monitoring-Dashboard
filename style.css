@@ -226,12 +226,12 @@ header{
 .kpi:hover{ box-shadow:0 4px 16px rgba(15,23,42,0.1); transform:translateY(-1px); }
 .kpi-l{ font-size:10px; letter-spacing:1.5px; color:#334155; font-weight:800; text-transform:uppercase; margin-bottom:8px; }
 .kpi-v{
-  font-size:28px; font-weight:800; color:var(--kc,#1e3a5f);
+  font-size:28px; font-weight:800; color:#000000;
   letter-spacing:-1px; font-family:'IBM Plex Mono',monospace; line-height:1;
 }
-.kpi-taxa{ font-size:20px; font-weight:800; font-family:'IBM Plex Mono',monospace; letter-spacing:1px; transition:color .3s; }
+.kpi-taxa{ font-size:20px; font-weight:800; font-family:'IBM Plex Mono',monospace; letter-spacing:1px; }
 .kpi-taxa-alert{ border-color:#8b1a1a!important; box-shadow:0 0 0 2px rgba(139,26,26,0.15)!important; }
-.kpi-taxa-blink{ animation:kpi-blink 1s ease-in-out infinite; }
+.kpi-taxa-blink{ /* animação removida — valor estático */ }
 .kpi-prod{ border-color:var(--kc)!important; box-shadow:0 2px 8px rgba(30,58,95,0.08); }
 .kpi-pair{ padding:0!important; overflow:hidden; height:100px!important; border-top:3px solid var(--kc)!important; border-radius:var(--r-md); }
 .kpi-pair-inner{ display:flex; height:100%; }
@@ -240,15 +240,26 @@ header{
 .kpi-divider{ display:none; }
 .kpi-v-fit{ font-size:22px!important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-@keyframes kpi-blink{ 0%,100%{opacity:1} 50%{opacity:0.15} }
-.kpi.warn{ border-top-color:#B45309!important; background:#FFFBEB; }
-.kpi.warn .kpi-v{ color:#B45309!important; animation:kpi-blink 1.4s ease-in-out infinite; }
-.kpi.kpi-crit{ border-top-color:#8b1a1a!important; background:#FEF2F2; animation:kpi-crit-pulse 1.2s ease-in-out infinite; }
-@keyframes kpi-crit-pulse{
-  0%,100%{box-shadow:0 0 0 1px rgba(139,26,26,0.15);}
-  50%{box-shadow:0 0 0 3px rgba(139,26,26,0.2);}
+/* ── Regra de fundo por threshold (sem animação, texto sempre preto) ──
+   ≥ 99%        → fundo verde   #49c351
+   < 99% ≥ 97%  → fundo amarelo #FFFF00
+   < 97%        → fundo vermelho #FF0000 */
+.kpi.kpi-ok{
+  background:#49c351;
 }
-.kpi.kpi-crit .kpi-v{ color:#8b1a1a!important; animation:kpi-blink 0.8s ease-in-out infinite; }
+.kpi.kpi-ok .kpi-v{ color:#000000!important; }
+
+.kpi.warn{
+  border-top-color:#B45309!important;
+  background:#FFFF00;
+}
+.kpi.warn .kpi-v{ color:#000000!important; }
+
+.kpi.kpi-crit{
+  border-top-color:#8b1a1a!important;
+  background:#FF0000;
+}
+.kpi.kpi-crit .kpi-v{ color:#000000!important; }
 
 /* ════ TOP ROW ════ */
 .top3{ display:grid; grid-template-columns:220px 1fr 1fr; gap:10px; margin-bottom:10px; align-items:start; }
