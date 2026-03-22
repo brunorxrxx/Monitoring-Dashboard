@@ -76,62 +76,41 @@ function downloadAsusL10Template() {
 
 /* ── Monta cards de upload ASUS ── */
 function buildAsusUploadCards() {
-  return '<div class="up-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">' +
+  var btnL10 =
+    '<button onclick="downloadAsusL10Template()" style="flex:1;background:rgba(30,58,95,0.1);border:1px solid var(--cyan);' +
+    'color:var(--cyan);padding:5px 10px;border-radius:6px;font-size:10px;cursor:pointer;font-weight:700;">⬇ TEMPLATE</button>' +
+    '<button onclick="document.getElementById(\'f-as-outL10\').click()" style="flex:1;background:rgba(255,255,255,0.06);' +
+    'border:1px solid var(--ln2);color:var(--t1);padding:5px 10px;border-radius:6px;font-size:10px;cursor:pointer;">📂 CARREGAR</button>';
 
-    /* Card 1: Output L6 */
-    '<div class="ucard" id="c-as-outL6" onclick="document.getElementById(\'f-as-outL6\').click()">' +
-      '<span class="un">01 · OUTPUT L6 · ASUS</span>' +
-      '<span class="uico">📊</span>' +
-      '<div class="utit">Output_ASUS_L6.xlsx</div>' +
-      '<div class="usub">Line · Work Order · Model Name<br>Test station · Placa Passou · Total · FPY</div>' +
-      '<input type="file" id="f-as-outL6" accept=".xlsx,.xls" onchange="loadAS(this,\'outL6\')"/>' +
-      '<div class="ufile" id="n-as-outL6">Nenhum arquivo</div>' +
-    '</div>' +
-
-    /* Card 2: Falhas L6 — opcional */
-    '<div class="ucard" id="c-as-defL6" onclick="document.getElementById(\'f-as-defL6\').click()">' +
-      '<span class="un">02 · FALHAS L6 · ASUS · OPCIONAL</span>' +
-      '<span class="uico">⚠️</span>' +
-      '<div class="utit">Falhas_L6_ASUS.xlsx <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-      '<div class="usub">Serial · Work Order · Failure Code<br>Test station · Failure date · Item<br>' +
-        '<span style="color:var(--t3)">Se não houver falhas L6, deixe em branco</span></div>' +
-      '<input type="file" id="f-as-defL6" accept=".xlsx,.xls" onchange="loadAS(this,\'defL6\')"/>' +
-      '<div class="ufile" id="n-as-defL6">Nenhum arquivo (zero defeitos)</div>' +
-    '</div>' +
-
-    /* Card 3: Output L10 */
-    '<div class="ucard" id="c-as-outL10">' +
-      '<span class="un">03 · OUTPUT L10 · ASUS · TUF + PRIME</span>' +
-      '<span class="uico">📋</span>' +
-      '<div class="utit">OUTPUT_L10_ASUS.xlsx</div>' +
-      '<div class="usub">TUF: AVI · FT1 · FT2 · AUTO_OBA · AVIPK<br>PRIME: AVI · FT2 · AUTO_OBA · AVIPK<br>' +
-        '<span style="color:var(--t3);font-size:9px">Primeira coluna = Modelo</span></div>' +
-      '<div style="display:flex;gap:6px;margin-top:10px">' +
-        '<button onclick="downloadAsusL10Template()" style="flex:1;background:rgba(0,185,174,0.1);border:1px solid #00B9AE;' +
-          'color:#00B9AE;padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-weight:700">⬇ TEMPLATE</button>' +
-        '<button onclick="document.getElementById(\'f-as-outL10\').click()" style="flex:1;background:rgba(255,255,255,0.05);' +
-          'border:1px solid var(--ln2);color:var(--t1);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer">📂 CARREGAR</button>' +
-      '</div>' +
-      '<input type="file" id="f-as-outL10" accept=".xlsx,.xls" onchange="loadAS(this,\'outL10\')"/>' +
-      '<div class="ufile" id="n-as-outL10">Nenhum arquivo</div>' +
-    '</div>' +
-
-    /* Card 4: Falhas L10 — arquivo ASP */
-    '<div class="ucard" id="c-as-defL10" onclick="document.getElementById(\'f-as-defL10\').click()">' +
-      '<span class="un">04 · FALHAS L10 · ASUS · ASP · OPCIONAL</span>' +
-      '<span class="uico">🔴</span>' +
-      '<div class="utit">sfcmondailyfailurerpt.asp <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-      '<div class="usub">SYSSERIALNO · WORKORDERNO · DESCRIPTION<br>FAILUREEVENTPOINT · REPAIRCOMMENT<br>' +
-        '<b>Formato HTML exportado do SFC</b><br>' +
-        '<span style="color:var(--t3)">Se não houver falhas L10, deixe em branco</span></div>' +
-      '<input type="file" id="f-as-defL10" accept=".asp,.html,.htm,.txt" onchange="loadAsusDefL10(this)"/>' +
-      '<div class="ufile" id="n-as-defL10">Nenhum arquivo (zero defeitos)</div>' +
-    '</div>' +
-
+  return '<div class="up-grid hw-grid">' +
+    buildUploadCard({id:'c-as-outL6', badge:'01 · OUTPUT L6 · ASUS',
+      title:'Output_ASUS_L6.xlsx',
+      subtitle:'Line · Work Order · Model Name<br>Test station · Placa Passou · Total · FPY',
+      fileId:'f-as-outL6', accept:'.xlsx,.xls', onChange:'loadAS(this,\'outL6\')',
+      iconType:'default'
+    }) +
+    buildUploadCard({id:'c-as-defL6', badge:'02 · FALHAS L6 · ASUS',
+      title:'Falhas_L6_ASUS.xlsx',
+      subtitle:'Serial · Work Order · Failure Code<br>Test station · Failure date · Item',
+      fileId:'f-as-defL6', accept:'.xlsx,.xls', onChange:'loadAS(this,\'defL6\')',
+      optional:true, iconType:'warning', dragText:'Opcional — arraste ou clique'
+    }) +
+    buildUploadCard({id:'c-as-outL10', badge:'03 · OUTPUT L10 · ASUS · TUF + PRIME',
+      title:'OUTPUT_L10_ASUS.xlsx',
+      subtitle:'TUF: AVI · FT1 · FT2 · AUTO_OBA · AVIPK<br>PRIME: AVI · FT2 · AUTO_OBA · AVIPK<br><span style="color:var(--t3)">Primeira coluna = Modelo</span>',
+      fileId:'f-as-outL10', accept:'.xlsx,.xls', onChange:'loadAS(this,\'outL10\')',
+      iconType:'template', extraBtns:btnL10, dragText:'Baixe o template, preencha e carregue'
+    }) +
+    buildUploadCard({id:'c-as-defL10', badge:'04 · FALHAS L10 · ASUS · ASP',
+      title:'sfcmondailyfailurerpt.asp',
+      subtitle:'SYSSERIALNO · WORKORDERNO · DESCRIPTION<br>FAILUREEVENTPOINT · REPAIRCOMMENT<br><b>Formato HTML exportado do SFC</b>',
+      fileId:'f-as-defL10', accept:'.asp,.html,.htm,.xls', onChange:'loadAsusDefL10(this)',
+      optional:true, iconType:'warning', dragText:'Opcional — arquivo ASP/HTML do SFC'
+    }) +
   '</div>';
 }
 
-/* ── Carrega arquivo ASUS (outL6, defL6, outL10) ── */
+
 function loadAS(input, key) {
   var file = input.files[0];
   if (!file) return;
@@ -189,13 +168,17 @@ function loadAS(input, key) {
         }
         RAW_AS[key] = { headers: hdrsUniq, rows: rows };
       }
-      var nEl = document.getElementById('n-as-' + key);
-      var cEl = document.getElementById('c-as-' + key);
       var cnt = RAW_AS[key] ? RAW_AS[key].rows.length : 0;
-      if (nEl) nEl.textContent = '✅ ' + file.name + ' — ' + cnt + ' registros';
-      if (cEl) cEl.classList.add('done');
       RAW_CLIENTS['asus'] = RAW_CLIENTS['asus'] || {};
       RAW_CLIENTS['asus'][key] = RAW_AS[key];
+      if (typeof ucardLoaded !== 'undefined') {
+        ucardLoaded('c-as-' + key, 'f-as-' + key, file.name, cnt);
+      } else {
+        var nEl = document.getElementById('n-as-' + key);
+        var cEl = document.getElementById('c-as-' + key);
+        if (nEl) nEl.textContent = '✅ ' + file.name + ' — ' + cnt + ' registros';
+        if (cEl) cEl.classList.add('done');
+      }
       checkReadyAsus();
     } catch(err) {
       showToast('❌ Erro ao ler ' + file.name + ': ' + err.message, 'err');
@@ -217,10 +200,14 @@ function loadAsusDefL10(input) {
       RAW_AS.defL10 = { headers: [], rows: rows };
       RAW_CLIENTS['asus'] = RAW_CLIENTS['asus'] || {};
       RAW_CLIENTS['asus'].defL10 = RAW_AS.defL10;
-      var nEl = document.getElementById('n-as-defL10');
-      var cEl = document.getElementById('c-as-defL10');
-      if (nEl) nEl.textContent = '✅ ' + file.name + ' — ' + rows.length + ' falhas';
-      if (cEl) cEl.classList.add('done');
+      if (typeof ucardLoaded !== 'undefined') {
+        ucardLoaded('c-as-defL10', 'f-as-defL10', file.name, rows.length);
+      } else {
+        var nEl = document.getElementById('n-as-defL10');
+        var cEl = document.getElementById('c-as-defL10');
+        if (nEl) nEl.textContent = '✅ ' + file.name + ' — ' + rows.length + ' falhas';
+        if (cEl) cEl.classList.add('done');
+      }
       checkReadyAsus();
     } catch(err) {
       showToast('❌ Erro ao ler ASP: ' + err.message, 'err');
@@ -606,7 +593,12 @@ function adminGenerateAsus() {
     out: combinedOut, def: combinedDef
   };
 
+  /* Sincroniza CURRENT_CLIENT para que switchClient salve RAW.out no cliente correto */
+  CURRENT_CLIENT = 'asus';
+  ADMIN_CLIENT   = 'asus';
+
   run().then(function() {
+    buildClientTabs(); /* ressincroniza aba ativa com CURRENT_CLIENT */
     showPublishBar();
     showToast('✅ Dashboard ASUS gerado!', 'ok');
     if (btnGo) btnGo.disabled = false;

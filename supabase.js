@@ -91,6 +91,25 @@ function switchClient(clientId) {
   /* Salva filtros atuais agora (redundante com applyF hook, mas garante o último estado) */
   if (IS_ADMIN && CURRENT_CLIENT) {
     ADMIN_FILTERS[CURRENT_CLIENT] = captureFilterState();
+    /* Salva também os dados RAW do cliente atual para não perder ao trocar de aba */
+    var _prev = CURRENT_CLIENT;
+    if (!RAW_CLIENTS[_prev]) RAW_CLIENTS[_prev] = {};
+    if (_prev === 'huawei') {
+      if (RAW_HW.outL6)  RAW_CLIENTS[_prev].outL6  = RAW_HW.outL6;
+      if (RAW_HW.defL6)  RAW_CLIENTS[_prev].defL6  = RAW_HW.defL6;
+      if (RAW_HW.outL10) RAW_CLIENTS[_prev].outL10 = RAW_HW.outL10;
+      if (RAW_HW.defL10) RAW_CLIENTS[_prev].defL10 = RAW_HW.defL10;
+    } else if (_prev === 'asus') {
+      if (typeof RAW_AS !== 'undefined') {
+        if (RAW_AS.outL6)  RAW_CLIENTS[_prev].outL6  = RAW_AS.outL6;
+        if (RAW_AS.defL6)  RAW_CLIENTS[_prev].defL6  = RAW_AS.defL6;
+        if (RAW_AS.outL10) RAW_CLIENTS[_prev].outL10 = RAW_AS.outL10;
+        if (RAW_AS.defL10) RAW_CLIENTS[_prev].defL10 = RAW_AS.defL10;
+      }
+    } else {
+      if (RAW.out) RAW_CLIENTS[_prev].out = RAW.out;
+      if (RAW.def) RAW_CLIENTS[_prev].def = RAW.def;
+    }
   }
 
   /* Sincroniza ADMIN_CLIENT quando admin navega pelas tabs */
@@ -106,45 +125,63 @@ function switchClient(clientId) {
   /* Fonte de dados */
   var src = IS_ADMIN ? RAW_CLIENTS[clientId] : CLIENT_CACHE[clientId];
 
-  if (src && src.out && src.def) {
-    RAW.out = src.out;
-    RAW.def = src.def;
-    killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = {fd:null,itm:null};
+  /* ── Verifica se há dados disponíveis (Huawei/Asus usam chaves diferentes) ── */
+  var hasData;
+  if (clientId === 'huawei') {
+    var hw = RAW_CLIENTS[clientId] || {};
+    hasData = !!(hw.outL6);
+  } else if (clientId === 'asus') {
+    var as_ = RAW_CLIENTS[clientId] || {};
+    hasData = !!(as_.outL6);
+  } else {
+    hasData = !!(src && src.out && src.def);
+  }
 
-    /* Guarda o clientId em closure para o then() */
-    var targetClient = clientId;
-    run().then(function(){
-      if (IS_ADMIN) {
-        /* Restaura filtros do admin para este cliente */
-        var saved = ADMIN_FILTERS[targetClient];
-        if (saved && saved !== '{}') {
-          applyDefaultFilters(saved);
-        }
-        /* Mostra barra de publicação se estava ativa */
-        if (document.getElementById('adminPublishBar')) {
-          showPublishBar();
-        }
-      } else {
-        var d = CLIENT_CACHE[targetClient];
-        if (d) {
-          if (d.default_filters && d.default_filters !== '{}') applyDefaultFilters(d.default_filters);
-          if (d.updated_at) {
-            setStatus('on', c_label(targetClient) + ' · ' + new Date(d.updated_at).toLocaleString('pt-BR'));
-            showLastUpdateBanner(d.updated_at);
+  if (hasData) {
+    if (clientId === 'huawei') {
+      /* Restaura RAW_HW e gera dashboard Huawei */
+      var hwSrc = RAW_CLIENTS[clientId];
+      RAW_HW.outL6  = hwSrc.outL6  || null;
+      RAW_HW.defL6  = hwSrc.defL6  || null;
+      RAW_HW.outL10 = hwSrc.outL10 || null;
+      RAW_HW.defL10 = hwSrc.defL10 || null;
+      adminGenerateHuawei();
+    } else if (clientId === 'asus') {
+      /* Restaura RAW_AS e gera dashboard Asus */
+      var asSrc = RAW_CLIENTS[clientId];
+      RAW_AS.outL6  = asSrc.outL6  || null;
+      RAW_AS.defL6  = asSrc.defL6  || null;
+      RAW_AS.outL10 = asSrc.outL10 || null;
+      RAW_AS.defL10 = asSrc.defL10 || null;
+      adminGenerateAsus();
+    } else {
+      RAW.out = src.out;
+      RAW.def = src.def;
+      killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = {fd:null,itm:null};
+      var targetClient = clientId;
+      run().then(function(){
+        if (IS_ADMIN) {
+          var saved = ADMIN_FILTERS[targetClient];
+          if (saved && saved !== '{}') applyDefaultFilters(saved);
+          if (document.getElementById('adminPublishBar')) showPublishBar();
+        } else {
+          var d = CLIENT_CACHE[targetClient];
+          if (d) {
+            if (d.default_filters && d.default_filters !== '{}') applyDefaultFilters(d.default_filters);
+            if (d.updated_at) {
+              setStatus('on', c_label(targetClient) + ' · ' + new Date(d.updated_at).toLocaleString('pt-BR'));
+              showLastUpdateBanner(d.updated_at);
+            }
           }
         }
-      }
-    });
+      });
+    }
   } else if (IS_ADMIN) {
-    /* Admin tentou trocar para cliente sem dados — volta para upload */
-    showToast('⚠ Carregue os dados de ' + c_label(clientId) + ' primeiro', 'err');
-    /* Reverte a tab visual */
-    CURRENT_CLIENT = CLIENTS.find(function(c){ return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out; }) ?
-      CLIENTS.find(function(c){ return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out; }).id : CURRENT_CLIENT;
-    CLIENTS.forEach(function(c){
-      var btn = document.getElementById('ctab-' + c.id);
-      if (btn) btn.classList.toggle('active', c.id === CURRENT_CLIENT);
-    });
+    /* Admin sem dados — abre painel de upload direto no cliente correto */
+    ADMIN_CLIENT = clientId;
+    showUpZoneAdmin();
+    renderAdminUpload();
+    showSubPanel('adminUploadBox');
   } else {
     loadClientFromSupabase(clientId);
   }
@@ -299,23 +336,19 @@ function renderAdminUpload() {
   var isAS = ADMIN_CLIENT === 'asus';
   var uploadGrid = isHW ? buildHuaweiUploadCards() : isAS ? buildAsusUploadCards() : (
     '<div class="up-grid">' +
-      '<div class="ucard" id="c-out" onclick="document.getElementById(\'f-out\').click()">' +
-        '<span class="un">01 · OUTPUT · ' + c_label(ADMIN_CLIENT) + '</span>' +
-        '<span class="uico">📊</span>' +
-        '<div class="utit">OUT.xlsx — Dados de Produção</div>' +
-        '<div class="usub">Line · Work Order · Model Name · Model Serial<br>Test station · Placa Passou · Placa Falhou · <b>Total</b> · FPY (%)</div>' +
-        '<input type="file" id="f-out" accept=".xlsx,.xls" onchange="loadXL(this,\'out\')"/>' +
-        '<div class="ufile" id="n-out">Nenhum arquivo</div>' +
-      '</div>' +
-      '<div class="ucard" id="c-def" onclick="document.getElementById(\'f-def\').click()">' +
-        '<span class="un">02 · FALHAS · ' + c_label(ADMIN_CLIENT) + ' · OPCIONAL</span>' +
-        '<span class="uico">⚠️</span>' +
-        '<div class="utit">FALHAS.xlsx — Registro de Defeitos <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-        '<div class="usub">Serial · Work Order · Failure Code · Description<br>Test station · Failure date · Reason Code · Item<br>' +
-          '<span style="color:var(--t3)">Se não houver falhas no período, deixe em branco</span></div>' +
-        '<input type="file" id="f-def" accept=".xlsx,.xls" onchange="loadXL(this,\'def\')"/>' +
-        '<div class="ufile" id="n-def">Nenhum arquivo (será assumido zero defeitos)</div>' +
-      '</div>' +
+    buildUploadCard({id:'c-out', badge:'01 · OUTPUT · '+c_label(ADMIN_CLIENT),
+        title:'OUT.xlsx — Dados de Produção',
+        subtitle:'Line · Work Order · Model Name · Model Serial<br>Test station · Placa Passou · Placa Falhou · <b>Total</b> · FPY (%)',
+        fileId:'f-out', accept:'.xlsx,.xls', onChange:'loadXL(this,\'out\')',
+        iconType:'default'
+      }) +
+    buildUploadCard({id:'c-def', badge:'02 · FALHAS · '+c_label(ADMIN_CLIENT)+' · OPCIONAL',
+        title:'FALHAS.xlsx — Registro de Defeitos',
+        subtitle:'Serial · Work Order · Failure Code · Description<br>Test station · Failure date · Reason Code · Item',
+        fileId:'f-def', accept:'.xlsx,.xls', onChange:'loadXL(this,\'def\')',
+        optional:true, iconType:'warning',
+        dragText:'Opcional — arraste ou clique'
+      }) +
     '</div>'
   );
 
@@ -333,6 +366,12 @@ function renderAdminUpload() {
     uploadGrid +
     '<div class="abar" style="margin-top:16px">' +
       '<span class="hint" id="hint">' + (isHW ? 'Carregue os 4 arquivos para publicar' : isAS ? 'Carregue pelo menos o Output L6 ASUS' : 'Carregue os 2 arquivos para publicar') + '</span>' +
+      '<button id="btnGo" onclick="adminGenerateAndPublish()" disabled ' +
+        'style="background:linear-gradient(135deg,#1e3a5f,#1e40af);color:#fff;border:none;' +
+        'border-radius:8px;padding:10px 24px;font-size:12px;font-weight:700;letter-spacing:2px;' +
+        'cursor:pointer;transition:opacity 0.2s;opacity:0.4">' +
+        '▶ GERAR DASHBOARD' +
+      '</button>' +
     '</div>';
 
   /* Restaura estado de arquivos já carregados para este cliente */
@@ -367,6 +406,11 @@ function renderAdminUpload() {
     RAW.out = null;
     RAW.def = null;
   }
+  /* Anima cards e ativa drag-and-drop após renderizar */
+  setTimeout(function() {
+    animateUploadCards();
+    initCardDragDrop();
+  }, 50);
 }
 
 function switchAdminClient(clientId) {
@@ -378,6 +422,13 @@ function switchAdminClient(clientId) {
     if (RAW_HW.defL6)  RAW_CLIENTS[ADMIN_CLIENT].defL6  = RAW_HW.defL6;
     if (RAW_HW.outL10) RAW_CLIENTS[ADMIN_CLIENT].outL10 = RAW_HW.outL10;
     if (RAW_HW.defL10) RAW_CLIENTS[ADMIN_CLIENT].defL10 = RAW_HW.defL10;
+  } else if (ADMIN_CLIENT === 'asus') {
+    if (typeof RAW_AS !== 'undefined') {
+      if (RAW_AS.outL6)  RAW_CLIENTS[ADMIN_CLIENT].outL6  = RAW_AS.outL6;
+      if (RAW_AS.defL6)  RAW_CLIENTS[ADMIN_CLIENT].defL6  = RAW_AS.defL6;
+      if (RAW_AS.outL10) RAW_CLIENTS[ADMIN_CLIENT].outL10 = RAW_AS.outL10;
+      if (RAW_AS.defL10) RAW_CLIENTS[ADMIN_CLIENT].defL10 = RAW_AS.defL10;
+    }
   } else {
     if (RAW.out) RAW_CLIENTS[ADMIN_CLIENT].out = RAW.out;
     if (RAW.def) RAW_CLIENTS[ADMIN_CLIENT].def = RAW.def;
@@ -389,10 +440,9 @@ function switchAdminClient(clientId) {
     ADMIN_FILTERS[ADMIN_CLIENT] = captured;
   }
   ADMIN_CLIENT = clientId;
-  /* Restaura dados + filtros do novo cliente */
+  /* Restaura RAW do novo cliente */
   var saved = RAW_CLIENTS[clientId];
   if (clientId === 'huawei') {
-    /* Huawei usa RAW_HW — não RAW.out/def */
     if (saved) {
       RAW_HW.outL6  = saved.outL6  || null;
       RAW_HW.defL6  = saved.defL6  || null;
@@ -402,6 +452,14 @@ function switchAdminClient(clientId) {
       RAW_HW = {outL6:null, defL6:null, outL10:null, defL10:null};
     }
     RAW.out = null; RAW.def = null;
+  } else if (clientId === 'asus') {
+    if (typeof RAW_AS !== 'undefined') {
+      RAW_AS.outL6  = (saved && saved.outL6)  || null;
+      RAW_AS.defL6  = (saved && saved.defL6)  || null;
+      RAW_AS.outL10 = (saved && saved.outL10) || null;
+      RAW_AS.defL10 = (saved && saved.defL10) || null;
+    }
+    RAW.out = null; RAW.def = null;
   } else if (saved) {
     RAW.out = saved.out || null;
     RAW.def = saved.def || null;
@@ -409,12 +467,19 @@ function switchAdminClient(clientId) {
     RAW.out = null;
     RAW.def = null;
   }
-  renderAdminUpload();
+  /* Garante painel visível e reconstrói conteúdo */
+  try {
+    showUpZoneAdmin();
+    renderAdminUpload();
+    showSubPanel('adminUploadBox');
+  } catch(e) {
+    console.error('[switchAdminClient] Erro:', e);
+    showToast('Erro ao carregar painel: ' + e.message, 'err');
+  }
 }
 
-/* ── Override de checkReady para salvar em RAW_CLIENTS ── */
-var _origCheckReady = null;
-function checkReady() {
+/* ── checkReady padrão (Acer/HP) ── */
+function checkReadyDefault() {
   /* Para Acer/HP: apenas o arquivo OUT é obrigatório.
      Se não houver FALHAS, assume lista vazia (zero defeitos no período). */
   var ok = !!(RAW.out); /* falhas são opcionais */
@@ -510,9 +575,17 @@ function adminGenerateAndPublish() {
   if (btnGo) btnGo.disabled = true;
   showToast('⏳ Gerando dashboard...', 'info');
 
+  /* Sincroniza CURRENT_CLIENT para que switchClient salve RAW.out no cliente correto */
+  CURRENT_CLIENT = ADMIN_CLIENT;
+
+  /* Salva dados do cliente atual em RAW_CLIENTS antes de rodar */
+  if (!RAW_CLIENTS[ADMIN_CLIENT]) RAW_CLIENTS[ADMIN_CLIENT] = {};
+  RAW_CLIENTS[ADMIN_CLIENT].out = RAW.out;
+  RAW_CLIENTS[ADMIN_CLIENT].def = RAW.def;
+
   /* Roda o dashboard para o admin ver e poder filtrar */
   run().then(function(){
-    /* Mostra botão "Publicar com filtros atuais" no dashboard */
+    buildClientTabs(); /* ressincroniza aba ativa com CURRENT_CLIENT */
     showPublishBar();
     showToast('✅ Dashboard gerado! Aplique filtros se quiser, depois publique.', 'ok');
   }).catch(function(e){
@@ -1051,3 +1124,129 @@ function showSlideshowIndicator(available, secsLeft) {
 }
 
 
+
+
+/* ═══════════════════════════════════════════════════════════════
+   UPLOAD CARDS v2 — Design cloud drag-and-drop + GSAP
+═══════════════════════════════════════════════════════════════ */
+
+/* SVGs dos ícones por tipo de card */
+var UC_ICONS = {
+  default: '<svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  template:'<svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  done:    '<svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+};
+
+/* ── buildUploadCard: gera HTML de um card novo estilo ──
+   cfg = {
+     id:        string  — id do card (ex: 'c-out')
+     badge:     string  — label topo (ex: '01 · OUTPUT · ACER')
+     title:     string  — nome do arquivo
+     subtitle:  string  — colunas esperadas (HTML)
+     fileId:    string  — id do <input type=file>
+     accept:    string  — ex: '.xlsx,.xls'
+     onChange:  string  — onchange handler como string
+     optional:  bool    — mostra badge "opcional"
+     iconType:  string  — 'default'|'warning'|'template'
+     extraBtns: string  — HTML extra (ex: botão BAIXAR TEMPLATE)
+     dragText:  string  — texto da dica de drag (padrão: 'Arraste ou clique')
+   }
+*/
+function buildUploadCard(cfg) {
+  var icon     = UC_ICONS[cfg.iconType || 'default'];
+  var iconWrapBg = cfg.optional
+    ? 'background:linear-gradient(135deg,#FDE68A,#FCD34D)'
+    : 'background:linear-gradient(135deg,#BFDBFE,#93C5FD)';
+  var optTag = cfg.optional
+    ? ' <span style="font-size:9px;color:#B45309;font-weight:700;background:#FEF3C7;padding:1px 6px;border-radius:10px;vertical-align:middle">OPCIONAL</span>'
+    : '';
+
+  return (
+    '<div class="ucard" id="' + cfg.id + '" onclick="document.getElementById(\'' + cfg.fileId + '\').click()">' +
+      '<span class="un">' + cfg.badge + '</span>' +
+      '<div class="uico-wrap" style="' + iconWrapBg + '">' + icon + '</div>' +
+      '<div class="utit">' + cfg.title + optTag + '</div>' +
+      '<div class="usub">' + cfg.subtitle + '</div>' +
+      (cfg.extraBtns ? '<div style="margin-top:10px" onclick="event.stopPropagation()">' + cfg.extraBtns + '</div>' : '') +
+      '<p class="udrag">' + (cfg.dragText || 'Arraste ou clique para selecionar') + '</p>' +
+      '<input type="file" id="' + cfg.fileId + '" accept="' + cfg.accept + '" onchange="' + cfg.onChange + '"/>' +
+      '<div class="ufile-row" id="n-' + cfg.fileId + '">' +
+        '<div class="ufile-icon">✅</div>' +
+        '<div class="ufile-info">' +
+          '<div class="ufile-name" id="n-' + cfg.fileId + '-name">—</div>' +
+          '<div class="ufile-meta" id="n-' + cfg.fileId + '-meta"></div>' +
+        '</div>' +
+      '</div>' +
+      /* mantém compatibilidade com código que usa getElementById('n-xxx') */
+      '<div class="ufile" id="n-' + cfg.id.replace('c-','') + '"></div>' +
+    '</div>'
+  );
+}
+
+/* ── Atualiza visual do card após carregar arquivo ── */
+function ucardLoaded(cardId, fileInputId, filename, records) {
+  var card = document.getElementById(cardId);
+  var row  = document.getElementById('n-' + fileInputId);
+  var nm   = document.getElementById('n-' + fileInputId + '-name');
+  var mt   = document.getElementById('n-' + fileInputId + '-meta');
+
+  if (nm) nm.textContent = filename;
+  if (mt) mt.textContent = records + ' registros';
+
+  if (row) {
+    row.classList.add('visible');
+    if (typeof gsap !== 'undefined') {
+      gsap.from(row, { y: 10, opacity: 0, duration: 0.35, ease: 'power2.out' });
+    }
+  }
+
+  if (card) {
+    card.classList.add('done');
+    if (typeof gsap !== 'undefined') {
+      gsap.timeline()
+        .to(card, { scale: 1.03, duration: 0.15, ease: 'power1.out' })
+        .to(card, { scale: 1,    duration: 0.2,  ease: 'bounce.out' });
+    }
+    /* Atualiza ícone do uico-wrap para checkmark */
+    var wrap = card.querySelector('.uico-wrap');
+    if (wrap) {
+      wrap.style.background = 'linear-gradient(135deg,#6EE7B7,#34D399)';
+      wrap.innerHTML = UC_ICONS.done;
+    }
+  }
+}
+
+/* ── Animação de entrada dos cards ao abrir o painel ── */
+function animateUploadCards() {
+  if (typeof gsap === 'undefined') return;
+  gsap.from('.ucard', {
+    y: 28, opacity: 0, duration: 0.45,
+    stagger: 0.08, ease: 'power2.out',
+    clearProps: 'all'
+  });
+}
+
+/* ── Drag-and-drop nativo para todos os cards ── */
+function initCardDragDrop() {
+  document.querySelectorAll('.ucard').forEach(function(card) {
+    card.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', function() {
+      card.classList.remove('drag-over');
+    });
+    card.addEventListener('drop', function(e) {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      var input = card.querySelector('input[type=file]');
+      if (!input || !e.dataTransfer.files.length) return;
+      /* Injeta o arquivo no input e dispara o onchange */
+      var dt = new DataTransfer();
+      dt.items.add(e.dataTransfer.files[0]);
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change'));
+    });
+  });
+}

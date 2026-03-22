@@ -1,10 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   CLIENTS/HUAWEI.JS — Pipeline HUAWEI (4 arquivos: L6 e L10)
+   HUAWEI.JS — Pipeline HUAWEI (4 arquivos: L6 e L10)
    Dependências: utils.js, config.js, parser.js, run.js, supabase.js
-═══════════════════════════════════════════════════════════════ */
-/* ═══════════════════════════════════════════════════════════════
-   HUAWEI — PIPELINE COMPLETO
-   4 arquivos: Output L6, Falhas L6, Output L10, Falhas L10
 ═══════════════════════════════════════════════════════════════ */
 
 /* ── Lista oficial de modelos Huawei ── */
@@ -31,54 +27,40 @@ var RAW_HW = { outL6: null, defL6: null, outL10: null, defL10: null };
 
 /* ── UI de upload 4 cards para Huawei ── */
 function buildHuaweiUploadCards() {
+  var btnTemplate =
+    '<button onclick="downloadL10Template()" style="flex:1;background:rgba(30,58,95,0.1);border:1px solid var(--cyan);' +
+    'color:var(--cyan);padding:5px 10px;border-radius:6px;font-size:10px;cursor:pointer;font-weight:700;">⬇ TEMPLATE</button>' +
+    '<button onclick="document.getElementById(\'f-hw-outL10\').click()" style="flex:1;background:rgba(255,255,255,0.06);' +
+    'border:1px solid var(--ln2);color:var(--t1);padding:5px 10px;border-radius:6px;font-size:10px;cursor:pointer;">📂 CARREGAR</button>';
+
   return '<div class="up-grid hw-grid">' +
-    /* Card 1: Output L6 */
-    '<div class="ucard" id="c-hw-outL6" onclick="document.getElementById(\'f-hw-outL6\').click()">' +
-      '<span class="un">01 · OUTPUT L6 · HUAWEI</span>' +
-      '<span class="uico">📊</span>' +
-      '<div class="utit">Output_huawei_L6.xlsx</div>' +
-      '<div class="usub">Line · Work Order · Model Name · Model Serial<br>Test station · Placa Passou · Placa Falhou · Total · FPY (%)</div>' +
-      '<input type="file" id="f-hw-outL6" accept=".xlsx,.xls" onchange="loadHW(this,\'outL6\')"/>' +
-      '<div class="ufile" id="n-hw-outL6">Nenhum arquivo</div>' +
-    '</div>' +
-    /* Card 2: Falhas L6 — opcional */
-    '<div class="ucard" id="c-hw-defL6" onclick="document.getElementById(\'f-hw-defL6\').click()">' +
-      '<span class="un">02 · FALHAS L6 · HUAWEI · OPCIONAL</span>' +
-      '<span class="uico">⚠️</span>' +
-      '<div class="utit">Falhas_L6_HUAWEI.xlsx <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-      '<div class="usub">Serial · Work Order · Failure Code · Description<br>Test station · Failure date · Item<br>' +
-        '<span style="color:var(--t3)">Se não houver falhas L6, deixe em branco</span></div>' +
-      '<input type="file" id="f-hw-defL6" accept=".xlsx,.xls" onchange="loadHW(this,\'defL6\')"/>' +
-      '<div class="ufile" id="n-hw-defL6">Nenhum arquivo (zero defeitos)</div>' +
-    '</div>' +
-    /* Card 3: Output L10 — template download + upload (sem combobox) */
-    '<div class="ucard" id="c-hw-outL10">' +
-      '<span class="un">03 · OUTPUT L10 · HUAWEI</span>' +
-      '<span class="uico">📋</span>' +
-      '<div class="utit">OUTPUT_L10_HUAWEI.xlsx</div>' +
-      '<div class="usub">ST-MP1 · ST-MP13 · ST-MP9<br>Input · Qty Pass · Qty Fail · First Pass<br>' +
-        '<span style="color:var(--t3);font-size:9px">Modelo definido por linha no template</span></div>' +
-      '<div style="display:flex;gap:6px;margin-top:12px">' +
-        '<button onclick="downloadL10Template()" style="flex:1;background:rgba(0,212,255,0.1);border:1px solid var(--cyan);' +
-          'color:var(--cyan);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-weight:700">⬇ BAIXAR TEMPLATE</button>' +
-        '<button onclick="document.getElementById(\'f-hw-outL10\').click()" style="flex:1;background:rgba(255,255,255,0.05);' +
-          'border:1px solid var(--ln2);color:var(--t1);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer">📂 CARREGAR</button>' +
-      '</div>' +
-      '<input type="file" id="f-hw-outL10" accept=".xlsx,.xls" onchange="loadHW(this,\'outL10\')"/>' +
-      '<div class="ufile" id="n-hw-outL10">Nenhum arquivo</div>' +
-    '</div>' +
-    /* Card 4: Falhas L10 (HTML xls) — opcional */
-    '<div class="ucard" id="c-hw-defL10" onclick="document.getElementById(\'f-hw-defL10\').click()">' +
-      '<span class="un">04 · FALHAS L10 · HUAWEI · OPCIONAL</span>' +
-      '<span class="uico">🔴</span>' +
-      '<div class="utit">Falhas_L10_HUAWEI.xls <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-      '<div class="usub">Serial · Work Order · Estação · Descrição Falha<br><b>Formato HTML exportado do SFC/MES</b><br>' +
-        '<span style="color:var(--t3)">Se não houver falhas L10, deixe em branco</span></div>' +
-      '<input type="file" id="f-hw-defL10" accept=".xls,.xlsx,.html,.htm" onchange="loadHWDefL10(this)"/>' +
-      '<div class="ufile" id="n-hw-defL10">Nenhum arquivo (zero defeitos)</div>' +
-    '</div>' +
+    buildUploadCard({id:'c-hw-outL6', badge:'01 · OUTPUT L6 · HUAWEI',
+      title:'Output_huawei_L6.xlsx',
+      subtitle:'Line · Work Order · Model Name · Model Serial<br>Test station · Placa Passou · Placa Falhou · Total · FPY (%)',
+      fileId:'f-hw-outL6', accept:'.xlsx,.xls', onChange:'loadHW(this,\'outL6\')',
+      iconType:'default'
+    }) +
+    buildUploadCard({id:'c-hw-defL6', badge:'02 · FALHAS L6 · HUAWEI',
+      title:'Falhas_L6_HUAWEI.xlsx',
+      subtitle:'Serial · Work Order · Failure Code · Description<br>Test station · Failure date · Item',
+      fileId:'f-hw-defL6', accept:'.xlsx,.xls', onChange:'loadHW(this,\'defL6\')',
+      optional:true, iconType:'warning', dragText:'Opcional — arraste ou clique'
+    }) +
+    buildUploadCard({id:'c-hw-outL10', badge:'03 · OUTPUT L10 · HUAWEI',
+      title:'OUTPUT_L10_HUAWEI.xlsx',
+      subtitle:'ST-MP1 · ST-MP13 · ST-MP9<br>Input · Qty Pass · Qty Fail · First Pass',
+      fileId:'f-hw-outL10', accept:'.xlsx,.xls', onChange:'loadHW(this,\'outL10\')',
+      iconType:'template', extraBtns:btnTemplate, dragText:'Baixe o template, preencha e carregue'
+    }) +
+    buildUploadCard({id:'c-hw-defL10', badge:'04 · FALHAS L10 · HUAWEI',
+      title:'Falhas_L10_HUAWEI.xls',
+      subtitle:'SYSSERIALNO · WORKORDERNO · DESCRIPTION<br>FAILUREEVENTPOINT · REPAIRCOMMENT<br><b>Formato HTML exportado do SFC</b>',
+      fileId:'f-hw-defL10', accept:'.xls,.xlsx,.html,.htm', onChange:'loadHWDefL10(this)',
+      optional:true, iconType:'warning', dragText:'Opcional — arquivo .xls ou HTML do SFC'
+    }) +
   '</div>';
 }
+
 
 function restoreHuaweiUploadUI() {
   var map = {outL6:'📊 Output L6', defL6:'⚠️ Falhas L6', outL10:'📋 Output L10', defL10:'🔴 Falhas L10'};
@@ -128,8 +110,9 @@ function loadHW(input, key) {
         rows.push(obj);
       }
       RAW_HW[key] = {headers:headers, rows:rows};
-      if (nEl) { nEl.style.color=''; nEl.textContent='✅ '+file.name+' — '+rows.length+' registros'; }
-      if (cEl) cEl.classList.add('done');
+      if (nEl) nEl.textContent = '✅ '+file.name+' — '+rows.length+' registros';
+      if (typeof ucardLoaded !== 'undefined') ucardLoaded('c-hw-'+key, 'f-hw-'+key, file.name, rows.length);
+      else if (cEl) cEl.classList.add('done');
       checkReady();
     } catch(err) {
       if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Erro: '+err.message; }
@@ -175,8 +158,9 @@ function loadHWDefL10(input) {
         }
       });
       RAW_HW.defL10 = {headers:headers, rows:rows};
-      if (nEl) { nEl.style.color=''; nEl.textContent='✅ '+file.name+' — '+rows.length+' registros'; }
-      if (cEl) cEl.classList.add('done');
+      if (nEl) nEl.textContent = '✅ '+file.name+' — '+rows.length+' registros';
+      if (typeof ucardLoaded !== 'undefined') ucardLoaded('c-hw-defL10', 'f-hw-defL10', file.name, rows.length);
+      else if (cEl) cEl.classList.add('done');
       checkReady();
     } catch(err) {
       if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Erro: '+err.message; }
@@ -185,40 +169,7 @@ function loadHWDefL10(input) {
   reader.readAsArrayBuffer(file);
 }
 
-/* ── checkReady para Huawei — somente outL6 é obrigatório ── */
-var _origCheckReady = checkReady;
-checkReady = function() {
-  if (typeof ADMIN_CLIENT !== 'undefined' && ADMIN_CLIENT === 'asus') {
-    checkReadyAsus();
-    return;
-  }
-  if (typeof ADMIN_CLIENT !== 'undefined' && ADMIN_CLIENT === 'huawei') {
-    /* Apenas outL6 é obrigatório; outL10, defL6 e defL10 são todos opcionais */
-    var ok = !!(RAW_HW.outL6);
-    var btn = document.getElementById('btnGo');
-    if (btn) btn.disabled = !ok;
-    var hint = document.getElementById('hint');
-    if (hint) {
-      if (!ok) {
-        hint.textContent = 'Aguardando: outL6 (Output L6 obrigatório)';
-      } else {
-        var noFiles = [];
-        if (!RAW_HW.outL10) noFiles.push('Output L10');
-        if (!RAW_HW.defL6)  noFiles.push('Falhas L6');
-        if (!RAW_HW.defL10) noFiles.push('Falhas L10');
-        /* Garante estruturas vazias para os opcionais ausentes */
-        if (!RAW_HW.outL10) RAW_HW.outL10 = { headers: [], rows: [] };
-        if (!RAW_HW.defL6)  RAW_HW.defL6  = { headers: [], rows: [] };
-        if (!RAW_HW.defL10) RAW_HW.defL10 = { headers: [], rows: [] };
-        hint.textContent = noFiles.length
-          ? '✓ Sem ' + noFiles.join(' / ') + ' — OK, zero defeitos assumido. Clique em GERAR'
-          : '✓ Todos os arquivos prontos — clique em GERAR DASHBOARD';
-      }
-    }
-    return;
-  }
-  _origCheckReady();
-};
+
 
 /* ── Template download para Output L10 — arquivo oficial ── */
 function downloadL10Template() {
@@ -273,22 +224,6 @@ function adminGenerateHuawei() {
   /* ── L6 Output: já é padrão Foxconn ── */
   var STD_HEADERS_OUT = ['Line','Work Order','Model Name','Model Serial','Test station',
     'Placa Passou','Placa Falhou','Total','Defect Rate (%)','FPY (%)'];
-
-  /* ── Replace Model Name no outL6 ASUS: PN → nome do modelo ── */
-  RAW_AS.outL6.rows.forEach(function(r) {
-    /* Model Name (col C) = PN como '59MB14AB-MB0B01S' → 'TUF GAMING B550M-PLUS' */
-    var mnKey = Object.keys(r).find(function(k){
-      return k.toLowerCase().indexOf('model name') !== -1 ||
-             k.toLowerCase().indexOf('model serial') !== -1 ||
-             k === 'Model Name' || k === 'Model Serial';
-    });
-    /* Tenta cada coluna Model Name / Model Serial */
-    ['Model Name','Model Serial'].forEach(function(col) {
-      if (r[col] !== undefined) {
-        r[col] = asusModelName(r[col]);
-      }
-    });
-  });
 
   /* ── Normaliza L10 Output → formato padrão ── */
   /* Prioridade de modelo: 1) coluna "Modelo" no arquivo, 2) ComboBox selecionado */
@@ -369,7 +304,12 @@ function adminGenerateHuawei() {
     out: combinedOut, def: combinedDef
   };
 
+  /* Sincroniza CURRENT_CLIENT para que switchClient salve RAW.out no cliente correto */
+  CURRENT_CLIENT = 'huawei';
+  ADMIN_CLIENT   = 'huawei';
+
   run().then(function(){
+    buildClientTabs(); /* ressincroniza aba ativa com CURRENT_CLIENT */
     showPublishBar();
     showToast('✅ Dashboard Huawei gerado!', 'ok');
     if (btnGo) btnGo.disabled = false;
@@ -379,4 +319,40 @@ function adminGenerateHuawei() {
   });
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ── checkReady dispatcher — sem recursão, sem _origCheckReady ── */
+/* Sobreescreve as versões de parser.js e supabase.js com um único ponto de entrada */
+function checkReady() {
+  if (typeof ADMIN_CLIENT !== 'undefined' && ADMIN_CLIENT === 'asus') {
+    checkReadyAsus();
+    return;
+  }
+  if (typeof ADMIN_CLIENT !== 'undefined' && ADMIN_CLIENT === 'huawei') {
+    var ok = !!(RAW_HW.outL6);
+    var btn = document.getElementById('btnGo');
+    if (btn) {
+      btn.disabled = !ok;
+      btn.style.opacity = ok ? '1' : '0.4';
+      btn.style.cursor  = ok ? 'pointer' : 'not-allowed';
+    }
+    var hint = document.getElementById('hint');
+    if (hint) {
+      if (!ok) {
+        hint.textContent = 'Aguardando: Output L6 Huawei (obrigatório)';
+      } else {
+        var noFiles = [];
+        if (!RAW_HW.outL10) noFiles.push('Output L10');
+        if (!RAW_HW.defL6)  noFiles.push('Falhas L6');
+        if (!RAW_HW.defL10) noFiles.push('Falhas L10');
+        if (!RAW_HW.outL10) RAW_HW.outL10 = { headers: [], rows: [] };
+        if (!RAW_HW.defL6)  RAW_HW.defL6  = { headers: [], rows: [] };
+        if (!RAW_HW.defL10) RAW_HW.defL10 = { headers: [], rows: [] };
+        hint.textContent = noFiles.length
+          ? '✓ Sem ' + noFiles.join(' / ') + ' — OK, zero defeitos assumido. Clique em GERAR'
+          : '✓ Todos os arquivos prontos — clique em GERAR DASHBOARD';
+      }
+    }
+    return;
+  }
+  /* Acer / HP — usa versão padrão do supabase.js */
+  checkReadyDefault();
+}

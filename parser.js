@@ -51,8 +51,11 @@ function loadXL(input, key) {
         rows.push(obj);
       }
       RAW[key] = { headers: headers, rows: rows };
-      if (nEl) { nEl.style.color = ''; nEl.textContent = '✅ ' + file.name + ' — ' + rows.length + ' registros'; }
-      if (cEl) cEl.classList.add('done');
+      if (nEl) nEl.textContent = '✅ ' + file.name + ' — ' + rows.length + ' registros';
+      var cardId = key === 'out' ? 'c-out' : 'c-def';
+      var fileId = key === 'out' ? 'f-out' : 'f-def';
+      if (typeof ucardLoaded !== 'undefined') ucardLoaded(cardId, fileId, file.name, rows.length);
+      else if (cEl) cEl.classList.add('done');
       checkReady();
     } catch (err) {
       if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Erro: ' + err.message; }
