@@ -125,9 +125,12 @@ function switchClient(clientId) {
   /* Fonte de dados */
   var src = IS_ADMIN ? RAW_CLIENTS[clientId] : CLIENT_CACHE[clientId];
 
-  /* ── Verifica se há dados disponíveis (Huawei/Asus usam chaves diferentes) ── */
+  /* ── Verifica se há dados disponíveis ── */
   var hasData;
-  if (clientId === 'huawei') {
+  if (!IS_ADMIN) {
+    /* Visitantes: dados vêm do CLIENT_CACHE (out/def combinados) para todos os clientes */
+    hasData = !!(src && src.out && src.def);
+  } else if (clientId === 'huawei') {
     var hw = RAW_CLIENTS[clientId] || {};
     hasData = !!(hw.outL6);
   } else if (clientId === 'asus') {
@@ -138,16 +141,16 @@ function switchClient(clientId) {
   }
 
   if (hasData) {
-    if (clientId === 'huawei') {
-      /* Restaura RAW_HW e gera dashboard Huawei */
+    if (IS_ADMIN && clientId === 'huawei') {
+      /* Admin: regenera Huawei a partir dos arquivos raw */
       var hwSrc = RAW_CLIENTS[clientId];
       RAW_HW.outL6  = hwSrc.outL6  || null;
       RAW_HW.defL6  = hwSrc.defL6  || null;
       RAW_HW.outL10 = hwSrc.outL10 || null;
       RAW_HW.defL10 = hwSrc.defL10 || null;
       adminGenerateHuawei();
-    } else if (clientId === 'asus') {
-      /* Restaura RAW_AS e gera dashboard Asus */
+    } else if (IS_ADMIN && clientId === 'asus') {
+      /* Admin: regenera ASUS a partir dos arquivos raw */
       var asSrc = RAW_CLIENTS[clientId];
       RAW_AS.outL6  = asSrc.outL6  || null;
       RAW_AS.defL6  = asSrc.defL6  || null;
@@ -155,6 +158,7 @@ function switchClient(clientId) {
       RAW_AS.defL10 = asSrc.defL10 || null;
       adminGenerateAsus();
     } else {
+      /* Visitante (qualquer cliente) ou Admin ACER/HP: usa out/def do cache diretamente */
       RAW.out = src.out;
       RAW.def = src.def;
       killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = {fd:null,itm:null};
