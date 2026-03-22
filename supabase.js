@@ -534,18 +534,23 @@ async function adminGenerateAndPublishAll() {
       ADMIN_CLIENT = c.id;
       /* Configura RAW para o cliente atual */
       if (c.id === 'asus') {
-        /* adminGenerateAsus faz tudo */
         await new Promise(function(resolve) {
           var _orig = showPublishBar;
           showPublishBar = function(){ resolve(); showPublishBar = _orig; };
           adminGenerateAsus();
         });
+        /* Salva dados combinados no Supabase */
+        await saveClientToSupabase('asus', RAW_CLIENTS['asus'] && RAW_CLIENTS['asus'].filters || '{}');
+        CLIENT_CACHE['asus'] = { out: RAW_CLIENTS['asus'].out, def: RAW_CLIENTS['asus'].def, updated_at: new Date().toISOString() };
       } else if (c.id === 'huawei') {
         await new Promise(function(resolve) {
           var _orig = showPublishBar;
           showPublishBar = function(){ resolve(); showPublishBar = _orig; };
           adminGenerateHuawei();
         });
+        /* Salva dados combinados no Supabase */
+        await saveClientToSupabase('huawei', RAW_CLIENTS['huawei'] && RAW_CLIENTS['huawei'].filters || '{}');
+        CLIENT_CACHE['huawei'] = { out: RAW_CLIENTS['huawei'].out, def: RAW_CLIENTS['huawei'].def, updated_at: new Date().toISOString() };
       } else {
         RAW.out = RAW_CLIENTS[c.id].out;
         RAW.def = RAW_CLIENTS[c.id].def || { headers:[], rows:[] };
