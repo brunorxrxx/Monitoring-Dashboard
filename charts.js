@@ -88,7 +88,10 @@ function makePareto(canvasId, labels, values, barColor, lineColor) {
       ]
     },
     options: {
+      animation: false,
       responsive: true, maintainAspectRatio: false,
+      responsiveAnimationDuration: 0,
+      hover: { animationDuration: 0 },
       layout: { padding: { top: 32, right: 8, bottom: 4 } },
       plugins: { legend: { display: false } },
       scales: {
@@ -344,6 +347,9 @@ function render(d) {
         backgroundColor: hV.map(hrBgColor),
         borderColor:     hV.map(hrBordColor) }] },
       options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 24 } },
+        animation: false,
+        responsiveAnimationDuration: 0,
+        hover: { animationDuration: 0 },
         plugins: { legend: { display: false },
           tooltip: { callbacks: { label: function(ctx) { return ' Falhas: ' + ctx.raw; } } } },
         onClick: function(evt, els) {
@@ -374,6 +380,9 @@ function render(d) {
       type: 'doughnut',
       data: { labels: tK, datasets: [{ data: tV, backgroundColor: tBg, borderColor: '#ffffff', borderWidth: 2, hoverOffset: 6 }] },
       options: { responsive: true, maintainAspectRatio: false, cutout: '60%',
+        animation: false,
+        responsiveAnimationDuration: 0,
+        hover: { animationDuration: 0 },
         plugins: {
           legend: { position: 'right', labels: { color: '#1E293B', font: { size: 11, weight: '600' }, padding: 12,
             usePointStyle: true, pointStyle: 'circle',
@@ -576,15 +585,13 @@ function updateParetoHighlight() {
   }) : chartBase;
   DATA.defRows = filteredDef;
   render(Object.assign({}, d, { outRows: DATA.outRows || d.outRows, defRows: filteredDef, defRowsKpi: DATA.defRowsKpi || d.defRowsKpi }));
-  setTimeout(function() {
-    highlightChart(CHARTS.fd,   fdF,  '#4d79ff', '#4d79ff18');
-    highlightChart(CHARTS.item, itmF, '#4d79ff', '#4d79ff18');
-    var fdLbl  = document.getElementById('fdFilterLbl');
-    var itmLbl = document.getElementById('itmFilterLbl');
-    if (fdLbl)  fdLbl.textContent  = fdF  ? '✕ ' + fdF  : '';
-    if (itmLbl) itmLbl.textContent = itmF ? '✕ ' + itmF : '';
-    _chartRendering = false;
-  }, 60);
+  highlightChart(CHARTS.fd,   fdF,  '#4d79ff', '#4d79ff18');
+  highlightChart(CHARTS.item, itmF, '#4d79ff', '#4d79ff18');
+  var fdLbl  = document.getElementById('fdFilterLbl');
+  var itmLbl = document.getElementById('itmFilterLbl');
+  if (fdLbl)  fdLbl.textContent  = fdF  ? '✕ ' + fdF  : '';
+  if (itmLbl) itmLbl.textContent = itmF ? '✕ ' + itmF : '';
+  _chartRendering = false;
 }
 
 function highlightChart(chart, activeLabel, activeColor, dimColor) {
@@ -626,11 +633,14 @@ function rebuildTimeCharts(filteredRows, d) {
     CHARTS.hr.data.datasets[0].data = hV;
     CHARTS.hr.data.datasets[0].backgroundColor = hV.map(function(v) { return v >= 3 ? '#ff3d5a66' : '#4d79ff30'; });
     CHARTS.hr.data.datasets[0].borderColor = hV.map(function(v) { return v >= 3 ? '#ff3d5a' : '#4d79ff'; });
-    CHARTS.hr.update();
+    CHARTS.hr.update('none');
   }
   var tA = { '1ºT': 0, '2ºT': 0, '3ºT': 0 };
   filteredRows.forEach(function(r) { var t = getShift(S(r[F.failDate])); tA[t] = (tA[t] || 0) + 1; });
-  if (CHARTS.turno) { CHARTS.turno.data.datasets[0].data = ['1ºT', '2ºT', '3ºT'].map(function(k) { return tA[k] || 0; }); CHARTS.turno.update(); }
+  if (CHARTS.turno) {
+    CHARTS.turno.data.datasets[0].data = ['1ºT', '2ºT', '3ºT'].map(function(k) { return tA[k] || 0; });
+    CHARTS.turno.update('none');
+  }
 }
 
 /* ── Stub: IA desativada ── */

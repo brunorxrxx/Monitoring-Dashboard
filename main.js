@@ -17,8 +17,8 @@
    PARETOS: Fail Description (col J) + Item (col K)
 ═══════════════════════════════════════════════════════════════ */
 
-var RAW    = {out:null, def:null};
-var DATA   = {};
+var RAW = { out: null, def: null };
+var DATA = {};
 var CHARTS = {};
 
 /* ── THRESHOLDS CENTRALIZADOS ──────────────────────────────────
@@ -29,9 +29,9 @@ var CHARTS = {};
    target = valor da linha de meta nos gráficos (%)
 ────────────────────────────────────────────────────────────── */
 const THRESH = {
-  green:  0.99,   /* ≥ 99%  → verde     */
-  warn:   0.98,   /* ≥ 98%  → amarelo piscando  */
-  amber:  0.95,   /* ≥ 95%  → amarelo normal    */
+  green: 0.99,   /* ≥ 99%  → verde     */
+  warn: 0.98,   /* ≥ 98%  → amarelo piscando  */
+  amber: 0.95,   /* ≥ 95%  → amarelo normal    */
   target: 99
 };
 
@@ -40,42 +40,50 @@ const THRESH = {
    HP           : S_VI_B, S_VI_T, FVI, ICT, FBT  (sem F1/F2; FVI faz parte do SMT; FVI2 ignorado) */
 var CLIENT_CFG = {
   acer: {
-    matrix:    ['S_VI_B','S_VI_T','ICT','FBT','F1','F2'],
-    smtSts:    ['S_VI_B','S_VI_T'],
-    beSts:     ['ICT','FBT','F1','F2'],
+    matrix: ['S_VI_B', 'S_VI_T', 'ICT', 'FBT', 'F1', 'F2'],
+    smtSts: ['S_VI_B', 'S_VI_T'],
+    beSts: ['ICT', 'FBT', 'F1', 'F2'],
     excludeSt: [],
-    colors:    {'S_VI_B':'var(--cyan)','S_VI_T':'var(--blue)','ICT':'var(--red)','FBT':'var(--amber)','F1':'var(--green)','F2':'var(--purple)'},
-    groups:    {'S_VI_B':'SMT','S_VI_T':'SMT','ICT':'B.E','FBT':'B.E','F1':'B.E','F2':'B.E'}
+    colors: { 'S_VI_B': 'var(--cyan)', 'S_VI_T': 'var(--blue)', 'ICT': 'var(--red)', 'FBT': 'var(--amber)', 'F1': 'var(--green)', 'F2': 'var(--purple)' },
+    groups: { 'S_VI_B': 'SMT', 'S_VI_T': 'SMT', 'ICT': 'B.E', 'FBT': 'B.E', 'F1': 'B.E', 'F2': 'B.E' }
   },
   hp: {
-    matrix:    ['S_VI_B','S_VI_T','FVI','ICT','FBT'],
-    smtSts:    ['S_VI_B','S_VI_T','FVI'],
-    beSts:     ['ICT','FBT'],
+    matrix: ['S_VI_B', 'S_VI_T', 'FVI', 'ICT', 'FBT'],
+    smtSts: ['S_VI_B', 'S_VI_T', 'FVI'],
+    beSts: ['ICT', 'FBT'],
     excludeSt: ['FVI2'],
-    colors:    {'S_VI_B':'var(--cyan)','S_VI_T':'var(--blue)','FVI':'var(--green)','ICT':'var(--red)','FBT':'var(--amber)'},
-    groups:    {'S_VI_B':'SMT','S_VI_T':'SMT','FVI':'SMT','ICT':'B.E','FBT':'B.E'}
+    colors: { 'S_VI_B': 'var(--cyan)', 'S_VI_T': 'var(--blue)', 'FVI': 'var(--green)', 'ICT': 'var(--red)', 'FBT': 'var(--amber)' },
+    groups: { 'S_VI_B': 'SMT', 'S_VI_T': 'SMT', 'FVI': 'SMT', 'ICT': 'B.E', 'FBT': 'B.E' }
   },
   asus: {
-    matrix:    ['S_VI_B','S_VI_T','ICT','FT1','FT2','FVI','PACK-QA'],
-    smtSts:    ['S_VI_B','S_VI_T','ICT'],
-    beSts:     ['FT1','FT2'],
-    excludeSt: ['AVI','AUTO_OBA','AVIPK','R_S_VI_T','S_INPUT_B','S_INPUT_T','R_FVI','R_ICT','REPAIR'],
-    colors:    {'S_VI_B':'var(--cyan)','S_VI_T':'var(--blue)','ICT':'var(--red)',
-                'FT1':'var(--green)','FT2':'var(--amber)','FVI':'var(--purple)',
-                'PACK-QA':'#7c3aed'},
-    groups:    {'S_VI_B':'SMT','S_VI_T':'SMT','ICT':'SMT',
-                'FT1':'B.E','FT2':'B.E','FVI':'B.E','PACK-QA':'B.E'}
+    matrix: ['S_VI_B', 'S_VI_T', 'ICT', 'FT1', 'FT2', 'FVI', 'PACK-QA'],
+    smtSts: ['S_VI_B', 'S_VI_T', 'ICT'],
+    beSts: ['FT1', 'FT2'],
+    excludeSt: ['AVI', 'AUTO_OBA', 'AVIPK', 'R_S_VI_T', 'S_INPUT_B', 'S_INPUT_T', 'R_FVI', 'R_ICT', 'REPAIR'],
+    colors: {
+      'S_VI_B': 'var(--cyan)', 'S_VI_T': 'var(--blue)', 'ICT': 'var(--red)',
+      'FT1': 'var(--green)', 'FT2': 'var(--amber)', 'FVI': 'var(--purple)',
+      'PACK-QA': '#7c3aed'
+    },
+    groups: {
+      'S_VI_B': 'SMT', 'S_VI_T': 'SMT', 'ICT': 'SMT',
+      'FT1': 'B.E', 'FT2': 'B.E', 'FVI': 'B.E', 'PACK-QA': 'B.E'
+    }
   },
   huawei: {
-    matrix:    ['S_VI_B','S_VI_T','PTH','FT2_MP1','ST-MP1','ST-MP13','ST-MP9'],
-    smtSts:    ['S_VI_B','S_VI_T','PTH','FT2_MP1'],
-    beSts:     ['ST-MP1','ST-MP13','ST-MP9'],
+    matrix: ['S_VI_B', 'S_VI_T', 'PTH', 'FT2_MP1', 'ST-MP1', 'ST-MP13', 'ST-MP9'],
+    smtSts: ['S_VI_B', 'S_VI_T', 'PTH', 'FT2_MP1'],
+    beSts: ['ST-MP1', 'ST-MP13', 'ST-MP9'],
     excludeSt: [],
-    colors:    {'S_VI_B':'var(--cyan)','S_VI_T':'var(--blue)','PTH':'var(--green)',
-                'FT2_MP1':'var(--purple)','ST-MP1':'var(--amber)',
-                'ST-MP13':'var(--red)','ST-MP9':'#ff8c42'},
-    groups:    {'S_VI_B':'SMT','S_VI_T':'SMT','PTH':'SMT','FT2_MP1':'SMT',
-                'ST-MP1':'B.E','ST-MP13':'B.E','ST-MP9':'B.E'}
+    colors: {
+      'S_VI_B': 'var(--cyan)', 'S_VI_T': 'var(--blue)', 'PTH': 'var(--green)',
+      'FT2_MP1': 'var(--purple)', 'ST-MP1': 'var(--amber)',
+      'ST-MP13': 'var(--red)', 'ST-MP9': '#ff8c42'
+    },
+    groups: {
+      'S_VI_B': 'SMT', 'S_VI_T': 'SMT', 'PTH': 'SMT', 'FT2_MP1': 'SMT',
+      'ST-MP1': 'B.E', 'ST-MP13': 'B.E', 'ST-MP9': 'B.E'
+    }
   }
 };
 
@@ -84,14 +92,14 @@ function getCfg() {
 }
 
 /* MT_CLR / MT_GRP — usados apenas como fallback de cor; a config real vem de getCfg() */
-var MT_CLR  = {'S_VI_B':'var(--cyan)','S_VI_T':'var(--blue)','ICT':'var(--red)','FBT':'var(--amber)','F1':'var(--green)','F2':'var(--purple)','FVI':'var(--green)'};
-var MT_GRP  = {'S_VI_B':'SMT','S_VI_T':'SMT','ICT':'B.E','FBT':'B.E','F1':'B.E','F2':'B.E','FVI':'SMT'};
+var MT_CLR = { 'S_VI_B': 'var(--cyan)', 'S_VI_T': 'var(--blue)', 'ICT': 'var(--red)', 'FBT': 'var(--amber)', 'F1': 'var(--green)', 'F2': 'var(--purple)', 'FVI': 'var(--green)' };
+var MT_GRP = { 'S_VI_B': 'SMT', 'S_VI_T': 'SMT', 'ICT': 'B.E', 'FBT': 'B.E', 'F1': 'B.E', 'F2': 'B.E', 'FVI': 'SMT' };
 
 /* Relógio */
-setInterval(function(){
-  var n=new Date(), el=document.getElementById('htime');
-  if(el) el.textContent=n.toLocaleDateString('pt-BR')+' '+n.toLocaleTimeString('pt-BR');
-},1000);
+setInterval(function () {
+  var n = new Date(), el = document.getElementById('htime');
+  if (el) el.textContent = n.toLocaleDateString('pt-BR') + ' ' + n.toLocaleTimeString('pt-BR');
+}, 1000);
 
 /* ══════════════════════════════════════════
    PARSER XLSX — Padrão Foxconn
@@ -105,49 +113,49 @@ function loadXL(input, key) {
   if (!file) return;
 
   /* Feedback imediato na card */
-  var nEl = document.getElementById('n-'+key);
-  var cEl = document.getElementById('c-'+key);
+  var nEl = document.getElementById('n-' + key);
+  var cEl = document.getElementById('c-' + key);
   if (nEl) nEl.textContent = '⏳ Lendo ' + file.name + '...';
 
   var reader = new FileReader();
-  reader.onerror = function() {
+  reader.onerror = function () {
     if (nEl) nEl.style.color = '#ff3d5a';
     if (nEl) nEl.textContent = '❌ Erro ao ler arquivo';
   };
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     try {
       if (typeof XLSX === 'undefined') throw new Error('Biblioteca XLSX não carregada');
-      var wb  = XLSX.read(e.target.result, {type:'binary', cellDates:false, raw:false});
-      var ws  = wb.Sheets[wb.SheetNames[0]];
-      var aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', blankrows:false});
-      if (!aoa || aoa.length < 3) { 
-        if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Estrutura inválida — requer 3+ linhas'; }
-        return; 
+      var wb = XLSX.read(e.target.result, { type: 'binary', cellDates: false, raw: false });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false });
+      if (!aoa || aoa.length < 3) {
+        if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Estrutura inválida — requer 3+ linhas'; }
+        return;
       }
 
       /* Deduplica headers */
-      var rawH = (aoa[1]||[]).map(function(h){ return String(h==null?'':h).trim(); });
-      var seen = {}, headers = rawH.map(function(h){
-        if (seen[h] === undefined) { seen[h]=0; return h; }
-        seen[h]++; return h+'_'+seen[h];
+      var rawH = (aoa[1] || []).map(function (h) { return String(h == null ? '' : h).trim(); });
+      var seen = {}, headers = rawH.map(function (h) {
+        if (seen[h] === undefined) { seen[h] = 0; return h; }
+        seen[h]++; return h + '_' + seen[h];
       });
 
       /* Constrói array de objetos */
       var rows = [];
       for (var i = 2; i < aoa.length; i++) {
         var r = aoa[i], hasVal = false;
-        for (var j=0; j<r.length; j++) { if(r[j]!==''&&r[j]!==null&&r[j]!==undefined){hasVal=true;break;} }
+        for (var j = 0; j < r.length; j++) { if (r[j] !== '' && r[j] !== null && r[j] !== undefined) { hasVal = true; break; } }
         if (!hasVal) continue;
         var obj = {};
-        headers.forEach(function(h,k){ obj[h] = (r[k]!==undefined&&r[k]!==null) ? r[k] : ''; });
+        headers.forEach(function (h, k) { obj[h] = (r[k] !== undefined && r[k] !== null) ? r[k] : ''; });
         rows.push(obj);
       }
-      RAW[key] = {headers:headers, rows:rows};
+      RAW[key] = { headers: headers, rows: rows };
       if (nEl) { nEl.style.color = ''; nEl.textContent = '✅ ' + file.name + ' — ' + rows.length + ' registros'; }
       if (cEl) cEl.classList.add('done');
       checkReady();
-    } catch(err) {
-      if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Erro: '+err.message; }
+    } catch (err) {
+      if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Erro: ' + err.message; }
       console.error('[loadXL]', err);
     }
   };
@@ -160,16 +168,18 @@ function checkReady() {
   document.getElementById('btnGo').disabled = !ok;
   document.getElementById('hint').textContent = ok
     ? (RAW.def
-        ? '✓ Arquivos prontos — clique em GERAR DASHBOARD'
-        : '✓ Sem arquivo de falhas? OK — zero defeitos assumido. Clique em GERAR')
+      ? '✓ Arquivos prontos — clique em GERAR DASHBOARD'
+      : '✓ Sem arquivo de falhas? OK — zero defeitos assumido. Clique em GERAR')
     : 'Aguardando OUTPUT...';
   if (ok) {
     if (!RAW.def) {
-      RAW.def = { headers: ['Serial','Work Order','Failure Code','Description',
-        'Line','Test station','Failure date','Repair station','Reason Code','Description_1','Item'],
-        rows: [] };
+      RAW.def = {
+        headers: ['Serial', 'Work Order', 'Failure Code', 'Description',
+          'Line', 'Test station', 'Failure date', 'Repair station', 'Reason Code', 'Description_1', 'Item'],
+        rows: []
+      };
     }
-    setStatus('warn','Pronto para gerar');
+    setStatus('warn', 'Pronto para gerar');
   }
 }
 
@@ -184,54 +194,54 @@ function buildMultiSelect(containerId, key, options, placeholder) {
   MS_STATE[key] = new Set(); /* vazio = todos */
   var container = document.getElementById(containerId);
 
-  var html = '<div class="ms-wrap" id="mswrap-'+key+'">' +
-    '<button type="button" class="ms-trigger" id="mstrig-'+key+'" onclick="toggleMS(\''+key+'\')">' +
-      '<span id="mslabel-'+key+'">'+placeholder+'</span>' +
-      '<span class="ms-arrow" id="msarrow-'+key+'">▾</span>' +
+  var html = '<div class="ms-wrap" id="mswrap-' + key + '">' +
+    '<button type="button" class="ms-trigger" id="mstrig-' + key + '" onclick="toggleMS(\'' + key + '\')">' +
+    '<span id="mslabel-' + key + '">' + placeholder + '</span>' +
+    '<span class="ms-arrow" id="msarrow-' + key + '">▾</span>' +
     '</button>' +
-    '<div class="ms-drop" id="msdrop-'+key+'">' +
-      '<input class="ms-search" placeholder="Buscar..." oninput="searchMS(\''+key+'\',this.value)"/>' +
-      '<div class="ms-all active" id="msall-'+key+'" onclick="toggleAllMS(\''+key+'\')">' +
-        '<span class="ms-cb">✓</span><span>Todos</span>' +
-      '</div>' +
-      '<div id="mslist-'+key+'"></div>' +
+    '<div class="ms-drop" id="msdrop-' + key + '">' +
+    '<input class="ms-search" placeholder="Buscar..." oninput="searchMS(\'' + key + '\',this.value)"/>' +
+    '<div class="ms-all active" id="msall-' + key + '" onclick="toggleAllMS(\'' + key + '\')">' +
+    '<span class="ms-cb">✓</span><span>Todos</span>' +
     '</div>' +
-  '</div>';
+    '<div id="mslist-' + key + '"></div>' +
+    '</div>' +
+    '</div>';
   container.innerHTML = html;
 
   renderMSOptions(key, options, '');
 }
 
 function renderMSOptions(key, options, search) {
-  var list = document.getElementById('mslist-'+key);
-  var filt = search ? options.filter(function(o){ return o.toLowerCase().includes(search.toLowerCase()); }) : options;
+  var list = document.getElementById('mslist-' + key);
+  var filt = search ? options.filter(function (o) { return o.toLowerCase().includes(search.toLowerCase()); }) : options;
   var allSelected = MS_STATE[key].size === 0; /* state vazio = Todos selecionado */
   /* Atualiza visual do botão Todos */
-  var allEl = document.getElementById('msall-'+key);
+  var allEl = document.getElementById('msall-' + key);
   if (allEl) {
     allEl.classList.toggle('active', allSelected);
     allEl.querySelector('.ms-cb').textContent = allSelected ? '✓' : '';
   }
-  list.innerHTML = filt.map(function(o){
+  list.innerHTML = filt.map(function (o) {
     var sel = allSelected || MS_STATE[key].has(o);
-    return '<div class="ms-item'+(sel?' active':'')+'" data-val="'+escAttr(o)+'" onclick="toggleMSItem(\''+key+'\',\''+escAttr(o)+'\')">' +
-      '<span class="ms-cb">'+(sel?'✓':'')+'</span><span>'+o+'</span></div>';
+    return '<div class="ms-item' + (sel ? ' active' : '') + '" data-val="' + escAttr(o) + '" onclick="toggleMSItem(\'' + key + '\',\'' + escAttr(o) + '\')">' +
+      '<span class="ms-cb">' + (sel ? '✓' : '') + '</span><span>' + o + '</span></div>';
   }).join('');
 }
 
-function escAttr(s){ return String(s).replace(/'/g,"&#39;").replace(/"/g,'&quot;'); }
+function escAttr(s) { return String(s).replace(/'/g, "&#39;").replace(/"/g, '&quot;'); }
 
 function toggleMS(key) {
-  var wrap = document.getElementById('mswrap-'+key);
-  var drop = document.getElementById('msdrop-'+key);
+  var wrap = document.getElementById('mswrap-' + key);
+  var drop = document.getElementById('msdrop-' + key);
   var isOpen = wrap.classList.contains('open');
   /* Fecha todos */
-  document.querySelectorAll('.ms-wrap.open').forEach(function(w){ w.classList.remove('open'); });
+  document.querySelectorAll('.ms-wrap.open').forEach(function (w) { w.classList.remove('open'); });
   if (!isOpen) {
     wrap.classList.add('open');
     /* Posiciona dropdown com fixed coords para escapar de qualquer overflow context */
     var rect = wrap.getBoundingClientRect();
-    drop.style.top  = (rect.bottom + 4) + 'px';
+    drop.style.top = (rect.bottom + 4) + 'px';
     drop.style.left = rect.left + 'px';
     drop.style.width = Math.max(rect.width, 280) + 'px';
   }
@@ -244,11 +254,11 @@ function searchMS(key, val) {
 
 function toggleMSItem(key, val) {
   var state = MS_STATE[key];
-  var opts = (DATA._opts && DATA._opts[key]) || (key==='trn'?['1ºT','2ºT','3ºT']:[]);
+  var opts = (DATA._opts && DATA._opts[key]) || (key === 'trn' ? ['1ºT', '2ºT', '3ºT'] : []);
 
   /* Se estado está vazio (= Todos), clicar num item desmarca só ele → adiciona todos exceto ele */
   if (state.size === 0) {
-    opts.forEach(function(o){ if(o !== val) state.add(o); });
+    opts.forEach(function (o) { if (o !== val) state.add(o); });
   } else {
     if (state.has(val)) state.delete(val); else state.add(val);
     /* Se todos estão marcados individualmente → volta para Todos (state vazio) */
@@ -258,9 +268,9 @@ function toggleMSItem(key, val) {
   }
 
   /* Re-renderiza lista visual com o estado atualizado */
-  var list = document.getElementById('mslist-'+key);
+  var list = document.getElementById('mslist-' + key);
   var allSelected = state.size === 0;
-  list.querySelectorAll('.ms-item').forEach(function(el){
+  list.querySelectorAll('.ms-item').forEach(function (el) {
     var v = el.dataset.val;
     var sel = allSelected || state.has(v);
     el.classList.toggle('active', sel);
@@ -268,9 +278,9 @@ function toggleMSItem(key, val) {
   });
 
   /* Atualiza botão "Todos" */
-  var allEl = document.getElementById('msall-'+key);
-  allEl.classList.toggle('active', state.size===0);
-  allEl.querySelector('.ms-cb').textContent = state.size===0?'✓':'';
+  var allEl = document.getElementById('msall-' + key);
+  allEl.classList.toggle('active', state.size === 0);
+  allEl.querySelector('.ms-cb').textContent = state.size === 0 ? '✓' : '';
 
   updateMSLabel(key);
   applyF();
@@ -278,13 +288,13 @@ function toggleMSItem(key, val) {
 
 function toggleAllMS(key) {
   MS_STATE[key].clear();
-  var list = document.getElementById('mslist-'+key);
+  var list = document.getElementById('mslist-' + key);
   /* Marca todos os itens visualmente com checkmark */
-  list.querySelectorAll('.ms-item').forEach(function(el){
+  list.querySelectorAll('.ms-item').forEach(function (el) {
     el.classList.add('active');
     el.querySelector('.ms-cb').textContent = '✓';
   });
-  var allEl = document.getElementById('msall-'+key);
+  var allEl = document.getElementById('msall-' + key);
   allEl.classList.add('active');
   allEl.querySelector('.ms-cb').textContent = '✓';
   updateMSLabel(key);
@@ -293,33 +303,33 @@ function toggleAllMS(key) {
 
 function updateMSLabel(key) {
   var state = MS_STATE[key];
-  var label = document.getElementById('mslabel-'+key);
-  var plMap = {wo:'Todos',mod:'Todos',lin:'Todas',st:'Todas',fd:'Todas'};
+  var label = document.getElementById('mslabel-' + key);
+  var plMap = { wo: 'Todos', mod: 'Todos', lin: 'Todas', st: 'Todas', fd: 'Todas' };
   if (!label) return;
-  if (state.size === 0) { label.textContent = plMap[key]||'Todos'; return; }
+  if (state.size === 0) { label.textContent = plMap[key] || 'Todos'; return; }
   var arr = Array.from(state);
-  label.innerHTML = arr.length===1
-    ? '<span>'+arr[0]+'</span>'
-    : '<span>'+arr[0]+'</span><span class="ms-tag">+'+( arr.length-1)+'</span>';
+  label.innerHTML = arr.length === 1
+    ? '<span>' + arr[0] + '</span>'
+    : '<span>' + arr[0] + '</span><span class="ms-tag">+' + (arr.length - 1) + '</span>';
 }
 
 /* Fecha dropdown ao clicar fora */
-document.addEventListener('click', function(e){
+document.addEventListener('click', function (e) {
   if (!e.target.closest('.ms-wrap'))
-    document.querySelectorAll('.ms-wrap.open').forEach(function(w){ w.classList.remove('open'); });
+    document.querySelectorAll('.ms-wrap.open').forEach(function (w) { w.classList.remove('open'); });
 });
 
 /* Fecha dropdowns ao scrollar a página — ignora scroll interno do próprio dropdown */
-window.addEventListener('scroll', function(e){
+window.addEventListener('scroll', function (e) {
   if (e.target && (e.target.classList.contains('ms-drop') || e.target.closest('.ms-drop'))) return;
-  document.querySelectorAll('.ms-wrap.open').forEach(function(w){ w.classList.remove('open'); });
+  document.querySelectorAll('.ms-wrap.open').forEach(function (w) { w.classList.remove('open'); });
 }, true);
 
 /* ══════════════════════════════════════════
    PROCESSAMENTO PRINCIPAL
 ══════════════════════════════════════════ */
 async function run() {
-  setStatus('warn','Processando...');
+  setStatus('warn', 'Processando...');
   show('ldZone'); hide('dash'); hide('errBox');
   try {
     await step('Mapeando colunas OUT...', 80);
@@ -328,15 +338,15 @@ async function run() {
        Foxconn padrão validado — aceita nomes em inglês e português */
     var oh = RAW.out.headers;
     var O = {
-      linha:  colN(oh, ['Line','Linha','Linha de Produção','Production Line']),
-      wo:     colN(oh, ['Work Order','Ordem de Trabalho','WO']),
-      modelo: colN(oh, ['Model Name','Model name','Nome do Modelo','Modelo','Model']),
-      serial: colN(oh, ['Model Serial','Model serial','Serial do Modelo','Serial','SKU']),
-      st:     colN(oh, ['Test station','Test Station','Estação de Teste','Estação','Station']),
-      pass:   colN(oh, ['Placa Passou','Board Pass','Pass','Passou','Qty Pass','QTY Pass']),
-      fail:   colN(oh, ['Placa Falhou','Board Fail','Fail','Falhou','Qty Fail','QTY Fail']),
-      total:  colN(oh, ['Total','Total Input','Input','Qty Total']),
-      fpy:    colN(oh, ['FPY (%)','FPY','First Pass Yield','First Pass','Yield (%)']),
+      linha: colN(oh, ['Line', 'Linha', 'Linha de Produção', 'Production Line']),
+      wo: colN(oh, ['Work Order', 'Ordem de Trabalho', 'WO']),
+      modelo: colN(oh, ['Model Name', 'Model name', 'Nome do Modelo', 'Modelo', 'Model']),
+      serial: colN(oh, ['Model Serial', 'Model serial', 'Serial do Modelo', 'Serial', 'SKU']),
+      st: colN(oh, ['Test station', 'Test Station', 'Estação de Teste', 'Estação', 'Station']),
+      pass: colN(oh, ['Placa Passou', 'Board Pass', 'Pass', 'Passou', 'Qty Pass', 'QTY Pass']),
+      fail: colN(oh, ['Placa Falhou', 'Board Fail', 'Fail', 'Falhou', 'Qty Fail', 'QTY Fail']),
+      total: colN(oh, ['Total', 'Total Input', 'Input', 'Qty Total']),
+      fpy: colN(oh, ['FPY (%)', 'FPY', 'First Pass Yield', 'First Pass', 'Yield (%)']),
     };
 
     await step('Mapeando colunas FALHAS...', 80);
@@ -347,18 +357,18 @@ async function run() {
        fh[8]=Reason Code, fh[9]=Description_1(J=Fail Reason), fh[10]=Item(K)
        Suporte PT e EN */
     var fh = RAW.def.headers;
-    var F  = {
-      serial:   colN(fh, ['Serial','Serial Number','CT Number','SN','Número Serial']),
-      wo:       colN(fh, ['Work Order','WO','Ordem de Trabalho']),
-      failCode: colN(fh, ['Failure Code','Código Falha','Fail Code','Código de Falha']),
-      descTec:  colN(fh, ['Description','Descrição','Desc','Descrição Técnica','Descrição Categoria']),
-      linha:    colN(fh, ['Line','Linha','Linha de Produção','Production Line']),
-      st:       colN(fh, ['Test station','Test Station','Estação de Teste','Estação','Station']),
-      failDate: colN(fh, ['Failure date','Failure Date','Data Falha','Data de Falha','Date']),
-      repSt:    colN(fh, ['Repair station','Repair Station','Estação Reparo','Repair']),
-      reason:   colN(fh, ['Reason Code','Código Categoria','Reason','Motivo']),
-      failDesc: colN(fh, ['Description_1','Fail Description','Fail Reason','Descrição Falha','Comentário','Comentario','Fail Desc']),
-      item:     colN(fh, ['Item','Componente','Component','Part']),
+    var F = {
+      serial: colN(fh, ['Serial', 'Serial Number', 'CT Number', 'SN', 'Número Serial']),
+      wo: colN(fh, ['Work Order', 'WO', 'Ordem de Trabalho']),
+      failCode: colN(fh, ['Failure Code', 'Código Falha', 'Fail Code', 'Código de Falha']),
+      descTec: colN(fh, ['Description', 'Descrição', 'Desc', 'Descrição Técnica', 'Descrição Categoria']),
+      linha: colN(fh, ['Line', 'Linha', 'Linha de Produção', 'Production Line']),
+      st: colN(fh, ['Test station', 'Test Station', 'Estação de Teste', 'Estação', 'Station']),
+      failDate: colN(fh, ['Failure date', 'Failure Date', 'Data Falha', 'Data de Falha', 'Date']),
+      repSt: colN(fh, ['Repair station', 'Repair Station', 'Estação Reparo', 'Repair']),
+      reason: colN(fh, ['Reason Code', 'Código Categoria', 'Reason', 'Motivo']),
+      failDesc: colN(fh, ['Description_1', 'Fail Description', 'Fail Reason', 'Descrição Falha', 'Comentário', 'Comentario', 'Fail Desc']),
+      item: colN(fh, ['Item', 'Componente', 'Component', 'Part']),
     };
 
     await step('Agregando dados...', 100);
@@ -370,10 +380,10 @@ async function run() {
        "PLACA LAVADA" (case-insensitive), a coluna D (descTec) daquela
        linha é sobrescrita com "Screening Input BE".
        Aplicado uma única vez no carregamento, antes de qualquer cálculo. */
-    defRows.forEach(function(r) {
+    defRows.forEach(function (r) {
       var jVal = S(r[F.failDesc]).toUpperCase().trim();
-      var isNDF      = jVal === 'NDF' || jVal.indexOf('NDF') !== -1;
-      var isLavada   = jVal.indexOf('PLACA LAVADA') !== -1;
+      var isNDF = jVal === 'NDF' || jVal.indexOf('NDF') !== -1;
+      var isLavada = jVal.indexOf('PLACA LAVADA') !== -1;
       if (isNDF || isLavada) {
         r[F.descTec] = 'Screening Input BE';
       }
@@ -382,20 +392,20 @@ async function run() {
 
     /* WO → modelo/linha (para join na tabela pareto) */
     var woMap = {};
-    outRows.forEach(function(r){
+    outRows.forEach(function (r) {
       var wo = S(r[O.wo]);
-      if (wo && !woMap[wo]) woMap[wo] = {modelo:S(r[O.modelo]), serial:S(r[O.serial]), linha:S(r[O.linha])};
+      if (wo && !woMap[wo]) woMap[wo] = { modelo: S(r[O.modelo]), serial: S(r[O.serial]), linha: S(r[O.linha]) };
     });
 
 
     /* Agrega OUT: soma coluna "Total" por estação */
     var stOut = {};
-    outRows.forEach(function(r){
+    outRows.forEach(function (r) {
       var st = S(r[O.st]) || 'N/A';
-      if (!stOut[st]) stOut[st] = {total:0, pass:0, fail:0};
+      if (!stOut[st]) stOut[st] = { total: 0, pass: 0, fail: 0 };
       stOut[st].total += N(r[O.total]);   /* denominador */
-      stOut[st].pass  += N(r[O.pass]);
-      stOut[st].fail  += N(r[O.fail]);
+      stOut[st].pass += N(r[O.pass]);
+      stOut[st].fail += N(r[O.fail]);
     });
 
     /* Para ASUS: PACK-QA usa AVIPK como denominador de output */
@@ -405,113 +415,115 @@ async function run() {
 
     /* Agrega FALHAS: cada linha = 1 falha, agrupa por col "Test station" */
     var stDef = {};
-    defRows.forEach(function(r){
+    defRows.forEach(function (r) {
       var st = S(r[F.st]) || 'N/A';
-      stDef[st] = (stDef[st]||0) + 1;
+      stDef[st] = (stDef[st] || 0) + 1;
     });
 
     await step('Calculando yields DAX...', 80);
 
     /* Parcial_X = 1 − (stDef[X] / stOut[X].total) */
     function parcial(st) {
-      var d = stDef[st]||0, t = stOut[st]?stOut[st].total:0;
-      return t===0 ? null : 1 - d/t;
+      var d = stDef[st] || 0, t = stOut[st] ? stOut[st].total : 0;
+      return t === 0 ? null : 1 - d / t;
     }
     function prodX(vals) {
-      var v = vals.filter(function(x){ return x!==null && x>0; });
-      return v.length ? v.reduce(function(a,x){return a*x;},1) : null;
+      var v = vals.filter(function (x) { return x !== null && x > 0; });
+      return v.length ? v.reduce(function (a, x) { return a * x; }, 1) : null;
     }
 
     var pSVI_B = parcial('S_VI_B'), pSVI_T = parcial('S_VI_T');
-    var pFBT   = parcial('FBT'),    pICT   = parcial('ICT');
-    var pF1    = parcial('F1'),     pF2    = parcial('F2');
-    var pFVI   = parcial('FVI');
-    var _cfg   = getCfg();
-    var oSMT   = prodX(_cfg.smtSts.map(function(s){ return parcial(s); }));
-    var oBE    = prodX(_cfg.beSts.map(function(s){ return parcial(s); }));
+    var pFBT = parcial('FBT'), pICT = parcial('ICT');
+    var pF1 = parcial('F1'), pF2 = parcial('F2');
+    var pFVI = parcial('FVI');
+    var _cfg = getCfg();
+    var oSMT = prodX(_cfg.smtSts.map(function (s) { return parcial(s); }));
+    var oBE = prodX(_cfg.beSts.map(function (s) { return parcial(s); }));
     var overal = prodX([oSMT, oBE]);
-    var perda  = overal!==null ? 1-overal : null;
-    var totF   = defRows.length;
-    var pack   = stOut['PACKING'] ? stOut['PACKING'].total : 0;
+    var perda = overal !== null ? 1 - overal : null;
+    var totF = defRows.length;
+    var pack = stOut['PACKING'] ? stOut['PACKING'].total : 0;
 
     /* Fail Desc aggregation para IA */
     var fdAgg = {};
-    defRows.forEach(function(r){
+    defRows.forEach(function (r) {
       var v = S(r[F.failDesc]) || 'TBA';
-      fdAgg[v] = (fdAgg[v]||0) + 1;
+      fdAgg[v] = (fdAgg[v] || 0) + 1;
     });
 
     /* Opções para filtros */
     var opts = {
-      wo:  uniq(
+      wo: uniq(
         /* WOs do output (L6) + WOs das falhas (L10 ASUS tem WO real no defRows) */
-        outRows.map(function(r){return S(r[O.wo]);}).concat(
-          defRows.map(function(r){return S(r[F.wo]);})
+        outRows.map(function (r) { return S(r[O.wo]); }).concat(
+          defRows.map(function (r) { return S(r[F.wo]); })
         )
       ).filter(Boolean).sort(),
       mod: uniq(
-        outRows.map(function(r){return S(r[O.modelo]);}).concat(
+        outRows.map(function (r) { return S(r[O.modelo]); }).concat(
           /* Inclui modelos das falhas (via woMap ou _modelo) para ASUS e clientes com L10 */
-          defRows.map(function(r){
+          defRows.map(function (r) {
             var wo = S(r[F.wo]);
             return (woMap[wo] && woMap[wo].modelo) ? woMap[wo].modelo : (S(r['_modelo']) || '');
           })
         )
       ).filter(Boolean).sort(),
-      ser: uniq(outRows.map(function(r){return S(r[O.serial]);})).filter(Boolean).sort(),
-      lin: uniq(outRows.map(function(r){return S(r[O.linha]);})).sort(),
-      st:  uniq(
-        outRows.map(function(r){return S(r[O.st]);})
-        .concat(defRows.map(function(r){return S(r[F.st]);})) /* inclui estações das falhas (ex: PACK-QA) */
+      ser: uniq(outRows.map(function (r) { return S(r[O.serial]); })).filter(Boolean).sort(),
+      lin: uniq(outRows.map(function (r) { return S(r[O.linha]); })).sort(),
+      st: uniq(
+        outRows.map(function (r) { return S(r[O.st]); })
+          .concat(defRows.map(function (r) { return S(r[F.st]); })) /* inclui estações das falhas (ex: PACK-QA) */
       ).filter(Boolean).sort(),
-      fd:  uniq(defRows.map(function(r){return S(r[F.failDesc])||'TBA';})).sort(),
-      itm: uniq(defRows.map(function(r){return S(r[F.item])||'TBA';})).sort(),
+      fd: uniq(defRows.map(function (r) { return S(r[F.failDesc]) || 'TBA'; })).sort(),
+      itm: uniq(defRows.map(function (r) { return S(r[F.item]) || 'TBA'; })).sort(),
       /* dtc: União de descrições técnicas — L6 col D + L10 NOTE
          Remove vazios e 'Sem Cadastro' das OPÇÕES do filtro */
-      dtc: uniq(defRows.map(function(r){
+      dtc: uniq(defRows.map(function (r) {
         var v = S(r[F.descTec]);
         return v && v !== 'Sem Cadastro' ? v : '';
       })).filter(Boolean).sort(),
     };
 
-    DATA = {outRows:outRows, defRows:defRows, woMap:woMap, O:O, F:F,
-            stOut:stOut, stDef:stDef,
-            pSVI_B:pSVI_B, pSVI_T:pSVI_T, pFBT:pFBT, pICT:pICT, pF1:pF1, pF2:pF2,
-            oSMT:oSMT, oBE:oBE, overal:overal, perda:perda,
-            totF:totF, pack:pack, fdAgg:fdAgg, _opts:opts,
-            _packTotal:pack,        /* valor fixo, nunca filtrado */
-            _rawOutRows:outRows,    /* cópia original para refiltragem */
-            _rawDefRows:defRows,    /* cópia original para refiltragem */
-            defRowsKpi:defRows,     /* sem filtro de turno → KPI/cards fixos */
-            _dropDefRows:defRows};  /* base estável para filtros de gráfico */
+    DATA = {
+      outRows: outRows, defRows: defRows, woMap: woMap, O: O, F: F,
+      stOut: stOut, stDef: stDef,
+      pSVI_B: pSVI_B, pSVI_T: pSVI_T, pFBT: pFBT, pICT: pICT, pF1: pF1, pF2: pF2,
+      oSMT: oSMT, oBE: oBE, overal: overal, perda: perda,
+      totF: totF, pack: pack, fdAgg: fdAgg, _opts: opts,
+      _packTotal: pack,        /* valor fixo, nunca filtrado */
+      _rawOutRows: outRows,    /* cópia original para refiltragem */
+      _rawDefRows: defRows,    /* cópia original para refiltragem */
+      defRowsKpi: defRows,     /* sem filtro de turno → KPI/cards fixos */
+      _dropDefRows: defRows
+    };  /* base estável para filtros de gráfico */
 
     await step('Construindo filtros...', 80);
 
-    buildMultiSelect('ms-wo',  'wo',  opts.wo,  'Todos');
+    buildMultiSelect('ms-wo', 'wo', opts.wo, 'Todos');
     buildMultiSelect('ms-mod', 'mod', opts.mod, 'Todos');
     buildMultiSelect('ms-ser', 'ser', opts.ser, 'Todos');
     buildMultiSelect('ms-lin', 'lin', opts.lin, 'Todas');
-    buildMultiSelect('ms-st',  'st',  opts.st,  'Todas');
-    buildMultiSelect('ms-fd',  'fd',  opts.fd,  'Todas');
+    buildMultiSelect('ms-st', 'st', opts.st, 'Todas');
+    buildMultiSelect('ms-fd', 'fd', opts.fd, 'Todas');
     buildMultiSelect('ms-itm', 'itm', opts.itm, 'Todos');
     buildMultiSelect('ms-dtc', 'dtc', opts.dtc, 'Todas');
-    buildMultiSelect('ms-trn', 'trn', ['1ºT','2ºT','3ºT'], 'Todos');
+    buildMultiSelect('ms-trn', 'trn', ['1ºT', '2ºT', '3ºT'], 'Todos');
     updSbInfo(outRows, defRows, pack, overal, O, F);
 
     await step('Renderizando...', 150);
     render(DATA);
 
     hide('ldZone'); hide('upZone'); show('dash');
-    var hb=document.getElementById('hBtnUpload'); if(hb) hb.style.display='';
-    setStatus('on','Dashboard ativo');
+    var hb = document.getElementById('hBtnUpload'); if (hb) hb.style.display = '';
+    setStatus('on', 'Dashboard ativo');
     /* Ocultar botão PUBLICAR no dashboard — só visível na tela de upload */
-    var _fpb=document.getElementById('fixedPublishBtn'); if(_fpb) _fpb.style.display='none';
+    var _fpb = document.getElementById('fixedPublishBtn'); if (_fpb) _fpb.style.display = 'none';
     /* Renderiza painéis extras após DOM visível */
-    setTimeout(function(){ try { if(DATA&&DATA.F) renderDashRow2(DATA._sO||{}, DATA._sD||{}, DATA.defRows||[], DATA._ov!=null?DATA._ov:DATA.overal); } catch(e){ console.warn('[renderDashRow2]',e); } }, 150);
+    setTimeout(function () { try { if (DATA && DATA.F) renderDashRow2(DATA._sO || {}, DATA._sD || {}, DATA.defRows || [], DATA._ov != null ? DATA._ov : DATA.overal); } catch (e) { console.warn('[renderDashRow2]', e); } }, 150);
 
-  } catch(err) {
+  } catch (err) {
     hide('ldZone');
-    showErr('Erro: '+err.message);
+    showErr('Erro: ' + err.message);
     console.error('[ACER v5]', err);
   }
 }
@@ -520,7 +532,7 @@ async function run() {
    FILTROS
 ══════════════════════════════════════════ */
 function getSel(key) { return MS_STATE[key] ? Array.from(MS_STATE[key]) : []; }
-function inSel(key, val) { var s=MS_STATE[key]; return !s||s.size===0||s.has(val); }
+function inSel(key, val) { var s = MS_STATE[key]; return !s || s.size === 0 || s.has(val); }
 /* inSelDtc: se descTec está vazio, deixa passar (sem classificação técnica definida).
    Só filtra linhas que têm um valor de descTec E esse valor não está selecionado. */
 function inSelDtc(val) {
@@ -532,74 +544,74 @@ function inSelDtc(val) {
 
 /* Calcula turno a partir de failDate */
 function getShift(raw) {
-  var m = (raw||'').match(/\s(\d{1,2}):(\d{2}):/);
-  var h = m?parseInt(m[1]):0, mi = m?parseInt(m[2]):0;
-  var mins = h*60+mi;
-  if (mins>=360 && mins<948)     return '1ºT';
-  if (mins>=948 || mins<69)      return '2ºT';
+  var m = (raw || '').match(/\s(\d{1,2}):(\d{2}):/);
+  var h = m ? parseInt(m[1]) : 0, mi = m ? parseInt(m[2]) : 0;
+  var mins = h * 60 + mi;
+  if (mins >= 360 && mins < 948) return '1ºT';
+  if (mins >= 948 || mins < 69) return '2ºT';
   return '3ºT';
 }
 
 function applyF() {
-  CHART_FILTER = {fd: null, itm: null};  /* reset bar click filter on sidebar change */
+  CHART_FILTER = { fd: null, itm: null };  /* reset bar click filter on sidebar change */
   /* Admin: auto-save filters for current client on every filter change */
   if (IS_ADMIN && CURRENT_CLIENT) {
     ADMIN_FILTERS[CURRENT_CLIENT] = captureFilterState();
   }
-  var d = DATA, O=d.O, F=d.F;
+  var d = DATA, O = d.O, F = d.F;
   /* Sempre filtra a partir dos dados RAW originais */
   var rawOut = d._rawOutRows || d.outRows;
   var rawDef = d._rawDefRows || d.defRows;
 
   /* ── OUT rows: sem turno (turno não afeta producao OUTPUT) ── */
-  var fo = rawOut.filter(function(r){
-    return inSel('wo',S(r[O.wo])) && inSel('mod',S(r[O.modelo])) &&
-           inSel('ser',S(r[O.serial])) &&
-           inSel('lin',S(r[O.linha])) && inSel('st',S(r[O.st]));
+  var fo = rawOut.filter(function (r) {
+    return inSel('wo', S(r[O.wo])) && inSel('mod', S(r[O.modelo])) &&
+      inSel('ser', S(r[O.serial])) &&
+      inSel('lin', S(r[O.linha])) && inSel('st', S(r[O.st]));
   });
 
   /* Helper base para defeitos sem filtro de turno */
-  function buildFd(inclTrn){
-    return rawDef.filter(function(r){
-      var wo=S(r[F.wo]), fdv=S(r[F.failDesc])||'TBA';
-      var itv=S(r[F.item])||'TBA';
-      var m=d.woMap[wo]||{};
+  function buildFd(inclTrn) {
+    return rawDef.filter(function (r) {
+      var wo = S(r[F.wo]), fdv = S(r[F.failDesc]) || 'TBA';
+      var itv = S(r[F.item]) || 'TBA';
+      var m = d.woMap[wo] || {};
       /* Resolve modelo: woMap (L6) ou _modelo direto (L10 ASUS) */
       var modDef = m.modelo || S(r['_modelo']) || '';
-      var serMatch = !MS_STATE['ser']||MS_STATE['ser'].size===0 ||
-        rawOut.filter(function(o){return S(o[O.wo])===wo && MS_STATE['ser'].has(S(o[O.serial]));}).length>0;
-      return inSel('wo',wo) && inSel('mod',modDef) && serMatch &&
-             inSel('lin',S(r[F.linha])||m.linha||'') &&
-             inSel('st',S(r[F.st])) && inSel('fd',fdv) && inSel('itm',itv) &&
-             inSelDtc(S(r[F.descTec])) &&
-             (!inclTrn || inSel('trn', getShift(S(r[F.failDate]))));
+      var serMatch = !MS_STATE['ser'] || MS_STATE['ser'].size === 0 ||
+        rawOut.filter(function (o) { return S(o[O.wo]) === wo && MS_STATE['ser'].has(S(o[O.serial])); }).length > 0;
+      return inSel('wo', wo) && inSel('mod', modDef) && serMatch &&
+        inSel('lin', S(r[F.linha]) || m.linha || '') &&
+        inSel('st', S(r[F.st])) && inSel('fd', fdv) && inSel('itm', itv) &&
+        inSelDtc(S(r[F.descTec])) &&
+        (!inclTrn || inSel('trn', getShift(S(r[F.failDate]))));
     });
   }
 
   /* fdKpi: SEM turno → cards/KPIs sempre mostram os 3 turnos */
   var fdKpi = buildFd(false);
   /* fd: COM turno → gráficos respeitam filtro de turno */
-  var fd    = buildFd(true);
+  var fd = buildFd(true);
 
   /* Atualiza DATA:
        .defRowsKpi  = sem turno → cards/KPIs fixos
        ._dropDefRows = com turno → base estável para filtros de gráfico (pareto/hora)
        .defRows      = igual _dropDefRows inicialmente (pode ser sobrescrito por filtros de gráfico) */
-  DATA.outRows      = fo;
-  DATA.defRowsKpi   = fdKpi;
+  DATA.outRows = fo;
+  DATA.defRowsKpi = fdKpi;
   DATA._dropDefRows = fd;
-  DATA.defRows      = fd;
-  render(Object.assign({}, d, {outRows:fo, defRows:fd, defRowsKpi:fdKpi}));
+  DATA.defRows = fd;
+  render(Object.assign({}, d, { outRows: fo, defRows: fd, defRowsKpi: fdKpi }));
 }
 
 function clearAllF() {
-  ['wo','mod','ser','lin','st','fd','itm','trn','dtc'].forEach(function(key){
+  ['wo', 'mod', 'ser', 'lin', 'st', 'fd', 'itm', 'trn', 'dtc'].forEach(function (key) {
     if (MS_STATE[key]) MS_STATE[key].clear();
-    var allEl = document.getElementById('msall-'+key);
-    if (allEl) { allEl.classList.add('active'); allEl.querySelector('.ms-cb').textContent='✓'; }
-    var list = document.getElementById('mslist-'+key);
-    if (list) list.querySelectorAll('.ms-item').forEach(function(el){
-      el.classList.remove('active'); el.querySelector('.ms-cb').textContent='';
+    var allEl = document.getElementById('msall-' + key);
+    if (allEl) { allEl.classList.add('active'); allEl.querySelector('.ms-cb').textContent = '✓'; }
+    var list = document.getElementById('mslist-' + key);
+    if (list) list.querySelectorAll('.ms-item').forEach(function (el) {
+      el.classList.remove('active'); el.querySelector('.ms-cb').textContent = '';
     });
     updateMSLabel(key);
   });
@@ -615,18 +627,18 @@ function updSbInfo(outRows, defRows, pack, overal, O, F) {
 ══════════════════════════════════════════ */
 function render(d) {
   killCharts();
-  var outRows=d.outRows, defRows=d.defRows, O=d.O, F=d.F, woMap=d.woMap;
+  var outRows = d.outRows, defRows = d.defRows, O = d.O, F = d.F, woMap = d.woMap;
   /* defRowsKpi: sem filtro de turno → cards/KPIs sempre mostram 3 turnos */
   var defRowsKpi = d.defRowsKpi || defRows;
 
   /* Re-agregar com dados filtrados */
   var sO = {};
-  outRows.forEach(function(r){
-    var st=S(r[O.st])||'N/A';
-    if (!sO[st]) sO[st]={total:0,pass:0,fail:0};
+  outRows.forEach(function (r) {
+    var st = S(r[O.st]) || 'N/A';
+    if (!sO[st]) sO[st] = { total: 0, pass: 0, fail: 0 };
     sO[st].total += N(r[O.total]);
-    sO[st].pass  += N(r[O.pass]);
-    sO[st].fail  += N(r[O.fail]);
+    sO[st].pass += N(r[O.pass]);
+    sO[st].fail += N(r[O.fail]);
   });
   /* ASUS: PACK-QA usa AVIPK como total de output */
   if (CURRENT_CLIENT === 'asus' && sO['AVIPK']) {
@@ -634,49 +646,49 @@ function render(d) {
   }
 
   /* ── Dedup para KPI/Overall — usa defRowsKpi (sem turno, 3 turnos fixos) ── */
-  var _seenKpi={};
-  var defDedupKpi=defRowsKpi.filter(function(r){
-    var s=S(r[F.serial]); var st=S(r[F.st])||'N/A';
-    if(!s||s==='') return true;
-    var k=s+'\x00'+st;
-    if(_seenKpi[k]) return false;
-    _seenKpi[k]=true; return true;
+  var _seenKpi = {};
+  var defDedupKpi = defRowsKpi.filter(function (r) {
+    var s = S(r[F.serial]); var st = S(r[F.st]) || 'N/A';
+    if (!s || s === '') return true;
+    var k = s + '\x00' + st;
+    if (_seenKpi[k]) return false;
+    _seenKpi[k] = true; return true;
   });
-  var sDkpi={};
-  defDedupKpi.forEach(function(r){var st=S(r[F.st])||'N/A';sDkpi[st]=(sDkpi[st]||0)+1;});
+  var sDkpi = {};
+  defDedupKpi.forEach(function (r) { var st = S(r[F.st]) || 'N/A'; sDkpi[st] = (sDkpi[st] || 0) + 1; });
 
-  function parcKpi(st){ var df=sDkpi[st]||0,t=sO[st]?sO[st].total:0; return t?1-df/t:null; }
-  function prod(vals){ var v=vals.filter(function(x){return x!==null&&x>0;}); return v.length?v.reduce(function(a,x){return a*x;},1):null; }
+  function parcKpi(st) { var df = sDkpi[st] || 0, t = sO[st] ? sO[st].total : 0; return t ? 1 - df / t : null; }
+  function prod(vals) { var v = vals.filter(function (x) { return x !== null && x > 0; }); return v.length ? v.reduce(function (a, x) { return a * x; }, 1) : null; }
 
-  var pSB=parcKpi('S_VI_B'), pST=parcKpi('S_VI_T'), pFB=parcKpi('FBT'), pIC=parcKpi('ICT');
-  var pF1=parcKpi('F1'), pF2=parcKpi('F2'), pFVI=parcKpi('FVI');
-  var _cfg=getCfg();
-  var oSMT=prod(_cfg.smtSts.map(function(s){return parcKpi(s);}));
-  var oBE =prod(_cfg.beSts.map(function(s){return parcKpi(s);}));
-  var ov  =prod([oSMT,oBE]);
-  var totFDedup=defDedupKpi.length, totFRaw=defRowsKpi.length;
-  var loss=ov?1-ov:null, totF=totFDedup, pack=sO['PACKING']?sO['PACKING'].total:0;
+  var pSB = parcKpi('S_VI_B'), pST = parcKpi('S_VI_T'), pFB = parcKpi('FBT'), pIC = parcKpi('ICT');
+  var pF1 = parcKpi('F1'), pF2 = parcKpi('F2'), pFVI = parcKpi('FVI');
+  var _cfg = getCfg();
+  var oSMT = prod(_cfg.smtSts.map(function (s) { return parcKpi(s); }));
+  var oBE = prod(_cfg.beSts.map(function (s) { return parcKpi(s); }));
+  var ov = prod([oSMT, oBE]);
+  var totFDedup = defDedupKpi.length, totFRaw = defRowsKpi.length;
+  var loss = ov ? 1 - ov : null, totF = totFDedup, pack = sO['PACKING'] ? sO['PACKING'].total : 0;
   var packFixed = (DATA._packTotal !== undefined) ? DATA._packTotal : pack;
   var taxaDef = ov !== null ? 1 - ov : null;
 
   /* ── Dedup para GRÁFICOS — usa defRows (com filtro de turno) ── */
-  var _seenSerSt={};
-  var defDedup=defRows.filter(function(r){
-    var s=S(r[F.serial]); var st=S(r[F.st])||'N/A';
-    if(!s||s==='') return true;
-    var k=s+'\x00'+st;
-    if(_seenSerSt[k]) return false;
-    _seenSerSt[k]=true; return true;
+  var _seenSerSt = {};
+  var defDedup = defRows.filter(function (r) {
+    var s = S(r[F.serial]); var st = S(r[F.st]) || 'N/A';
+    if (!s || s === '') return true;
+    var k = s + '\x00' + st;
+    if (_seenSerSt[k]) return false;
+    _seenSerSt[k] = true; return true;
   });
-  var sD={};
-  defDedup.forEach(function(r){var st=S(r[F.st])||'N/A';sD[st]=(sD[st]||0)+1;});
-  if(DATA) DATA._sD = sD;
-  if(DATA) DATA._defDedup = defDedup; /* salva defDedup para waterfall usar */
-  function parc(st){ var df=sD[st]||0,t=sO[st]?sO[st].total:0; return t?1-df/t:null; }
-  function yc(v){ return !v?'var(--t3)':v>=THRESH.green?'var(--green)':v>=THRESH.warn?'var(--amber)':v>=THRESH.amber?'var(--amber)':'var(--red)'; }
+  var sD = {};
+  defDedup.forEach(function (r) { var st = S(r[F.st]) || 'N/A'; sD[st] = (sD[st] || 0) + 1; });
+  if (DATA) DATA._sD = sD;
+  if (DATA) DATA._defDedup = defDedup; /* salva defDedup para waterfall usar */
+  function parc(st) { var df = sD[st] || 0, t = sO[st] ? sO[st].total : 0; return t ? 1 - df / t : null; }
+  function yc(v) { return !v ? 'var(--t3)' : v >= THRESH.green ? 'var(--green)' : v >= THRESH.warn ? 'var(--amber)' : v >= THRESH.amber ? 'var(--amber)' : 'var(--red)'; }
   /* kpiCls: abaixo 99% = warn (amarelo), abaixo 98% = kpi-crit (vermelho piscando) */
-  function kpiCls(v){ if(!v||v===null) return ''; if(v<THRESH.warn) return ' kpi-crit'; if(v<THRESH.green) return ' warn'; return ''; }
-  function yct(v){ return v===null?'var(--t3)':v<=0.01?'var(--green)':v<=0.03?'var(--amber)':'var(--red)'; }
+  function kpiCls(v) { if (!v || v === null) return ''; if (v < THRESH.warn) return ' kpi-crit'; if (v < THRESH.green) return ' warn'; return ''; }
+  function yct(v) { return v === null ? 'var(--t3)' : v <= 0.01 ? 'var(--green)' : v <= 0.03 ? 'var(--amber)' : 'var(--red)'; }
 
   /* ── Produção SMT = total do último estágio SMT ── */
   var smtProd;
@@ -705,64 +717,64 @@ function render(d) {
   /* Linha 1: cards de produção + falhas (valores absolutos) */
   /* Linha 2: percentuais de qualidade */
   var taxaAlerta = taxaDef !== null && taxaDef > 0.01;
-  var taxaStr = taxaDef!==null?(taxaDef*100).toFixed(2)+'%':'—';
+  var taxaStr = taxaDef !== null ? (taxaDef * 100).toFixed(2) + '%' : '—';
 
   document.getElementById('kpiRow').innerHTML =
     /* BE PRODUTION */
-    '<div class="kpi kpi-prod" style="--kc:var(--cyan)">'+
-      '<div class="kpi-l">B.E PRODUTION</div>'+
-      '<div class="kpi-v">'+fmt(beProd)+'</div>'+
-    '</div>'+
+    '<div class="kpi kpi-prod" style="--kc:var(--cyan)">' +
+    '<div class="kpi-l">B.E PRODUTION</div>' +
+    '<div class="kpi-v">' + fmt(beProd) + '</div>' +
+    '</div>' +
     /* SMT PRODUTION */
-    '<div class="kpi kpi-prod" style="--kc:var(--blue)">'+
-      '<div class="kpi-l">SMT PRODUTION</div>'+
-      '<div class="kpi-v">'+fmt(smtProd)+'</div>'+
-    '</div>'+
+    '<div class="kpi kpi-prod" style="--kc:var(--blue)">' +
+    '<div class="kpi-l">SMT PRODUTION</div>' +
+    '<div class="kpi-v">' + fmt(smtProd) + '</div>' +
+    '</div>' +
     /* TOTAL FALHAS */
-    '<div class="kpi" style="--kc:var(--red)">'+
-      '<div class="kpi-l">TOTAL FALHAS</div>'+
-      '<div class="kpi-v">'+fmt(totFDedup)+'</div>'+
-    '</div>'+
+    '<div class="kpi" style="--kc:var(--red)">' +
+    '<div class="kpi-l">TOTAL FALHAS</div>' +
+    '<div class="kpi-v">' + fmt(totFDedup) + '</div>' +
+    '</div>' +
     /* OVERALL SMT */
-    '<div class="kpi'+kpiCls(oSMT)+
-      '" style="--kc:'+yc(oSMT)+'">'+
-      '<div class="kpi-l">OVERALL SMT</div>'+
-      '<div class="kpi-v">'+pct(oSMT)+'</div>'+
-    '</div>'+
+    '<div class="kpi' + kpiCls(oSMT) +
+    '" style="--kc:' + yc(oSMT) + '">' +
+    '<div class="kpi-l">OVERALL SMT</div>' +
+    '<div class="kpi-v">' + pct(oSMT) + '</div>' +
+    '</div>' +
     /* OVERALL B.E. */
-    '<div class="kpi'+kpiCls(oBE)+
-      '" style="--kc:'+yc(oBE)+'">'+
-      '<div class="kpi-l">OVERALL B.E.</div>'+
-      '<div class="kpi-v">'+pct(oBE)+'</div>'+
-    '</div>'+
+    '<div class="kpi' + kpiCls(oBE) +
+    '" style="--kc:' + yc(oBE) + '">' +
+    '<div class="kpi-l">OVERALL B.E.</div>' +
+    '<div class="kpi-v">' + pct(oBE) + '</div>' +
+    '</div>' +
     /* OVERALL OFICIAL + TAXA DE DEFEITO juntos no mesmo card — sem divider */
-    '<div class="kpi kpi-pair'+kpiCls(ov)+(taxaAlerta?' kpi-taxa-alert':'')+
-      '" style="--kc:'+yc(ov)+'">'+
-      '<div class="kpi-pair-inner">'+
-        '<div class="kpi-pair-side">'+
-          '<div class="kpi-l">OVERALL OFICIAL</div>'+
-          '<div class="kpi-v kpi-v-fit">'+pct(ov)+'</div>'+
-        '</div>'+
-        '<div class="kpi-pair-side">'+
-          '<div class="kpi-l">TAXA DE DEFEITO</div>'+
-          '<div class="kpi-v kpi-v-fit kpi-taxa'+(taxaAlerta?' kpi-taxa-blink':'')+
-            '" style="color:'+yct(taxaDef)+'">'+taxaStr+'</div>'+
-        '</div>'+
-      '</div>'+
+    '<div class="kpi kpi-pair' + kpiCls(ov) + (taxaAlerta ? ' kpi-taxa-alert' : '') +
+    '" style="--kc:' + yc(ov) + '">' +
+    '<div class="kpi-pair-inner">' +
+    '<div class="kpi-pair-side">' +
+    '<div class="kpi-l">OVERALL OFICIAL</div>' +
+    '<div class="kpi-v kpi-v-fit">' + pct(ov) + '</div>' +
+    '</div>' +
+    '<div class="kpi-pair-side">' +
+    '<div class="kpi-l">TAXA DE DEFEITO</div>' +
+    '<div class="kpi-v kpi-v-fit kpi-taxa' + (taxaAlerta ? ' kpi-taxa-blink' : '') +
+    '" style="color:' + yct(taxaDef) + '">' + taxaStr + '</div>' +
+    '</div>' +
+    '</div>' +
     '</div>';
 
   /* ── Station matrix — usa getCfg() no momento do render, CURRENT_CLIENT já definido ── */
-  var _cfgNow=getCfg();  /* lê CURRENT_CLIENT neste momento — correto */
-  var _stRowEl = document.getElementById('stRow'); if(_stRowEl) _stRowEl.innerHTML = _cfgNow.matrix.map(function(st){
-    var p=parcKpi(st);
+  var _cfgNow = getCfg();  /* lê CURRENT_CLIENT neste momento — correto */
+  var _stRowEl = document.getElementById('stRow'); if (_stRowEl) _stRowEl.innerHTML = _cfgNow.matrix.map(function (st) {
+    var p = parcKpi(st);
     var col = _cfgNow.colors[st] || MT_CLR[st] || 'var(--t3)';
     var grp = _cfgNow.groups[st] || MT_GRP[st] || 'B.E';
-    return '<div class="sk" style="--kc:'+col+'">'+
-      '<div class="sk-group">'+grp+'</div>'+
-      '<div class="sk-name">'+st+'</div>'+
-      '<div class="sk-val" style="color:'+yc(p)+'">'+pct(p)+'</div>'+
-      '<div class="sk-sub">Total: '+fmt(sO[st]?sO[st].total:0)+'</div>'+
-      '<div class="sk-df">Falhas: '+fmt(sDkpi[st]||0)+'</div></div>';
+    return '<div class="sk" style="--kc:' + col + '">' +
+      '<div class="sk-group">' + grp + '</div>' +
+      '<div class="sk-name">' + st + '</div>' +
+      '<div class="sk-val" style="color:' + yc(p) + '">' + pct(p) + '</div>' +
+      '<div class="sk-sub">Total: ' + fmt(sO[st] ? sO[st].total : 0) + '</div>' +
+      '<div class="sk-df">Falhas: ' + fmt(sDkpi[st] || 0) + '</div></div>';
   }).join('');
 
   /* ── Breakdown table: TODAS as estações presentes nos dados (filtradas por seleção) ── */
@@ -770,146 +782,151 @@ function render(d) {
   var selSt = MS_STATE['st'] && MS_STATE['st'].size > 0 ? MS_STATE['st'] : null;
 
   /* Ordem fixa de exibição das estações */
-  var ST_ORDER = ['S_VI_B','S_VI_T','FVI','ICT','FBT','F1','F2','FV2','PACK','PACKING'];
+  var ST_ORDER = ['S_VI_B', 'S_VI_T', 'FVI', 'ICT', 'FBT', 'F1', 'F2', 'FV2', 'PACK', 'PACKING'];
   var _excl2 = getCfg().excludeSt || [];
 
   /* Coleta todas as estações (exceto excluídas por cliente) */
   var allStSeen = {};
   var allStKeys = [];
   /* Primeiro adicionar as da ordem fixa que existam nos dados */
-  ST_ORDER.forEach(function(st){
-    if(_excl2.indexOf(st)!==-1) return; /* excluído por cliente */
-    var inOut = (DATA.outRows||outRows).some(function(r){return S(r[O.st])===st;});
-    var inDef = (DATA.defRows||defRows).some(function(r){return S(r[F.st])===st;});
-    if((inOut||inDef) && !allStSeen[st]){ allStSeen[st]=true; allStKeys.push(st); }
+  ST_ORDER.forEach(function (st) {
+    if (_excl2.indexOf(st) !== -1) return; /* excluído por cliente */
+    var inOut = (DATA.outRows || outRows).some(function (r) { return S(r[O.st]) === st; });
+    var inDef = (DATA.defRows || defRows).some(function (r) { return S(r[F.st]) === st; });
+    if ((inOut || inDef) && !allStSeen[st]) { allStSeen[st] = true; allStKeys.push(st); }
   });
   /* Depois adicionar quaisquer outras estações não previstas (ordem alfabética) */
   var extraSt = [];
-  (DATA.outRows||outRows).forEach(function(r){
-    var st=S(r[O.st])||'N/A';
-    if(!allStSeen[st] && _excl2.indexOf(st)===-1){allStSeen[st]=true;extraSt.push(st);}
+  (DATA.outRows || outRows).forEach(function (r) {
+    var st = S(r[O.st]) || 'N/A';
+    if (!allStSeen[st] && _excl2.indexOf(st) === -1) { allStSeen[st] = true; extraSt.push(st); }
   });
-  (DATA.defRows||defRows).forEach(function(r){
-    var st=S(r[F.st])||'N/A';
-    if(!allStSeen[st] && _excl2.indexOf(st)===-1){allStSeen[st]=true;extraSt.push(st);}
+  (DATA.defRows || defRows).forEach(function (r) {
+    var st = S(r[F.st]) || 'N/A';
+    if (!allStSeen[st] && _excl2.indexOf(st) === -1) { allStSeen[st] = true; extraSt.push(st); }
   });
-  extraSt.sort().forEach(function(st){allStKeys.push(st);});
+  extraSt.sort().forEach(function (st) { allStKeys.push(st); });
 
   /* Filtrar por seleção do usuário se houver */
-  var visibleSt = selSt ? allStKeys.filter(function(st){return selSt.has(st);}) : allStKeys;
+  var visibleSt = selSt ? allStKeys.filter(function (st) { return selSt.has(st); }) : allStKeys;
 
-  var stTotProd=1, stHasAny=false, stTotD=0, stTotT=0;
+  var stTotProd = 1, stHasAny = false, stTotD = 0, stTotT = 0;
   /* TOTAL row usa sO/sD de TODAS as estações visíveis na tabela */
-  var bdTotD=0, bdTotT=0, bdProd=1, bdHasAny=false;
+  var bdTotD = 0, bdTotT = 0, bdProd = 1, bdHasAny = false;
   /* ── Breakdown por MODELO ── */
   /* Obtém modelos selecionados (ou todos) */
   var selMod = MS_STATE['mod'] && MS_STATE['mod'].size > 0 ? Array.from(MS_STATE['mod']) : null;
 
   /* Agrega total OUT por modelo (usa outRows filtrado) */
   var modOut = {}, modFail = {};
-  outRows.forEach(function(r){
+  outRows.forEach(function (r) {
     var mod = S(r[O.modelo]).trim();
     if (!mod || mod === '—') return; /* ignora linhas sem modelo identificado */
-    if(!modOut[mod]) modOut[mod] = 0;
+    if (!modOut[mod]) modOut[mod] = 0;
     modOut[mod] += N(r[O.total]) || 1;
   });
-  defDedup.forEach(function(r){
-    var woR=S(r[F.wo])||'';
-    var mod=(woMap[woR]?woMap[woR].modelo:'')||S(r['_modelo'])||'—';
-    if(!modFail[mod]) modFail[mod] = 0;
+  defDedup.forEach(function (r) {
+    var woR = S(r[F.wo]) || '';
+    var mod = (woMap[woR] ? woMap[woR].modelo : '') || S(r['_modelo']) || '—';
+    if (!modFail[mod]) modFail[mod] = 0;
     modFail[mod]++;
   });
 
   /* Lista de modelos: se filtro ativo usa só os selecionados, senão todos */
   var allMods = selMod ? selMod : Object.keys(modOut).sort();
   /* Inclui modelos que só aparecem em falhas */
-  Object.keys(modFail).forEach(function(m){
-    if(allMods.indexOf(m)===-1) allMods.push(m);
+  Object.keys(modFail).forEach(function (m) {
+    if (allMods.indexOf(m) === -1) allMods.push(m);
   });
   allMods.sort();
 
-  var bdTotT2=0, bdTotD2=0;
+  var bdTotT2 = 0, bdTotD2 = 0;
 
   if (CURRENT_CLIENT === 'asus') {
     /* ASUS — Breakdown por modelo */
     var META_FPY = 0.99;
 
     /* Restaura cabeçalho padrão ASUS */
-    var _tbStQ=document.getElementById('tbSt'); var thead = _tbStQ?_tbStQ.closest('table').querySelector('thead'):null;
+    var _tbStQ = document.getElementById('tbSt'); var thead = _tbStQ ? _tbStQ.closest('table').querySelector('thead') : null;
     if (thead) thead.innerHTML = '<tr><th>Modelo</th><th>Total OUT</th><th>Falhas</th><th>●</th><th>Parcial FPY</th></tr>';
 
-    var _tbStEl=document.getElementById('tbSt'); if(_tbStEl) _tbStEl.innerHTML = allMods.map(function(mod){
-      var tot = modOut[mod]||0, df = modFail[mod]||0;
-      bdTotT2+=tot; bdTotD2+=df;
-      var p = tot ? 1-df/tot : null;
-      var dot = p===null?'ia':p>=THRESH.green?'ig':p>=THRESH.warn?'ia':'ir';
-      return '<tr>'+
-        '<td class="lab">'+mod+'</td>'+
-        '<td>'+fmt(tot)+'</td>'+
-        '<td style="color:var(--red)">'+fmt(df)+'</td>'+
-        '<td><span class="ind '+dot+'"></span></td>'+
-        '<td style="color:'+yc(p)+';font-weight:700">'+pct(p)+'</td>'+
-      '</tr>';
+    var _tbStEl = document.getElementById('tbSt'); if (_tbStEl) _tbStEl.innerHTML = allMods.map(function (mod) {
+      var tot = modOut[mod] || 0, df = modFail[mod] || 0;
+      bdTotT2 += tot; bdTotD2 += df;
+      var p = tot ? 1 - df / tot : null;
+      var dot = p === null ? 'ia' : p >= THRESH.green ? 'ig' : p >= THRESH.warn ? 'ia' : 'ir';
+      return '<tr>' +
+        '<td class="lab">' + mod + '</td>' +
+        '<td>' + fmt(tot) + '</td>' +
+        '<td style="color:var(--red)">' + fmt(df) + '</td>' +
+        '<td><span class="ind ' + dot + '"></span></td>' +
+        '<td style="color:' + yc(p) + ';font-weight:700">' + pct(p) + '</td>' +
+        '</tr>';
     }).join('') +
-    '<tr class="tot"><td>TOTAL</td><td>'+fmt(bdTotT2)+'</td>'+
-      '<td style="color:var(--red)">'+fmt(bdTotD2)+'</td><td></td>'+
-      '<td style="color:var(--cyan);">'+pct(bdTotD2&&bdTotT2?1-bdTotD2/bdTotT2:null)+'</td>'+
-    '</tr>';
+      '<tr class="tot"><td>TOTAL</td><td>' + fmt(bdTotT2) + '</td>' +
+      '<td style="color:var(--red)">' + fmt(bdTotD2) + '</td><td></td>' +
+      '<td style="color:var(--cyan);">' + pct(bdTotD2 && bdTotT2 ? 1 - bdTotD2 / bdTotT2 : null) + '</td>' +
+      '</tr>';
 
-    var _bdStEl=document.getElementById('bdSt'); if(_bdStEl) _bdStEl.textContent = allMods.length+' modelos · '+totF+' falhas';
+    var _bdStEl = document.getElementById('bdSt'); if (_bdStEl) _bdStEl.textContent = allMods.length + ' modelos · ' + totF + ' falhas';
 
   } else {
     /* ══ Outros clientes: tabela simples original ══ */
     /* Restaura o cabeçalho padrão */
-    var _tbSt2=document.getElementById('tbSt'); var thead2 = _tbSt2?_tbSt2.closest('table').querySelector('thead'):null;
+    var _tbSt2 = document.getElementById('tbSt'); var thead2 = _tbSt2 ? _tbSt2.closest('table').querySelector('thead') : null;
     if (thead2) thead2.innerHTML = '<tr><th>Modelo</th><th>Total OUT</th><th>Falhas</th><th>●</th><th>Parcial FPY</th></tr>';
 
-    var _tbStEl=document.getElementById('tbSt'); if(_tbStEl) _tbStEl.innerHTML = allMods.map(function(mod){
-      var tot = modOut[mod]||0, df = modFail[mod]||0;
-      bdTotT2+=tot; bdTotD2+=df;
-      var p = tot ? 1-df/tot : null;
-      var dot = p===null?'ia':p>=THRESH.green?'ig':p>=THRESH.warn?'ia':'ir';
-      return '<tr>'+
-        '<td class="lab">'+mod+'</td>'+
-        '<td>'+fmt(tot)+'</td>'+
-        '<td style="color:var(--red)">'+fmt(df)+'</td>'+
-        '<td><span class="ind '+dot+'"></span></td>'+
-        '<td style="color:'+yc(p)+';font-weight:700">'+pct(p)+'</td>'+
-      '</tr>';
+    var _tbStEl = document.getElementById('tbSt'); if (_tbStEl) _tbStEl.innerHTML = allMods.map(function (mod) {
+      var tot = modOut[mod] || 0, df = modFail[mod] || 0;
+      bdTotT2 += tot; bdTotD2 += df;
+      var p = tot ? 1 - df / tot : null;
+      var dot = p === null ? 'ia' : p >= THRESH.green ? 'ig' : p >= THRESH.warn ? 'ia' : 'ir';
+      return '<tr>' +
+        '<td class="lab">' + mod + '</td>' +
+        '<td>' + fmt(tot) + '</td>' +
+        '<td style="color:var(--red)">' + fmt(df) + '</td>' +
+        '<td><span class="ind ' + dot + '"></span></td>' +
+        '<td style="color:' + yc(p) + ';font-weight:700">' + pct(p) + '</td>' +
+        '</tr>';
     }).join('') +
-    '<tr class="tot"><td>TOTAL</td><td>'+fmt(bdTotT2)+'</td>'+
-      '<td style="color:var(--red)">'+fmt(bdTotD2)+'</td><td></td>'+
-      '<td style="color:var(--cyan);">'+pct(bdTotD2&&bdTotT2?1-bdTotD2/bdTotT2:null)+'</td>'+
-    '</tr>';
-    var _bdSt2=document.getElementById('bdSt'); if(_bdSt2) _bdSt2.textContent = allMods.length+' modelos · '+totF+' falhas';
+      '<tr class="tot"><td>TOTAL</td><td>' + fmt(bdTotT2) + '</td>' +
+      '<td style="color:var(--red)">' + fmt(bdTotD2) + '</td><td></td>' +
+      '<td style="color:var(--cyan);">' + pct(bdTotD2 && bdTotT2 ? 1 - bdTotD2 / bdTotT2 : null) + '</td>' +
+      '</tr>';
+    var _bdSt2 = document.getElementById('bdSt'); if (_bdSt2) _bdSt2.textContent = allMods.length + ' modelos · ' + totF + ' falhas';
   }
 
   /* ── GRÁFICO 1: Falhas por hora ──
      Números em cima de cada barra via Chart.js plugin inline */
-  var hrA={};
-  defRows.forEach(function(r){
-    var raw=S(r[F.failDate]);
-    var m=raw.match(/\s(\d{1,2}):\d{2}:\d{2}/);
-    var h=m?m[1].padStart(2,'0')+'h':'??';
-    hrA[h]=(hrA[h]||0)+1;
+  var hrA = {};
+  defRows.forEach(function (r) {
+    var raw = S(r[F.failDate]);
+    var m = raw.match(/\s(\d{1,2}):\d{2}:\d{2}/);
+    var h = m ? m[1].padStart(2, '0') + 'h' : '??';
+    hrA[h] = (hrA[h] || 0) + 1;
   });
-  var hK=Object.keys(hrA).filter(function(k){return k!=='??';}).sort();
-  var hV=hK.map(function(k){return hrA[k];});
-  var mxH=Math.max.apply(null,hV.concat([1]));
-  document.getElementById('bdHr').textContent = totF+' falhas';
+  var hK = Object.keys(hrA).filter(function (k) { return k !== '??'; }).sort();
+  var hV = hK.map(function (k) { return hrA[k]; });
+  var mxH = Math.max.apply(null, hV.concat([1]));
+  document.getElementById('bdHr').textContent = totF + ' falhas';
 
   CHARTS.hr = new Chart(document.getElementById('cHour').getContext('2d'), {
-    type:'bar',
-    data:{labels:hK, datasets:[{label:'Falhas', data:hV, borderRadius:4, borderWidth:1.5,
-      backgroundColor:hV.map(function(v){return v===mxH?'rgba(139,26,26,0.75)':'rgba(30,58,95,0.5)';}),
-      borderColor:hV.map(function(v){return v===mxH?'#ff3d5a':'#4d79ff';}),
-    }]},
-    options:{responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:24}},
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:function(ctx){return ' Falhas: '+ctx.raw;}}},
+    type: 'bar',
+    data: {
+      labels: hK, datasets: [{
+        label: 'Falhas', data: hV, borderRadius: 4, borderWidth: 1.5,
+        backgroundColor: hV.map(function (v) { return v === mxH ? 'rgba(139,26,26,0.75)' : 'rgba(30,58,95,0.5)'; }),
+        borderColor: hV.map(function (v) { return v === mxH ? '#ff3d5a' : '#4d79ff'; }),
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 24 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function (ctx) { return ' Falhas: ' + ctx.raw; } } },
       },
-      onClick: function(evt, els) {
+      onClick: function (evt, els) {
         if (!els || !els.length) {
           if (HOUR_FILTER !== null) { HOUR_FILTER = null; applyHourFilter(); }
           return;
@@ -918,167 +935,189 @@ function render(d) {
         HOUR_FILTER = (HOUR_FILTER === lbl) ? null : lbl;
         applyHourFilter();
       },
-      scales:{
-        x:{ticks:{color:'#1E293B',font:{size:10,weight:'600'}},grid:{color:'#E2E8F0'}},
-        y:{ticks:{color:'#1E293B',stepSize:1},grid:{color:'#E2E8F0'},beginAtZero:true}
+      scales: {
+        x: { ticks: { color: '#1E293B', font: { size: 10, weight: '600' } }, grid: { color: '#E2E8F0' } },
+        y: { ticks: { color: '#1E293B', stepSize: 1 }, grid: { color: '#E2E8F0' }, beginAtZero: true }
       },
-      animation:{onComplete:function(anim){barLabels(anim.chart,0,'#0F172A',11);}}
+      animation: { onComplete: function (anim) { barLabels(anim.chart, 0, '#0F172A', 11); } }
     }
   });
 
   /* ── GRÁFICO 2: Turno ── */
-  var tA={'1ºT':0,'2ºT':0,'3ºT':0};
-  defRows.forEach(function(r){ var t=getShift(S(r[F.failDate])); tA[t]=(tA[t]||0)+1; });
-  var tK=['1ºT','2ºT','3ºT'], tV=tK.map(function(k){return tA[k]||0;});
-  document.getElementById('bdTurno').textContent = totF+' total';
+  var tA = { '1ºT': 0, '2ºT': 0, '3ºT': 0 };
+  defRows.forEach(function (r) { var t = getShift(S(r[F.failDate])); tA[t] = (tA[t] || 0) + 1; });
+  var tK = ['1ºT', '2ºT', '3ºT'], tV = tK.map(function (k) { return tA[k] || 0; });
+  document.getElementById('bdTurno').textContent = totF + ' total';
   /* Turno: cores sólidas — batem exatamente com a legenda */
-  var tColors=['#1e3a5f','#f77f00','#047857'];
-  var tBg    =['#1e3a5f','#f77f00','#047857'];
+  var tColors = ['#1e3a5f', '#f77f00', '#047857'];
+  var tBg = ['#1e3a5f', '#f77f00', '#047857'];
 
-  CHARTS.turno = new Chart(document.getElementById('cTurno').getContext('2d'),{
-    type:'doughnut',
-    data:{labels:tK, datasets:[{data:tV,
-      backgroundColor:tBg,
-      borderColor:'#ffffff', borderWidth:2, hoverOffset:6}]},
-    options:{responsive:true, maintainAspectRatio:false, cutout:'60%',
-      plugins:{
-        legend:{position:'right', labels:{color:'#1E293B', font:{size:11,weight:'600'}, padding:12,
-          usePointStyle:true, pointStyle:'circle',
-          generateLabels:function(chart){
-            var ds=chart.data.datasets[0];
-            return chart.data.labels.map(function(l,i){
-              return {text: l+'  '+ds.data[i], fillStyle:tBg[i],
-                strokeStyle:tBg[i], lineWidth:0, hidden:false, index:i};
-            });
+  CHARTS.turno = new Chart(document.getElementById('cTurno').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: tK, datasets: [{
+        data: tV,
+        backgroundColor: tBg,
+        borderColor: '#ffffff', borderWidth: 2, hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: {
+        legend: {
+          position: 'right', labels: {
+            color: '#1E293B', font: { size: 11, weight: '600' }, padding: 12,
+            usePointStyle: true, pointStyle: 'circle',
+            generateLabels: function (chart) {
+              var ds = chart.data.datasets[0];
+              return chart.data.labels.map(function (l, i) {
+                return {
+                  text: l + '  ' + ds.data[i], fillStyle: tBg[i],
+                  strokeStyle: tBg[i], lineWidth: 0, hidden: false, index: i
+                };
+              });
+            }
           }
-        }},
-        tooltip:{callbacks:{label:function(ctx){return ' '+ctx.label+': '+ctx.parsed+' falhas';}}}
+        },
+        tooltip: { callbacks: { label: function (ctx) { return ' ' + ctx.label + ': ' + ctx.parsed + ' falhas'; } } }
       }
     }
   });
 
   /* ── HELPER: pareto chart (bars + linha acumulado com números) ── */
   function makePareto(canvasId, labels, values, barColor, lineColor) {
-    var total = values.reduce(function(a,v){return a+v;},0);
-    var cum=0, pcts=values.map(function(v){cum+=v;return +((cum/total)*100).toFixed(1);});
+    var total = values.reduce(function (a, v) { return a + v; }, 0);
+    var cum = 0, pcts = values.map(function (v) { cum += v; return +((cum / total) * 100).toFixed(1); });
     /* Azul por padrão, vermelho quando > 3 ocorrências */
-    var bgArr   = values.map(function(v){ return v >= 3 ? '#dc2f02' : '#4cc9f0'; });
-    var bordArr = values.map(function(v){ return v >= 3 ? '#b52501'   : '#29b4e0';   });
+    var bgArr = values.map(function (v) { return v >= 3 ? '#dc2f02' : '#4cc9f0'; });
+    var bordArr = values.map(function (v) { return v >= 3 ? '#b52501' : '#29b4e0'; });
 
     var wrappedLabels = labels;
 
-    var _maxLblLen = labels.reduce(function(mx,l){ return Math.max(mx, String(l).length); }, 0);
+    var _maxLblLen = labels.reduce(function (mx, l) { return Math.max(mx, String(l).length); }, 0);
     var _xRotMax = _maxLblLen > 8 ? 45 : 0;
     var _xRotMin = _maxLblLen > 8 ? 45 : 0;
 
     return new Chart(document.getElementById(canvasId).getContext('2d'), {
-      type:'bar',
-      data:{
+      type: 'bar',
+      data: {
         labels: wrappedLabels,
-        datasets:[
-          {label:'Total de Falhas', data:values, backgroundColor:bgArr, borderColor:bordArr,
-           borderWidth:1.5, borderRadius:5, yAxisID:'y', order:2},
-          {type:'line', label:'% Acumulado', data:pcts, borderColor:'#f77f00', borderWidth:2.5,
-           pointRadius:6, pointBackgroundColor:'#f77f00', pointBorderColor:'#ffffff',
-           pointBorderWidth:2, yAxisID:'y2', fill:false, tension:.3, order:1},
+        datasets: [
+          {
+            label: 'Total de Falhas', data: values, backgroundColor: bgArr, borderColor: bordArr,
+            borderWidth: 1.5, borderRadius: 5, yAxisID: 'y', order: 2
+          },
+          {
+            type: 'line', label: '% Acumulado', data: pcts, borderColor: '#f77f00', borderWidth: 2.5,
+            pointRadius: 6, pointBackgroundColor: '#f77f00', pointBorderColor: '#ffffff',
+            pointBorderWidth: 2, yAxisID: 'y2', fill: false, tension: .3, order: 1
+          },
         ]
       },
-      options:{responsive:true, maintainAspectRatio:false,
-        layout:{padding:{top:32, right:8, bottom:4}}, /* bottom gerenciado pelo afterFit */
-        plugins:{legend:{display:false}},
-        scales:{
-          x:{ticks:{color:'#334155',
-               font:{size:_xRotMax===45?10:11},
-               color:'#0F172A',
-               maxRotation:_xRotMax,minRotation:_xRotMin,autoSkip:false,
-               padding:_xRotMax===45?8:4,
-               callback:function(val,idx){
-                 var lbl=this.getLabelForValue(val);
-                 if(typeof lbl!=='string') return lbl;
-                 if(_xRotMax===0){
-                   if(lbl.length<=10) return lbl;
-                   var words=lbl.split(' ');
-                   if(words.length===1) return [lbl.slice(0,Math.ceil(lbl.length/2)),lbl.slice(Math.ceil(lbl.length/2))];
-                   var mid=Math.ceil(words.length/2);
-                   return [words.slice(0,mid).join(' '),words.slice(mid).join(' ')];
-                 }
-                 if(lbl.length<=12) return lbl;
-                 var words=lbl.split(' ');
-                 if(words.length<=1) return lbl;
-                 var mid=Math.ceil(words.length/2);
-                 return [words.slice(0,mid).join(' '), words.slice(mid).join(' ')];
-               },
-               afterFit:function(axis){ if(_xRotMax===45) axis.height=Math.min(axis.height,85); }
-             },
-             grid:{color:'#E2E8F0'},
-             border:{display:false}},
-          y:{
-            ticks:{color:'#475569',stepSize:1,font:{size:9}},
-            grid:{color:'#E2E8F0'},
-            beginAtZero:true,
-            /* Fix 2: max = maior valor + 1 para nunca tocar na borda */
-            max:Math.ceil(Math.max.apply(null,values))+1,
-            position:'left',
-            border:{display:false}
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 32, right: 8, bottom: 4 } }, /* bottom gerenciado pelo afterFit */
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            ticks: {
+              color: '#334155',
+              font: { size: _xRotMax === 45 ? 10 : 11 },
+              color: '#0F172A',
+              maxRotation: _xRotMax, minRotation: _xRotMin, autoSkip: false,
+              padding: _xRotMax === 45 ? 8 : 4,
+              callback: function (val, idx) {
+                var lbl = this.getLabelForValue(val);
+                if (typeof lbl !== 'string') return lbl;
+                if (_xRotMax === 0) {
+                  if (lbl.length <= 10) return lbl;
+                  var words = lbl.split(' ');
+                  if (words.length === 1) return [lbl.slice(0, Math.ceil(lbl.length / 2)), lbl.slice(Math.ceil(lbl.length / 2))];
+                  var mid = Math.ceil(words.length / 2);
+                  return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+                }
+                if (lbl.length <= 12) return lbl;
+                var words = lbl.split(' ');
+                if (words.length <= 1) return lbl;
+                var mid = Math.ceil(words.length / 2);
+                return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+              },
+              afterFit: function (axis) { if (_xRotMax === 45) axis.height = Math.min(axis.height, 85); }
+            },
+            grid: { color: '#E2E8F0' },
+            border: { display: false }
           },
-          y2:{ticks:{color:'#334155',callback:function(v){return v+'%';},font:{size:9}},
-              grid:{display:false},min:0,max:108,position:'right',
-              border:{display:false}}
+          y: {
+            ticks: { color: '#475569', stepSize: 1, font: { size: 9 } },
+            grid: { color: '#E2E8F0' },
+            beginAtZero: true,
+            /* Fix 2: max = maior valor + 1 para nunca tocar na borda */
+            max: Math.ceil(Math.max.apply(null, values)) + 1,
+            position: 'left',
+            border: { display: false }
+          },
+          y2: {
+            ticks: { color: '#334155', callback: function (v) { return v + '%'; }, font: { size: 9 } },
+            grid: { display: false }, min: 0, max: 108, position: 'right',
+            border: { display: false }
+          }
         },
-        animation:{onComplete:function(anim){
-          barLabels(anim.chart, 0, '#0F172A', 11);
-          lineLabels(anim.chart, 1, '#0F172A', 10);
-        }}
+        animation: {
+          onComplete: function (anim) {
+            barLabels(anim.chart, 0, '#0F172A', 11);
+            lineLabels(anim.chart, 1, '#0F172A', 10);
+          }
+        }
       }
     });
   }
 
   /* Pareto Fail Description — usa defRows (total real de falhas) */
-  var fdA={};
-  defRows.forEach(function(r){var v=S(r[F.failDesc])||'TBA';fdA[v]=(fdA[v]||0)+1;});
-  var fdK=Object.keys(fdA).sort(function(a,b){return fdA[b]-fdA[a];}).slice(0,13);
-  var fdV=fdK.map(function(k){return fdA[k];});
-  document.getElementById('bdFD').textContent = fdK.length+' causas';
+  var fdA = {};
+  defRows.forEach(function (r) { var v = S(r[F.failDesc]) || 'TBA'; fdA[v] = (fdA[v] || 0) + 1; });
+  var fdK = Object.keys(fdA).sort(function (a, b) { return fdA[b] - fdA[a]; }).slice(0, 13);
+  var fdV = fdK.map(function (k) { return fdA[k]; });
+  document.getElementById('bdFD').textContent = fdK.length + ' causas';
   CHARTS.fd = makePareto('cFD', fdK, fdV, '#ff3d5a', '#00d4ff');
   CHARTS.fd._origLabels = fdK;
 
   /* Pareto Item — usa defRows (total real de falhas) */
-  var itmA={};
-  defRows.forEach(function(r){
-    var v=S(r[F.item])||'TBA';
-    itmA[v]=(itmA[v]||0)+1;
+  var itmA = {};
+  defRows.forEach(function (r) {
+    var v = S(r[F.item]) || 'TBA';
+    itmA[v] = (itmA[v] || 0) + 1;
   });
-  var itmK=Object.keys(itmA).sort(function(a,b){return itmA[b]-itmA[a];}).slice(0,13);
-  var itmV=itmK.map(function(k){return itmA[k];});
-  document.getElementById('bdItem').textContent = itmK.length+' componentes';
+  var itmK = Object.keys(itmA).sort(function (a, b) { return itmA[b] - itmA[a]; }).slice(0, 13);
+  var itmV = itmK.map(function (k) { return itmA[k]; });
+  document.getElementById('bdItem').textContent = itmK.length + ' componentes';
   CHARTS.item = makePareto('cItem', itmK, itmV, '#ffc400', '#b97fff');
   CHARTS.item._origLabels = itmK;
 
   /* ── Pareto table ── */
   /* Contagem de serial para alertas de duplicidade */
   var serCount = {};
-  defRows.forEach(function(r){ var s=S(r[F.serial])||'—'; serCount[s]=(serCount[s]||0)+1; });
+  defRows.forEach(function (r) { var s = S(r[F.serial]) || '—'; serCount[s] = (serCount[s] || 0) + 1; });
 
-  var jA={};
-  defRows.forEach(function(r){
-    var wo=S(r[F.wo]), fd=S(r[F.failDesc])||'TBA';
-    var itm=S(r[F.item])||'TBA', st=S(r[F.st])||'N/A';
-    var ser=S(r[F.serial])||'—';
+  var jA = {};
+  defRows.forEach(function (r) {
+    var wo = S(r[F.wo]), fd = S(r[F.failDesc]) || 'TBA';
+    var itm = S(r[F.item]) || 'TBA', st = S(r[F.st]) || 'N/A';
+    var ser = S(r[F.serial]) || '—';
     /* Resolve modelo: 1) campo _modelo da falha (L10), 2) woMap por WO (L6) */
-    var mod=(woMap[wo]?woMap[wo].modelo:'')||S(r['_modelo'])||'—';
+    var mod = (woMap[wo] ? woMap[wo].modelo : '') || S(r['_modelo']) || '—';
     /* Extrai hora da falha */
-    var rawDate=S(r[F.failDate]);
-    var mh=rawDate.match(/\s(\d{1,2}:\d{2})/);
-    var hora=mh?mh[1]:'—';
-    var key=[fd,itm,st,ser,wo,mod,hora].join('\x00');
-    jA[key]=(jA[key]||0)+1;
+    var rawDate = S(r[F.failDate]);
+    var mh = rawDate.match(/\s(\d{1,2}:\d{2})/);
+    var hora = mh ? mh[1] : '—';
+    var key = [fd, itm, st, ser, wo, mod, hora].join('\x00');
+    jA[key] = (jA[key] || 0) + 1;
   });
-  var pArr=Object.keys(jA).map(function(k){
-    var p=k.split('\x00'); return{fd:p[0],itm:p[1],st:p[2],ser:p[3],wo:p[4],mod:p[5],hora:p[6],qty:jA[k]};
-  }).sort(function(a,b){return b.qty-a.qty;});
-  var pTot=pArr.reduce(function(a,r){return a+r.qty;},0);
+  var pArr = Object.keys(jA).map(function (k) {
+    var p = k.split('\x00'); return { fd: p[0], itm: p[1], st: p[2], ser: p[3], wo: p[4], mod: p[5], hora: p[6], qty: jA[k] };
+  }).sort(function (a, b) { return b.qty - a.qty; });
+  var pTot = pArr.reduce(function (a, r) { return a + r.qty; }, 0);
   renderParTable(pArr, pTot, ' ocorrências', serCount);
-  document.getElementById('bdPar').textContent = fmt(pTot)+' ocorrências';
+  document.getElementById('bdPar').textContent = fmt(pTot) + ' ocorrências';
 
   /* ── Click to filter: bind pareto chart bars → filter table & charts ── */
   bindParetoClick();
@@ -1092,7 +1131,7 @@ function render(d) {
      usa sO/sD recalculados com dados já filtrados neste ciclo de render */
   try {
     renderDashRow2(sO, sDkpi, defDedupKpi, ov);
-  } catch(e) { console.warn('[renderDashRow2 inline]', e); }
+  } catch (e) { console.warn('[renderDashRow2 inline]', e); }
 
   /* Atualiza painel Monitor com dados atuais */
   pushMonitorData();
@@ -1108,41 +1147,41 @@ function renderParTable(pArr, pTot, badgeSuffix, serCount) {
   PAR_DATA = pArr;
   _renderRows(pArr, serCount || window._lastSerCount || {});
   if (serCount) window._lastSerCount = serCount;
-  document.getElementById('bdPar').textContent = fmt(pTot)+(badgeSuffix||' ocorrências');
+  document.getElementById('bdPar').textContent = fmt(pTot) + (badgeSuffix || ' ocorrências');
 
   /* Atualiza badges de duplicidade com contagem real */
-  var cnt2=0, cnt3=0;
+  var cnt2 = 0, cnt3 = 0;
   if (serCount) {
-    Object.keys(serCount).forEach(function(s){
-      if (s==='—') return;
-      var n=serCount[s];
-      if (n>=3) cnt3++;
-      else if (n===2) cnt2++;
+    Object.keys(serCount).forEach(function (s) {
+      if (s === '—') return;
+      var n = serCount[s];
+      if (n >= 3) cnt3++;
+      else if (n === 2) cnt2++;
     });
   }
-  var b2=document.getElementById('lgd2'), b3=document.getElementById('lgd3');
+  var b2 = document.getElementById('lgd2'), b3 = document.getElementById('lgd3');
   if (b2) {
-    b2.textContent = cnt2>0 ? '⚠ '+cnt2+' serial 2x' : '● 2x';
-    b2.style.opacity = cnt2>0 ? '1' : '0.4';
-    b2.style.fontWeight = cnt2>0 ? '700' : '400';
+    b2.textContent = cnt2 > 0 ? '⚠ ' + cnt2 + ' serial 2x' : '● 2x';
+    b2.style.opacity = cnt2 > 0 ? '1' : '0.4';
+    b2.style.fontWeight = cnt2 > 0 ? '700' : '400';
   }
   if (b3) {
-    b3.textContent = cnt3>0 ? '🔴 '+cnt3+' serial 3x+' : '● 3x+';
-    b3.style.opacity = cnt3>0 ? '1' : '0.4';
-    b3.style.fontWeight = cnt3>0 ? '700' : '400';
+    b3.textContent = cnt3 > 0 ? '🔴 ' + cnt3 + ' serial 3x+' : '● 3x+';
+    b3.style.opacity = cnt3 > 0 ? '1' : '0.4';
+    b3.style.fontWeight = cnt3 > 0 ? '700' : '400';
   }
 }
 
 function _renderRows(pArr, serCount) {
-  document.getElementById('tbPar').innerHTML = pArr.map(function(r,i){
-    var fdBlank  = !r.fd  || r.fd  === '—' || r.fd  === 'TBA';
+  document.getElementById('tbPar').innerHTML = pArr.map(function (r, i) {
+    var fdBlank = !r.fd || r.fd === '—' || r.fd === 'TBA';
     var itmBlank = !r.itm || r.itm === '—' || r.itm === 'TBA';
     var fdCell = fdBlank
       ? '<span style="color:var(--amber);font-style:italic">TBA</span>'
-      : '<span class="lab">'+r.fd+'</span>';
+      : '<span class="lab">' + r.fd + '</span>';
     var itmCell = itmBlank
       ? '<span style="color:var(--amber);font-style:italic">TBA</span>'
-      : '<span style="color:var(--cyan)">'+r.itm+'</span>';
+      : '<span style="color:var(--cyan)">' + r.itm + '</span>';
 
     /* Cor do serial baseada na contagem */
     var cnt = serCount[r.ser] || 1;
@@ -1154,26 +1193,26 @@ function _renderRows(pArr, serCount) {
     } else {
       serColor = 'var(--t2)'; serBg = 'transparent'; serIcon = '';
     }
-    var serCell = '<span style="color:'+serColor+';font-family:monospace;font-size:10px;'+
-      'background:'+serBg+';padding:1px 5px;border-radius:3px" title="'+cnt+'x ocorrências neste serial">'+
-      serIcon+r.ser+'</span>';
+    var serCell = '<span style="color:' + serColor + ';font-family:monospace;font-size:10px;' +
+      'background:' + serBg + ';padding:1px 5px;border-radius:3px" title="' + cnt + 'x ocorrências neste serial">' +
+      serIcon + r.ser + '</span>';
     var horaCell = r.hora && r.hora !== '—'
-      ? '<span style="color:var(--cyan);font-family:monospace;font-size:10px">'+r.hora+'</span>'
+      ? '<span style="color:var(--cyan);font-family:monospace;font-size:10px">' + r.hora + '</span>'
       : '<span style="color:var(--t3)">—</span>';
 
     /* Destaque de linha inteira para duplicados */
-    var rowBg = cnt>=3 ? 'background:#FEF2F2' : cnt===2 ? 'background:#FFFBEB' : '';
-    var rowStyle = rowBg ? ' style="'+rowBg+'"' : '';
-    return '<tr'+rowStyle+'>'+
-      '<td style="color:var(--t3)">'+(i+1)+'</td>'+
-      '<td>'+fdCell+'</td>'+
-      '<td>'+itmCell+'</td>'+
-      '<td><span class="badge bc" style="font-size:9px;padding:2px 6px">'+r.st+'</span></td>'+
-      '<td>'+serCell+'</td>'+
-      '<td>'+horaCell+'</td>'+
-      '<td style="color:var(--t2)">'+r.wo.slice(-12)+'</td>'+
-      '<td style="color:var(--t2)">'+r.mod+'</td>'+
-      '<td style="color:var(--red);font-weight:700">'+r.qty+'</td></tr>';
+    var rowBg = cnt >= 3 ? 'background:#FEF2F2' : cnt === 2 ? 'background:#FFFBEB' : '';
+    var rowStyle = rowBg ? ' style="' + rowBg + '"' : '';
+    return '<tr' + rowStyle + '>' +
+      '<td style="color:var(--t3)">' + (i + 1) + '</td>' +
+      '<td>' + fdCell + '</td>' +
+      '<td>' + itmCell + '</td>' +
+      '<td><span class="badge bc" style="font-size:9px;padding:2px 6px">' + r.st + '</span></td>' +
+      '<td>' + serCell + '</td>' +
+      '<td>' + horaCell + '</td>' +
+      '<td style="color:var(--t2)">' + r.wo.slice(-12) + '</td>' +
+      '<td style="color:var(--t2)">' + r.mod + '</td>' +
+      '<td style="color:var(--red);font-weight:700">' + r.qty + '</td></tr>';
   }).join('');
 }
 
@@ -1185,8 +1224,8 @@ function filterBySer(minCount) {
     _renderRows(PAR_DATA, window._lastSerCount || {});
   } else {
     btn.style.display = '';
-    var filtered = PAR_DATA.filter(function(r){
-      var cnt = (window._lastSerCount||{})[r.ser] || 1;
+    var filtered = PAR_DATA.filter(function (r) {
+      var cnt = (window._lastSerCount || {})[r.ser] || 1;
       return SER_FILTER === 3 ? cnt >= 3 : cnt === 2;
     });
     _renderRows(filtered, window._lastSerCount || {});
@@ -1203,7 +1242,7 @@ function clearSerFilter() {
    PARETO CLICK FILTER
    Clicando numa barra filtra tabela e recalcula
 ══════════════════════════════════════════ */
-var CHART_FILTER = {fd: null, itm: null};
+var CHART_FILTER = { fd: null, itm: null };
 var _chartRendering = false;  /* guard against re-entrant render during click */
 var HOUR_FILTER = null;       /* filtra por hora clicada no gráfico */
 
@@ -1214,12 +1253,12 @@ function applyHourFilter() {
     var hK = CHARTS.hr.data.labels;
     var hV = CHARTS.hr.data.datasets[0].data;
     var mxH = Math.max.apply(null, hV.concat([1]));
-    CHARTS.hr.data.datasets[0].backgroundColor = hK.map(function(l, i){
-      if (HOUR_FILTER === null) return hV[i]===mxH ? '#ff3d5a66' : '#4d79ff30';
+    CHARTS.hr.data.datasets[0].backgroundColor = hK.map(function (l, i) {
+      if (HOUR_FILTER === null) return hV[i] === mxH ? '#ff3d5a66' : '#4d79ff30';
       return l === HOUR_FILTER ? '#00d4ff99' : '#4d79ff18';
     });
-    CHARTS.hr.data.datasets[0].borderColor = hK.map(function(l, i){
-      if (HOUR_FILTER === null) return hV[i]===mxH ? '#ff3d5a' : '#4d79ff';
+    CHARTS.hr.data.datasets[0].borderColor = hK.map(function (l, i) {
+      if (HOUR_FILTER === null) return hV[i] === mxH ? '#ff3d5a' : '#4d79ff';
       return l === HOUR_FILTER ? '#00d4ff' : '#4d79ff44';
     });
     CHARTS.hr.update('none');
@@ -1231,27 +1270,27 @@ function applyHourFilter() {
      depois aplica pareto filter e por último hora */
   var base = DATA._dropDefRows || DATA.defRows;
   var F = DATA.F;
-  var fdF  = CHART_FILTER.fd;
+  var fdF = CHART_FILTER.fd;
   var itmF = CHART_FILTER.itm;
   if (fdF || itmF) {
-    base = base.filter(function(r){
-      var fd  = S(r[F.failDesc]) || 'TBA';
-      var itm = S(r[F.item])     || 'TBA';
+    base = base.filter(function (r) {
+      var fd = S(r[F.failDesc]) || 'TBA';
+      var itm = S(r[F.item]) || 'TBA';
       return (!fdF || fd === fdF) && (!itmF || itm === itmF);
     });
   }
   /* Filtra pelo horário selecionado */
-  var filtered = HOUR_FILTER === null ? base : base.filter(function(r){
+  var filtered = HOUR_FILTER === null ? base : base.filter(function (r) {
     var raw = S(r[F.failDate]);
     var m = raw.match(/\s(\d{1,2}):\d{2}:\d{2}/);
-    var h = m ? m[1].padStart(2,'0')+'h' : '??';
+    var h = m ? m[1].padStart(2, '0') + 'h' : '??';
     return h === HOUR_FILTER;
   });
   /* Usa outRows já filtrado pelos filtros ativos (modelo, linha, WO, serial, estação)
      e NÃO o _rawOutRows, para garantir que Total OUT respeite todos os filtros */
   var fo = DATA.outRows || DATA._rawOutRows;
   /* KPI cards usam defRowsKpi (3 turnos fixos, sem filtro de hora) */
-  render(Object.assign({}, DATA, {outRows: fo, defRows: filtered, defRowsKpi: DATA.defRowsKpi}));
+  render(Object.assign({}, DATA, { outRows: fo, defRows: filtered, defRowsKpi: DATA.defRowsKpi }));
 }
 
 function bindParetoClick() {
@@ -1260,9 +1299,9 @@ function bindParetoClick() {
 
   if (cvFD && !cvFD._acer_click) {
     cvFD._acer_click = true;
-    cvFD.addEventListener('click', function(e){
+    cvFD.addEventListener('click', function (e) {
       if (_chartRendering || !CHARTS.fd) return;
-      var pts = CHARTS.fd.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
+      var pts = CHARTS.fd.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
       if (!pts.length) {
         if (CHART_FILTER.fd === null) return; /* nothing to do */
         CHART_FILTER.fd = null;
@@ -1271,7 +1310,7 @@ function bindParetoClick() {
       } else {
         var idx = pts[0].index;
         var lbl = (CHARTS.fd._origLabels && CHARTS.fd._origLabels[idx]) ||
-                  CHARTS.fd.data.labels[idx];
+          CHARTS.fd.data.labels[idx];
         if (Array.isArray(lbl)) lbl = lbl.join(' ');
         CHART_FILTER.fd = (CHART_FILTER.fd === lbl) ? null : lbl;
       }
@@ -1281,9 +1320,9 @@ function bindParetoClick() {
 
   if (cvItm && !cvItm._acer_click) {
     cvItm._acer_click = true;
-    cvItm.addEventListener('click', function(e){
+    cvItm.addEventListener('click', function (e) {
       if (_chartRendering || !CHARTS.item) return;
-      var pts = CHARTS.item.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
+      var pts = CHARTS.item.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
       if (!pts.length) {
         if (CHART_FILTER.itm === null) return;
         CHART_FILTER.itm = null;
@@ -1292,7 +1331,7 @@ function bindParetoClick() {
       } else {
         var idx = pts[0].index;
         var lbl = (CHARTS.item._origLabels && CHARTS.item._origLabels[idx]) ||
-                  CHARTS.item.data.labels[idx];
+          CHARTS.item.data.labels[idx];
         if (Array.isArray(lbl)) lbl = lbl.join(' ');
         CHART_FILTER.itm = (CHART_FILTER.itm === lbl) ? null : lbl;
       }
@@ -1306,15 +1345,15 @@ function updateParetoHighlight() {
   _chartRendering = true;
 
   var d = DATA, F = d.F;
-  var fdF  = CHART_FILTER.fd;
+  var fdF = CHART_FILTER.fd;
   var itmF = CHART_FILTER.itm;
 
   /* Sempre filtra a partir de _dropDefRows (base estável com turno, sem chart filters)
      → garante que desmarcar uma barra restaura o conjunto correto */
   var chartBase = DATA._dropDefRows || d.defRows;
-  var filteredDef = (fdF || itmF) ? chartBase.filter(function(r){
-    var fd  = S(r[F.failDesc]) || 'TBA';
-    var itm = S(r[F.item])     || 'TBA';
+  var filteredDef = (fdF || itmF) ? chartBase.filter(function (r) {
+    var fd = S(r[F.failDesc]) || 'TBA';
+    var itm = S(r[F.item]) || 'TBA';
     return (!fdF || fd === fdF) && (!itmF || itm === itmF);
   }) : chartBase;
 
@@ -1323,16 +1362,16 @@ function updateParetoHighlight() {
 
   /* Full re-render — KPI cards usam defRowsKpi (3 turnos fixos)
      outRows mantém os filtros ativos (modelo, linha, WO, serial, estação) */
-  render(Object.assign({}, d, {outRows: DATA.outRows || d.outRows, defRows: filteredDef, defRowsKpi: DATA.defRowsKpi || d.defRowsKpi}));
+  render(Object.assign({}, d, { outRows: DATA.outRows || d.outRows, defRows: filteredDef, defRowsKpi: DATA.defRowsKpi || d.defRowsKpi }));
 
   /* Re-apply bar highlights + labels after render */
-  setTimeout(function(){
-    highlightChart(CHARTS.fd,  fdF,  '#4d79ff', '#4d79ff18');
-    highlightChart(CHARTS.item,itmF, '#4d79ff', '#4d79ff18');
+  setTimeout(function () {
+    highlightChart(CHARTS.fd, fdF, '#4d79ff', '#4d79ff18');
+    highlightChart(CHARTS.item, itmF, '#4d79ff', '#4d79ff18');
     var fdLbl = document.getElementById('fdFilterLbl');
     var itmLbl = document.getElementById('itmFilterLbl');
-    if (fdLbl)  fdLbl.textContent  = fdF  ? '✕ '+fdF  : '';
-    if (itmLbl) itmLbl.textContent = itmF ? '✕ '+itmF : '';
+    if (fdLbl) fdLbl.textContent = fdF ? '✕ ' + fdF : '';
+    if (itmLbl) itmLbl.textContent = itmF ? '✕ ' + itmF : '';
     _chartRendering = false;
   }, 60);
 }
@@ -1348,24 +1387,24 @@ function highlightChart(chart, activeLabel, activeColor, dimColor) {
   function toArr(val, len, fallback) {
     if (Array.isArray(val)) return val.slice();
     var v = (val && val !== '') ? val : fallback;
-    var arr = []; for (var i=0;i<len;i++) arr.push(v); return arr;
+    var arr = []; for (var i = 0; i < len; i++) arr.push(v); return arr;
   }
 
   if (!ds0._origBgArr) {
-    ds0._origBgArr   = toArr(ds0.backgroundColor, n, activeColor+'35');
-    ds0._origBordArr = toArr(ds0.borderColor,      n, activeColor);
+    ds0._origBgArr = toArr(ds0.backgroundColor, n, activeColor + '35');
+    ds0._origBordArr = toArr(ds0.borderColor, n, activeColor);
   }
 
   if (!activeLabel) {
     ds0.backgroundColor = ds0._origBgArr.slice();
-    ds0.borderColor     = ds0._origBordArr.slice();
+    ds0.borderColor = ds0._origBordArr.slice();
   } else {
     var origL = chart._origLabels || labels;
-    ds0.backgroundColor = origL.map(function(l, i){
+    ds0.backgroundColor = origL.map(function (l, i) {
       var lStr = Array.isArray(l) ? l.join(' ') : l;
       return lStr === activeLabel ? ds0._origBgArr[i] : dimColor;
     });
-    ds0.borderColor = origL.map(function(l, i){
+    ds0.borderColor = origL.map(function (l, i) {
       var lStr = Array.isArray(l) ? l.join(' ') : l;
       return lStr === activeLabel ? ds0._origBordArr[i] : dimColor;
     });
@@ -1376,29 +1415,29 @@ function highlightChart(chart, activeLabel, activeColor, dimColor) {
 function rebuildTimeCharts(filteredRows, d) {
   var F = d.F;
   /* Rebuild hora chart */
-  var hrA={};
-  filteredRows.forEach(function(r){
-    var raw=S(r[F.failDate]);
-    var m=raw.match(/\s(\d{1,2}):\d{2}:\d{2}/);
-    var h=m?m[1].padStart(2,'0')+'h':'??';
-    hrA[h]=(hrA[h]||0)+1;
+  var hrA = {};
+  filteredRows.forEach(function (r) {
+    var raw = S(r[F.failDate]);
+    var m = raw.match(/\s(\d{1,2}):\d{2}:\d{2}/);
+    var h = m ? m[1].padStart(2, '0') + 'h' : '??';
+    hrA[h] = (hrA[h] || 0) + 1;
   });
   if (CHARTS.hr) {
-    var hK=Object.keys(hrA).filter(function(k){return k!=='??';}).sort();
-    var hV=hK.map(function(k){return hrA[k];});
-    var mxH=Math.max.apply(null,hV.concat([1]));
+    var hK = Object.keys(hrA).filter(function (k) { return k !== '??'; }).sort();
+    var hV = hK.map(function (k) { return hrA[k]; });
+    var mxH = Math.max.apply(null, hV.concat([1]));
     CHARTS.hr.data.labels = hK;
     CHARTS.hr.data.datasets[0].data = hV;
-    CHARTS.hr.data.datasets[0].backgroundColor = hV.map(function(v){return v===mxH?'#ff3d5a66':'#4d79ff30';});
-    CHARTS.hr.data.datasets[0].borderColor = hV.map(function(v){return v===mxH?'#ff3d5a':'#4d79ff';});
-    CHARTS.hr.update();
+    CHARTS.hr.data.datasets[0].backgroundColor = hV.map(function (v) { return v === mxH ? '#ff3d5a66' : '#4d79ff30'; });
+    CHARTS.hr.data.datasets[0].borderColor = hV.map(function (v) { return v === mxH ? '#ff3d5a' : '#4d79ff'; });
+    CHARTS.hr.update('none');
   }
   /* Rebuild turno chart */
-  var tA={'1ºT':0,'2ºT':0,'3ºT':0};
-  filteredRows.forEach(function(r){ var t=getShift(S(r[F.failDate])); tA[t]=(tA[t]||0)+1; });
+  var tA = { '1ºT': 0, '2ºT': 0, '3ºT': 0 };
+  filteredRows.forEach(function (r) { var t = getShift(S(r[F.failDate])); tA[t] = (tA[t] || 0) + 1; });
   if (CHARTS.turno) {
-    CHARTS.turno.data.datasets[0].data = ['1ºT','2ºT','3ºT'].map(function(k){return tA[k]||0;});
-    CHARTS.turno.update();
+    CHARTS.turno.data.datasets[0].data = ['1ºT', '2ºT', '3ºT'].map(function (k) { return tA[k] || 0; });
+    CHARTS.turno.update('none');
   }
 }
 
@@ -1410,50 +1449,50 @@ function rebuildTimeCharts(filteredRows, d) {
 /* Números em cima das barras do dataset dsIdx */
 /* Qty no CENTRO vertical da barra (pareto) */
 function barLabels(chart, dsIdx, color, fsize) {
-  var ctx=chart.ctx, ds=chart.data.datasets[dsIdx];
+  var ctx = chart.ctx, ds = chart.data.datasets[dsIdx];
   if (!ds) return;
-  var meta=chart.getDatasetMeta(dsIdx);
-  var yAxis=chart.scales['y'];
-  var zeroY=yAxis?yAxis.getPixelForValue(0):chart.chartArea.bottom;
+  var meta = chart.getDatasetMeta(dsIdx);
+  var yAxis = chart.scales['y'];
+  var zeroY = yAxis ? yAxis.getPixelForValue(0) : chart.chartArea.bottom;
   ctx.save();
-  ctx.font='bold '+fsize+'px Segoe UI';
-  ctx.fillStyle=color;
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  meta.data.forEach(function(bar,i){
-    var v=ds.data[i];
-    if(v===null||v===undefined||v===0) return;
+  ctx.font = 'bold ' + fsize + 'px Segoe UI';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  meta.data.forEach(function (bar, i) {
+    var v = ds.data[i];
+    if (v === null || v === undefined || v === 0) return;
     /* Numero acima da barra */
-    ctx.textBaseline='bottom';
-    ctx.fillText(v, bar.x, bar.y-4);
-    ctx.textBaseline='middle';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(v, bar.x, bar.y - 4);
+    ctx.textBaseline = 'middle';
   });
   ctx.restore();
 }
 
 /* % acumulado ACIMA do ponto da linha (pareto) */
 function lineLabels(chart, dsIdx, color, fsize) {
-  var ctx=chart.ctx, ds=chart.data.datasets[dsIdx];
+  var ctx = chart.ctx, ds = chart.data.datasets[dsIdx];
   if (!ds) return;
-  var meta=chart.getDatasetMeta(dsIdx);
+  var meta = chart.getDatasetMeta(dsIdx);
   ctx.save();
-  ctx.font=fsize+'px IBM Plex Sans,Segoe UI';
-  ctx.fillStyle=color;
-  ctx.textAlign='center';
-  ctx.textBaseline='bottom';
-  meta.data.forEach(function(pt,i){
-    var v=ds.data[i];
-    if(v===null||v===undefined) return;
-    var txt=v+'%';
-    ctx.fillStyle=color;
+  ctx.font = fsize + 'px IBM Plex Sans,Segoe UI';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  meta.data.forEach(function (pt, i) {
+    var v = ds.data[i];
+    if (v === null || v === undefined) return;
+    var txt = v + '%';
+    ctx.fillStyle = color;
     /* Se ponto muito alto, coloca label abaixo para nao sair do grafico */
     var chartTop = chart.chartArea ? chart.chartArea.top : 0;
     if (pt.y - 20 < chartTop) {
-      ctx.textBaseline='top';
-      ctx.fillText(txt, pt.x, pt.y+4);
-      ctx.textBaseline='bottom';
+      ctx.textBaseline = 'top';
+      ctx.fillText(txt, pt.x, pt.y + 4);
+      ctx.textBaseline = 'bottom';
     } else {
-      ctx.fillText(txt, pt.x, pt.y-7);
+      ctx.fillText(txt, pt.x, pt.y - 7);
     }
   });
   ctx.restore();
@@ -1467,71 +1506,71 @@ function buildLocalDiag() { return ''; }
 function renderAlertas() { /* alertas IA desativados */ }
 
 function colN(headers, cands) {
-  var low=headers.map(function(h){return h.toLowerCase().trim();});
-  for(var i=0;i<cands.length;i++){
-    var c=cands[i].toLowerCase().trim();
-    var idx=low.indexOf(c);
-    if(idx===-1) for(var k=0;k<low.length;k++){if(low[k].indexOf(c)!==-1){idx=k;break;}}
-    if(idx!==-1) return headers[idx];
+  var low = headers.map(function (h) { return h.toLowerCase().trim(); });
+  for (var i = 0; i < cands.length; i++) {
+    var c = cands[i].toLowerCase().trim();
+    var idx = low.indexOf(c);
+    if (idx === -1) for (var k = 0; k < low.length; k++) { if (low[k].indexOf(c) !== -1) { idx = k; break; } }
+    if (idx !== -1) return headers[idx];
   }
   return headers[0];
 }
-function S(v) { return String(v===null||v===undefined?'':v).trim(); }
-function N(v) { var n=parseFloat(String(v).replace(/[^\d.\-]/g,'')); return isNaN(n)?0:n; }
+function S(v) { return String(v === null || v === undefined ? '' : v).trim(); }
+function N(v) { var n = parseFloat(String(v).replace(/[^\d.\-]/g, '')); return isNaN(n) ? 0 : n; }
 function fmt(v) { return Math.round(v).toLocaleString('pt-BR'); }
-function pct(v) { return (v!==null&&v!==undefined)?(v*100).toFixed(2)+'%':'N/A'; }
-function uniq(a) { return a.filter(function(v,i,s){return v&&s.indexOf(v)===i;}); }
-function show(id){ document.getElementById(id).style.display=''; }
-function hide(id){ document.getElementById(id).style.display='none'; }
-function step(msg,ms){ document.getElementById('lstep').textContent=msg; return new Promise(function(r){setTimeout(r,ms);}); }
-function killCharts(){
-  Object.values(CHARTS).forEach(function(c){try{c.destroy();}catch(e){}});
-  CHARTS={};
+function pct(v) { return (v !== null && v !== undefined) ? (v * 100).toFixed(2) + '%' : 'N/A'; }
+function uniq(a) { return a.filter(function (v, i, s) { return v && s.indexOf(v) === i; }); }
+function show(id) { document.getElementById(id).style.display = ''; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
+function step(msg, ms) { document.getElementById('lstep').textContent = msg; return new Promise(function (r) { setTimeout(r, ms); }); }
+function killCharts() {
+  Object.values(CHARTS).forEach(function (c) { try { c.destroy(); } catch (e) { } });
+  CHARTS = {};
   /* Reset click flags so listeners rebind correctly on next render */
-  ['cFD','cItem'].forEach(function(id){
-    var cv=document.getElementById(id); if(cv) cv._acer_click=false;
+  ['cFD', 'cItem'].forEach(function (id) {
+    var cv = document.getElementById(id); if (cv) cv._acer_click = false;
   });
 }
-function showErr(m){ var b=document.getElementById('errBox'); b.style.display=''; b.textContent='⚠ '+m; }
-function setStatus(t,txt){ document.getElementById('sdot').className='dot'+(t?' '+t:''); document.getElementById('stxt').textContent=txt; }
-async function typeText(el,txt){
-  var words=txt.split(' '),cur='';
-  for(var i=0;i<words.length;i++){
-    cur+=(i?' ':'')+words[i]; el.textContent=cur;
-    if(i%15===0) await new Promise(function(r){setTimeout(r,5);});
+function showErr(m) { var b = document.getElementById('errBox'); b.style.display = ''; b.textContent = '⚠ ' + m; }
+function setStatus(t, txt) { document.getElementById('sdot').className = 'dot' + (t ? ' ' + t : ''); document.getElementById('stxt').textContent = txt; }
+async function typeText(el, txt) {
+  var words = txt.split(' '), cur = '';
+  for (var i = 0; i < words.length; i++) {
+    cur += (i ? ' ' : '') + words[i]; el.textContent = cur;
+    if (i % 15 === 0) await new Promise(function (r) { setTimeout(r, 5); });
   }
 }
-function resetAll(){
-  ['out','def'].forEach(function(k){
-    RAW[k]=null;
-    var c=document.getElementById('c-'+k); if(c)c.classList.remove('done');
-    document.getElementById('n-'+k).textContent='Nenhum arquivo';
-    document.getElementById('f-'+k).value='';
+function resetAll() {
+  ['out', 'def'].forEach(function (k) {
+    RAW[k] = null;
+    var c = document.getElementById('c-' + k); if (c) c.classList.remove('done');
+    document.getElementById('n-' + k).textContent = 'Nenhum arquivo';
+    document.getElementById('f-' + k).value = '';
   });
   show('upZone'); hide('dash'); hide('errBox');
-  var hb=document.getElementById('hBtnUpload'); if(hb) hb.style.display='none';
+  var hb = document.getElementById('hBtnUpload'); if (hb) hb.style.display = 'none';
   /* Reexibir botão PUBLICAR se admin */
-  if(IS_ADMIN){ var fpb=document.getElementById('fixedPublishBtn'); if(fpb) fpb.style.display='flex'; setTimeout(updateFixedPublishBtn,100); }
-  document.getElementById('hint').textContent='Carregue os 2 arquivos para habilitar';
-  setStatus('','Aguardando dados');
-  killCharts(); DATA={}; MS_STATE={}; CHART_FILTER={fd:null,itm:null};
+  if (IS_ADMIN) { var fpb = document.getElementById('fixedPublishBtn'); if (fpb) fpb.style.display = 'flex'; setTimeout(updateFixedPublishBtn, 100); }
+  document.getElementById('hint').textContent = 'Carregue os 2 arquivos para habilitar';
+  setStatus('', 'Aguardando dados');
+  killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = { fd: null, itm: null };
 }
 
 /* ══════════════════════════════════════════
    ABAS — switchTab
 ══════════════════════════════════════════ */
 function switchTab(name) {
-  ['dash','monitor'].forEach(function(n) {
-    var btn = document.getElementById('tab-'+n);
-    var pan = document.getElementById('panel-'+n);
+  ['dash', 'monitor'].forEach(function (n) {
+    var btn = document.getElementById('tab-' + n);
+    var pan = document.getElementById('panel-' + n);
     if (!btn || !pan) return;
     if (n === name) { btn.classList.add('active'); pan.classList.add('active'); }
-    else            { btn.classList.remove('active'); pan.classList.remove('active'); }
+    else { btn.classList.remove('active'); pan.classList.remove('active'); }
   });
   /* Ao abrir monitor, renderiza imediatamente */
   if (name === 'monitor') {
     renderMonitor();
-    setTimeout(function(){if(WATERFALL_CHART) WATERFALL_CHART.resize();},100);
+    setTimeout(function () { if (WATERFALL_CHART) WATERFALL_CHART.resize(); }, 100);
   }
 }
 
@@ -1541,15 +1580,15 @@ function switchTab(name) {
 (function monClock() {
   function tick() {
     var n = new Date();
-    var hh = n.getHours().toString().padStart(2,'0');
-    var mm = n.getMinutes().toString().padStart(2,'0');
-    var ss = n.getSeconds().toString().padStart(2,'0');
+    var hh = n.getHours().toString().padStart(2, '0');
+    var mm = n.getMinutes().toString().padStart(2, '0');
+    var ss = n.getSeconds().toString().padStart(2, '0');
     var cl = document.getElementById('mClock');
-    if (cl) cl.textContent = hh+':'+mm+':'+ss;
-    var days=['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
-    var months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    if (cl) cl.textContent = hh + ':' + mm + ':' + ss;
+    var days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+    var months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     var dt = document.getElementById('mDate');
-    if (dt) dt.textContent = days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
+    if (dt) dt.textContent = days[n.getDay()] + ' ' + n.getDate() + ' ' + months[n.getMonth()] + ' ' + n.getFullYear();
   }
   setInterval(tick, 1000); tick();
 })();
@@ -1572,28 +1611,28 @@ function renderDashRow2(stOut, stDef, defDedup, ov) {
   if (d2 && stOut) {
     var cfg = getCfg();
     var allSt = cfg.matrix || Object.keys(stOut);
-    var maxDf = Math.max.apply(null, allSt.map(function(st){ return stDef[st]||0; }).concat([1]));
-    d2.innerHTML = allSt.map(function(st) {
-      var df = stDef[st]||0, t = stOut[st] ? stOut[st].total : 0;
-      var rate = t ? ((df/t)*100).toFixed(2) : null;
-      var fpy  = t ? (1 - df/t) : null;
+    var maxDf = Math.max.apply(null, allSt.map(function (st) { return stDef[st] || 0; }).concat([1]));
+    d2.innerHTML = allSt.map(function (st) {
+      var df = stDef[st] || 0, t = stOut[st] ? stOut[st].total : 0;
+      var rate = t ? ((df / t) * 100).toFixed(2) : null;
+      var fpy = t ? (1 - df / t) : null;
       var fpyCol = fpy === null ? '#64748B' : fpy >= THRESH.green ? '#047857' : fpy >= THRESH.warn ? '#B45309' : '#8b1a1a';
-      var bw = maxDf ? Math.round((df/maxDf)*100) : 0;
-      var defCol   = df > 0 ? '#8b1a1a' : '#047857';
-      var rateCol  = (rate !== null && parseFloat(rate) > 1) ? '#8b1a1a' : '#B45309';
-      var fpyBg    = fpy === null ? '#F1F5F9' :
-                     fpy >= THRESH.green ? '#ECFDF5' :
-                     fpy >= THRESH.amber ? '#FFFBEB' : '#FEF2F2';
-      return '<tr>'+
-        '<td style="font-weight:700;color:#0F172A;letter-spacing:0.5px;font-size:11px">'+st+'</td>'+
-        '<td style="font-family:IBM Plex Mono,monospace;color:#334155">'+fmt(t)+'</td>'+
-        '<td style="font-family:IBM Plex Mono,monospace;font-weight:700;color:'+defCol+'">'+df+'</td>'+
-        '<td><div style="width:100%;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden">'+
-          '<div style="width:'+bw+'%;height:100%;background:'+(df>0?'#8b1a1a':'#047857')+';border-radius:4px;transition:width 0.6s ease"></div></div></td>'+
-        '<td style="font-family:IBM Plex Mono,monospace;font-weight:700;color:'+rateCol+'">'+
-          (rate !== null ? rate+'%' : '—')+'</td>'+
-        '<td><span style="font-family:IBM Plex Mono,monospace;font-weight:700;color:'+fpyCol+';background:'+fpyBg+';padding:2px 8px;border-radius:4px;font-size:11px">'+
-          (fpy !== null ? (fpy*100).toFixed(2)+'%' : 'N/A')+'</span></td>'+
+      var bw = maxDf ? Math.round((df / maxDf) * 100) : 0;
+      var defCol = df > 0 ? '#8b1a1a' : '#047857';
+      var rateCol = (rate !== null && parseFloat(rate) > 1) ? '#8b1a1a' : '#B45309';
+      var fpyBg = fpy === null ? '#F1F5F9' :
+        fpy >= THRESH.green ? '#ECFDF5' :
+          fpy >= THRESH.amber ? '#FFFBEB' : '#FEF2F2';
+      return '<tr>' +
+        '<td style="font-weight:700;color:#0F172A;letter-spacing:0.5px;font-size:11px">' + st + '</td>' +
+        '<td style="font-family:IBM Plex Mono,monospace;color:#334155">' + fmt(t) + '</td>' +
+        '<td style="font-family:IBM Plex Mono,monospace;font-weight:700;color:' + defCol + '">' + df + '</td>' +
+        '<td><div style="width:100%;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden">' +
+        '<div style="width:' + bw + '%;height:100%;background:' + (df > 0 ? '#8b1a1a' : '#047857') + ';border-radius:4px;transition:none"></div></div></td>' +
+        '<td style="font-family:IBM Plex Mono,monospace;font-weight:700;color:' + rateCol + '">' +
+        (rate !== null ? rate + '%' : '—') + '</td>' +
+        '<td><span style="font-family:IBM Plex Mono,monospace;font-weight:700;color:' + fpyCol + ';background:' + fpyBg + ';padding:2px 8px;border-radius:4px;font-size:11px">' +
+        (fpy !== null ? (fpy * 100).toFixed(2) + '%' : 'N/A') + '</span></td>' +
         '</tr>';
     }).join('');
   }
@@ -1606,102 +1645,118 @@ function renderDashRow2(stOut, stDef, defDedup, ov) {
 
   /* Calcula dados waterfall */
   var wMap = {};
-  defDedup.forEach(function(r){ var v = S(r[F.failDesc])||'TBA'; wMap[v]=(wMap[v]||0)+1; });
+  defDedup.forEach(function (r) { var v = S(r[F.failDesc]) || 'TBA'; wMap[v] = (wMap[v] || 0) + 1; });
   var baseTotal = 0;
-  getCfg().matrix.forEach(function(st){ if(stOut[st]&&stOut[st].total>baseTotal) baseTotal=stOut[st].total; });
+  getCfg().matrix.forEach(function (st) { if (stOut[st] && stOut[st].total > baseTotal) baseTotal = stOut[st].total; });
   if (!baseTotal) baseTotal = 1;
 
-  var issues = Object.keys(wMap).map(function(k){ return {k:k,n:wMap[k],loss:0}; });
-  issues.sort(function(a,b){ return b.n-a.n; }); issues = issues.slice(0,10);
-  var fpyStart = ov !== null && ov !== undefined ? +(ov*100).toFixed(4) : 100;
-  var totalFail = issues.reduce(function(s,i){ return s+i.n; }, 0);
-  var defectRate = 1 - (fpyStart/100);
-  issues.forEach(function(it){ it.loss = totalFail > 0 ? +(defectRate*it.n/totalFail*100).toFixed(2) : 0; });
+  var issues = Object.keys(wMap).map(function (k) { return { k: k, n: wMap[k], loss: 0 }; });
+  issues.sort(function (a, b) { return b.n - a.n; }); issues = issues.slice(0, 10);
+  var fpyStart = ov !== null && ov !== undefined ? +(ov * 100).toFixed(4) : 100;
+  var totalFail = issues.reduce(function (s, i) { return s + i.n; }, 0);
+  var defectRate = 1 - (fpyStart / 100);
+  issues.forEach(function (it) { it.loss = totalFail > 0 ? +(defectRate * it.n / totalFail * 100).toFixed(2) : 0; });
 
   var accCur = fpyStart, accValues = [fpyStart];
-  issues.forEach(function(it){ accCur = +(accCur+it.loss).toFixed(4); accValues.push(+accCur.toFixed(2)); });
-  var accFinal = accValues[accValues.length-1];
+  issues.forEach(function (it) { accCur = +(accCur + it.loss).toFixed(4); accValues.push(+accCur.toFixed(2)); });
+  var accFinal = accValues[accValues.length - 1];
   if (accFinal > 99.995 && accFinal <= 100.05) accFinal = 100.00;
-  var labels = ['FPY'].concat(issues.map(function(it){return it.k;})).concat(['Total']);
+  var labels = ['FPY'].concat(issues.map(function (it) { return it.k; })).concat(['Total']);
 
-  var colArr = [fpyStart>=99?'#00e676':fpyStart>=98?'#ffc400':'#cc2233'];
-  issues.forEach(function(){ colArr.push('#dc2f02'); });
-  colArr.push(accFinal>=99?'#00e676':accFinal>=98?'#ffc400':'#dc2f02');
+  var colArr = [fpyStart >= 99 ? '#00e676' : fpyStart >= 98 ? '#ffc400' : '#cc2233'];
+  issues.forEach(function () { colArr.push('#dc2f02'); });
+  colArr.push(accFinal >= 99 ? '#00e676' : accFinal >= 98 ? '#ffc400' : '#dc2f02');
 
-  var offsetArr=[0], valArr=[fpyStart], isNegArr=[false];
-  issues.forEach(function(it,idx){ offsetArr.push(accValues[idx]); valArr.push(it.loss); isNegArr.push(true); });
+  var offsetArr = [0], valArr = [fpyStart], isNegArr = [false];
+  issues.forEach(function (it, idx) { offsetArr.push(accValues[idx]); valArr.push(it.loss); isNegArr.push(true); });
   offsetArr.push(0); valArr.push(100); isNegArr.push(false);
 
-  var yMin = Math.floor(fpyStart-1); if(yMin>94)yMin=94; if(yMin<90)yMin=90;
+  var yMin = Math.floor(fpyStart - 1); if (yMin > 94) yMin = 94; if (yMin < 90) yMin = 90;
 
-  function wrapLbl(v,mx){ if(v.length<=mx)return v; var words=v.split(/[\s_\-]+/),lines=[],cur=''; words.forEach(function(w){ if((cur+' '+w).trim().length>mx&&cur){lines.push(cur.trim());cur=w;}else{cur=(cur+' '+w).trim();}}); if(cur)lines.push(cur.trim()); return lines.join('\n'); }
-  var labelsWrapped = labels.map(function(v){ return wrapLbl(v,9); });
+  function wrapLbl(v, mx) { if (v.length <= mx) return v; var words = v.split(/[\s_\-]+/), lines = [], cur = ''; words.forEach(function (w) { if ((cur + ' ' + w).trim().length > mx && cur) { lines.push(cur.trim()); cur = w; } else { cur = (cur + ' ' + w).trim(); } }); if (cur) lines.push(cur.trim()); return lines.join('\n'); }
+  var labelsWrapped = labels.map(function (v) { return wrapLbl(v, 9); });
 
-  if (window._dashWF) { try{window._dashWF.dispose();}catch(e){} window._dashWF=null; }
+  if (window._dashWF) { try { window._dashWF.dispose(); } catch (e) { } window._dashWF = null; }
   window._dashWF = echarts.init(wEl2, 'dark');
   window._dashWF.setOption({
-    backgroundColor:'transparent',
-    grid:{top:30, bottom:4, left:95, right:12, containLabel:false},
-    xAxis:{type:'category', data:labelsWrapped, axisLabel:{show:false},
-           axisLine:{lineStyle:{color:'#CBD5E1'}}, axisTick:{show:false}, splitLine:{show:false}},
-    yAxis:{type:'value', min:yMin, max:101,
-           axisLabel:{color:'#334155',fontSize:9,formatter:'{value}%'},
-           splitLine:{lineStyle:{color:'#E2E8F0',type:'dashed'}},
-           axisLine:{lineStyle:{color:'#CBD5E1'}}},
-    series:[
-      {type:'bar', stack:'wf', silent:true, itemStyle:{color:'transparent'},
-       data:offsetArr.map(function(v,i){return isNegArr[i]?v:0;})},
-      {type:'bar', stack:'wf', barMaxWidth:48,
-       label:{show:true, position:'top', color:'#0F172A', fontSize:9, fontWeight:'normal',
-              formatter:function(p){ var i=p.dataIndex; if(i===0)return fpyStart.toFixed(2)+'%'; if(i===labels.length-1)return '100.00%'; return issues[i-1].loss.toFixed(2)+'%'; }},
-       itemStyle:{color:function(p){return colArr[p.dataIndex];}, borderRadius:[3,3,0,0]},
-       data:valArr.map(function(v,i){return {value:v,itemStyle:{color:colArr[i],borderRadius:[3,3,0,0]}};})},
-      {type:'line', data:labels.map(function(){return THRESH.target;}), symbol:'none',
-       lineStyle:{color:'#1e3a5f',width:2,type:'dashed'}, z:10, silent:true, name:'Meta 99%'}
+    backgroundColor: 'transparent',
+    grid: { top: 30, bottom: 4, left: 95, right: 12, containLabel: false },
+    xAxis: {
+      type: 'category', data: labelsWrapped, axisLabel: { show: false },
+      axisLine: { lineStyle: { color: '#CBD5E1' } }, axisTick: { show: false }, splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value', min: yMin, max: 101,
+      axisLabel: { color: '#334155', fontSize: 9, formatter: '{value}%' },
+      splitLine: { lineStyle: { color: '#E2E8F0', type: 'dashed' } },
+      axisLine: { lineStyle: { color: '#CBD5E1' } }
+    },
+    series: [
+      {
+        type: 'bar', stack: 'wf', silent: true, itemStyle: { color: 'transparent' },
+        data: offsetArr.map(function (v, i) { return isNegArr[i] ? v : 0; })
+      },
+      {
+        type: 'bar', stack: 'wf', barMaxWidth: 48,
+        label: {
+          show: true, position: 'top', color: '#0F172A', fontSize: 9, fontWeight: 'normal',
+          formatter: function (p) { var i = p.dataIndex; if (i === 0) return fpyStart.toFixed(2) + '%'; if (i === labels.length - 1) return '100.00%'; return issues[i - 1].loss.toFixed(2) + '%'; }
+        },
+        itemStyle: { color: function (p) { return colArr[p.dataIndex]; }, borderRadius: [3, 3, 0, 0] },
+        data: valArr.map(function (v, i) { return { value: v, itemStyle: { color: colArr[i], borderRadius: [3, 3, 0, 0] } }; })
+      },
+      {
+        type: 'line', data: labels.map(function () { return THRESH.target; }), symbol: 'none',
+        lineStyle: { color: '#1e3a5f', width: 2, type: 'dashed' }, z: 10, silent: true, name: 'Meta 99%'
+      }
     ],
-    tooltip:{trigger:'axis', backgroundColor:'#ffffffee', borderColor:'#CBD5E1',
-             textStyle:{color:'#0F172A',fontSize:10},
-             formatter:function(params){ var i=params[0].dataIndex;
-               if(i===0)return '<b>FPY Inicial</b><br/>Overall: <b style="color:#8b1a1a">'+fpyStart.toFixed(2)+'%</b>';
-               if(i===labels.length-1)return '<b>Total Final</b><br/>FPY: <b style="color:'+colArr[i]+'">'+accFinal.toFixed(2)+'%</b>';
-               var it=issues[i-1]; return '<b>'+it.k+'</b><br/>Qty: <b>'+it.n+'</b><br/>Loss: <b style="color:#8b1a1a">-'+it.loss.toFixed(2)+'%</b><br/>ACC: <b style="color:#047857">'+accValues[i].toFixed(2)+'%</b>'; }}
+    tooltip: {
+      trigger: 'axis', backgroundColor: '#ffffffee', borderColor: '#CBD5E1',
+      textStyle: { color: '#0F172A', fontSize: 10 },
+      formatter: function (params) {
+        var i = params[0].dataIndex;
+        if (i === 0) return '<b>FPY Inicial</b><br/>Overall: <b style="color:#8b1a1a">' + fpyStart.toFixed(2) + '%</b>';
+        if (i === labels.length - 1) return '<b>Total Final</b><br/>FPY: <b style="color:' + colArr[i] + '">' + accFinal.toFixed(2) + '%</b>';
+        var it = issues[i - 1]; return '<b>' + it.k + '</b><br/>Qty: <b>' + it.n + '</b><br/>Loss: <b style="color:#8b1a1a">-' + it.loss.toFixed(2) + '%</b><br/>ACC: <b style="color:#047857">' + accValues[i].toFixed(2) + '%</b>';
+      }
+    }
   });
 
   /* Tabela abaixo */
   if (tEl2) {
-    var fpyLossRow=[''].concat(issues.map(function(it){return it.loss.toFixed(2)+'%';})).concat([(100-fpyStart).toFixed(2)+'%']);
-    var accRow2=[fpyStart.toFixed(2)+'%'].concat(accValues.slice(1).map(function(v){return v.toFixed(2)+'%';}));
-    var failQty2=[''].concat(issues.map(function(it){return it.n;})).concat([totalFail]);
-    var targetRow2=labels.map(function(){return '99,00%';});
-    function accCol(v){ var n=parseFloat(v); return n>=99?'#047857':n>=98?'#B45309':'#8b1a1a'; }
-    var rows2=[
-      {label:'Fail Qty',    color:'#1e3a5f', vals:failQty2,   dyn:false},
-      {label:'FPY/FPY Loss',color:'#B45309', vals:fpyLossRow,  dyn:false},
-      {label:'ACC',         color:'#047857', vals:accRow2,     dyn:true},
-      {label:'Target',      color:'#1e3a5f', vals:targetRow2,  dyn:false}
+    var fpyLossRow = [''].concat(issues.map(function (it) { return it.loss.toFixed(2) + '%'; })).concat([(100 - fpyStart).toFixed(2) + '%']);
+    var accRow2 = [fpyStart.toFixed(2) + '%'].concat(accValues.slice(1).map(function (v) { return v.toFixed(2) + '%'; }));
+    var failQty2 = [''].concat(issues.map(function (it) { return it.n; })).concat([totalFail]);
+    var targetRow2 = labels.map(function () { return '99,00%'; });
+    function accCol(v) { var n = parseFloat(v); return n >= 99 ? '#047857' : n >= 98 ? '#B45309' : '#8b1a1a'; }
+    var rows2 = [
+      { label: 'Fail Qty', color: '#1e3a5f', vals: failQty2, dyn: false },
+      { label: 'FPY/FPY Loss', color: '#B45309', vals: fpyLossRow, dyn: false },
+      { label: 'ACC', color: '#047857', vals: accRow2, dyn: true },
+      { label: 'Target', color: '#1e3a5f', vals: targetRow2, dyn: false }
     ];
-    var h2='<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;border-top:1px solid #E2E8F0">';
+    var h2 = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;border-top:1px solid #E2E8F0">';
     /* Header row */
-    h2+='<tr><td style="width:90px;border-bottom:2px solid #1e3a5f;border-right:1px solid #CBD5E1;background:#F1F5F9"></td>';
-    labels.forEach(function(l){
-      var words=l.split(/[\s\-_]+/), mid=Math.ceil(words.length/2);
-      var txt=words.length>=2?words.slice(0,mid).join(' ')+'<br>'+words.slice(mid).join(' '):l;
-      h2+='<td style="text-align:center;color:#0F172A;font-weight:700;padding:4px 2px;font-size:9px;line-height:1.3;vertical-align:middle;border-bottom:2px solid #1e3a5f;border-left:1px solid #E2E8F0;min-height:32px" title="'+l+'">'+txt+'</td>';
+    h2 += '<tr><td style="width:90px;border-bottom:2px solid #1e3a5f;border-right:1px solid #CBD5E1;background:#F1F5F9"></td>';
+    labels.forEach(function (l) {
+      var words = l.split(/[\s\-_]+/), mid = Math.ceil(words.length / 2);
+      var txt = words.length >= 2 ? words.slice(0, mid).join(' ') + '<br>' + words.slice(mid).join(' ') : l;
+      h2 += '<td style="text-align:center;color:#0F172A;font-weight:700;padding:4px 2px;font-size:9px;line-height:1.3;vertical-align:middle;border-bottom:2px solid #1e3a5f;border-left:1px solid #E2E8F0;min-height:32px" title="' + l + '">' + txt + '</td>';
     });
-    h2+='</tr>';
-    rows2.forEach(function(row){
-      h2+='<tr><td style="color:'+row.color+';font-weight:700;font-size:10px;padding:3px 6px;white-space:nowrap;border-right:1px solid #CBD5E1;background:#F8FAFC">'+row.label+'</td>';
-      row.vals.forEach(function(v){
-        var vStr=(v===''||v===0)?'':String(v);
-        var col=row.dyn?accCol(vStr):row.color;
-        h2+='<td style="text-align:center;color:'+col+';padding:3px 2px;font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:500;border-left:1px solid #E2E8F0">'+vStr+'</td>';
+    h2 += '</tr>';
+    rows2.forEach(function (row) {
+      h2 += '<tr><td style="color:' + row.color + ';font-weight:700;font-size:10px;padding:3px 6px;white-space:nowrap;border-right:1px solid #CBD5E1;background:#F8FAFC">' + row.label + '</td>';
+      row.vals.forEach(function (v) {
+        var vStr = (v === '' || v === 0) ? '' : String(v);
+        var col = row.dyn ? accCol(vStr) : row.color;
+        h2 += '<td style="text-align:center;color:' + col + ';padding:3px 2px;font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:500;border-left:1px solid #E2E8F0">' + vStr + '</td>';
       });
-      h2+='</tr>';
+      h2 += '</tr>';
     });
-    h2+='</table>';
-    tEl2.innerHTML=h2;
+    h2 += '</table>';
+    tEl2.innerHTML = h2;
   }
-  window.addEventListener('resize', function(){ if(window._dashWF) window._dashWF.resize(); });
+  window.addEventListener('resize', function () { if (window._dashWF) window._dashWF.resize(); });
 }
 
 function pushMonitorData() {
@@ -1721,183 +1776,191 @@ function renderMonitor() {
   var woMap = d.woMap || {};
 
   /* ── Agrega produção por estação ── */
-  var sO={};
-  outRows.forEach(function(r){
-    var st=S(r[O.st])||'N/A';
-    if(!sO[st]) sO[st]={total:0,pass:0,fail:0};
-    sO[st].total+=N(r[O.total]); sO[st].pass+=N(r[O.pass]); sO[st].fail+=N(r[O.fail]);
+  var sO = {};
+  outRows.forEach(function (r) {
+    var st = S(r[O.st]) || 'N/A';
+    if (!sO[st]) sO[st] = { total: 0, pass: 0, fail: 0 };
+    sO[st].total += N(r[O.total]); sO[st].pass += N(r[O.pass]); sO[st].fail += N(r[O.fail]);
   });
 
   /* ── Dedup KPI — sem turno (3 turnos fixos) ── */
-  var _mSeenKpi={};
-  var defDedupKpi=defRowsKpi.filter(function(r){
-    var s=S(r[F.serial]); var st=S(r[F.st])||'N/A';
-    if(!s||s==='') return true;
-    var k=s+'\x00'+st;
-    if(_mSeenKpi[k]) return false;
-    _mSeenKpi[k]=true; return true;
+  var _mSeenKpi = {};
+  var defDedupKpi = defRowsKpi.filter(function (r) {
+    var s = S(r[F.serial]); var st = S(r[F.st]) || 'N/A';
+    if (!s || s === '') return true;
+    var k = s + '\x00' + st;
+    if (_mSeenKpi[k]) return false;
+    _mSeenKpi[k] = true; return true;
   });
-  var sDkpi={};
-  defDedupKpi.forEach(function(r){var st=S(r[F.st])||'N/A';sDkpi[st]=(sDkpi[st]||0)+1;});
+  var sDkpi = {};
+  defDedupKpi.forEach(function (r) { var st = S(r[F.st]) || 'N/A'; sDkpi[st] = (sDkpi[st] || 0) + 1; });
 
   /* ── Dedup charts — com turno ── */
-  var _mSeen={};
-  var defDedup=defRows.filter(function(r){
-    var s=S(r[F.serial]); var st=S(r[F.st])||'N/A';
-    if(!s||s==='') return true;
-    var k=s+'\x00'+st;
-    if(_mSeen[k]) return false;
-    _mSeen[k]=true; return true;
+  var _mSeen = {};
+  var defDedup = defRows.filter(function (r) {
+    var s = S(r[F.serial]); var st = S(r[F.st]) || 'N/A';
+    if (!s || s === '') return true;
+    var k = s + '\x00' + st;
+    if (_mSeen[k]) return false;
+    _mSeen[k] = true; return true;
   });
-  var sD={};
-  defDedup.forEach(function(r){var st=S(r[F.st])||'N/A';sD[st]=(sD[st]||0)+1;});
-  if(DATA) DATA._sD = sD;
-  if(DATA) DATA._defDedup = defDedup; /* salva defDedup para waterfall usar */
+  var sD = {};
+  defDedup.forEach(function (r) { var st = S(r[F.st]) || 'N/A'; sD[st] = (sD[st] || 0) + 1; });
+  if (DATA) DATA._sD = sD;
+  if (DATA) DATA._defDedup = defDedup; /* salva defDedup para waterfall usar */
 
-  function parcKpi(st){var df=sDkpi[st]||0,t=sO[st]?sO[st].total:0;return t?1-df/t:null;}
-  function parc(st){var df=sD[st]||0,t=sO[st]?sO[st].total:0;return t?1-df/t:null;}
-  function prod(vals){var v=vals.filter(function(x){return x!==null&&x>0;});return v.length?v.reduce(function(a,x){return a*x;},1):null;}
+  function parcKpi(st) { var df = sDkpi[st] || 0, t = sO[st] ? sO[st].total : 0; return t ? 1 - df / t : null; }
+  function parc(st) { var df = sD[st] || 0, t = sO[st] ? sO[st].total : 0; return t ? 1 - df / t : null; }
+  function prod(vals) { var v = vals.filter(function (x) { return x !== null && x > 0; }); return v.length ? v.reduce(function (a, x) { return a * x; }, 1) : null; }
   /* Overall usa parcKpi (3 turnos fixos) — configuração por cliente */
-  var _mcfg=getCfg();
-  var oSMT=prod(_mcfg.smtSts.map(function(s){return parcKpi(s);}));
-  var oBE =prod(_mcfg.beSts.map(function(s){return parcKpi(s);}));
-  var ov=prod([oSMT,oBE]);
-  var taxa=ov!==null?+(((1-ov)*100).toFixed(2)):null;
-  var packFixed=(DATA._packTotal!==undefined)?DATA._packTotal:0;
-  var totDedup=defDedupKpi.length, totRaw=defRowsKpi.length;
-  function vc(v){return v===null?'var(--t3)':v>=THRESH.green?'var(--green)':v>=THRESH.warn?'var(--cyan)':v>=THRESH.amber?'var(--amber)':'var(--red)';}
-  function vcl(v){if(v===null)return '';if(v>=THRESH.green)return 'ok';if(v>=THRESH.amber)return 'warn';return 'crit';}
-  function p2(v){return v!==null?(v*100).toFixed(2)+'%':'—';}
+  var _mcfg = getCfg();
+  var oSMT = prod(_mcfg.smtSts.map(function (s) { return parcKpi(s); }));
+  var oBE = prod(_mcfg.beSts.map(function (s) { return parcKpi(s); }));
+  var ov = prod([oSMT, oBE]);
+  var taxa = ov !== null ? +(((1 - ov) * 100).toFixed(2)) : null;
+  var packFixed = (DATA._packTotal !== undefined) ? DATA._packTotal : 0;
+  var totDedup = defDedupKpi.length, totRaw = defRowsKpi.length;
+  function vc(v) { return v === null ? 'var(--t3)' : v >= THRESH.green ? 'var(--green)' : v >= THRESH.warn ? 'var(--cyan)' : v >= THRESH.amber ? 'var(--amber)' : 'var(--red)'; }
+  function vcl(v) { if (v === null) return ''; if (v >= THRESH.green) return 'ok'; if (v >= THRESH.amber) return 'warn'; return 'crit'; }
+  function p2(v) { return v !== null ? (v * 100).toFixed(2) + '%' : '—'; }
 
   /* Status dot */
-  var dot=document.getElementById('mDot'), txt=document.getElementById('mTxt');
-  if(taxa>3){dot.className='mpulse crit';txt.textContent='⚠ CRÍTICO';txt.style.color='var(--red)';}
-  else if(taxa>1){dot.className='mpulse warn';txt.textContent='MONITORAR';txt.style.color='var(--amber)';}
-  else{dot.className='mpulse';txt.textContent='NORMAL';txt.style.color='var(--green)';}
+  var dot = document.getElementById('mDot'), txt = document.getElementById('mTxt');
+  if (taxa > 3) { dot.className = 'mpulse crit'; txt.textContent = '⚠ CRÍTICO'; txt.style.color = 'var(--red)'; }
+  else if (taxa > 1) { dot.className = 'mpulse warn'; txt.textContent = 'MONITORAR'; txt.style.color = 'var(--amber)'; }
+  else { dot.className = 'mpulse'; txt.textContent = 'NORMAL'; txt.style.color = 'var(--green)'; }
 
   /* ── KPI CARDS TOP ── */
-  function setKpi(idVal, val, idBar, barPct, col){
-    var el=document.getElementById(idVal); if(el){el.textContent=val;if(col)el.style.color=col;}
-    var b=document.getElementById(idBar);  if(b&&col){b.style.width=barPct+'%';b.style.background=col;b.style.boxShadow='0 0 6px '+col;}
+  function setKpi(idVal, val, idBar, barPct, col) {
+    var el = document.getElementById(idVal); if (el) { el.textContent = val; if (col) el.style.color = col; }
+    var b = document.getElementById(idBar); if (b && col) { b.style.width = barPct + '%'; b.style.background = col; b.style.boxShadow = '0 0 6px ' + col; }
   }
   // Pass Packing
   setKpi('mKpi0', packFixed.toLocaleString('pt-BR'), 'mKb0', 100, 'var(--t2)');
   // Total falhas
-  setKpi('mKpi1', totDedup, 'mKb1', packFixed?Math.min(100,(totDedup/packFixed)*100*20).toFixed(0):0, 'var(--red)');
+  setKpi('mKpi1', totDedup, 'mKb1', packFixed ? Math.min(100, (totDedup / packFixed) * 100 * 20).toFixed(0) : 0, 'var(--red)');
   // Taxa defeito
-  var taxaStr=taxa!==null?taxa.toFixed(2)+'%':'—';
-  setKpi('mKpi2', taxaStr, 'mKb2', taxa!==null?Math.min(100,taxa*10).toFixed(0):0, 'var(--amber)');
+  var taxaStr = taxa !== null ? taxa.toFixed(2) + '%' : '—';
+  setKpi('mKpi2', taxaStr, 'mKb2', taxa !== null ? Math.min(100, taxa * 10).toFixed(0) : 0, 'var(--amber)');
   // SMT mini card
-  var sEl=document.getElementById('mVSMT');
-  if(sEl){sEl.textContent=p2(oSMT);sEl.style.color=vc(oSMT);}
+  var sEl = document.getElementById('mVSMT');
+  if (sEl) { sEl.textContent = p2(oSMT); sEl.style.color = vc(oSMT); }
   // BE mini card
-  var bEl=document.getElementById('mVBE');
-  if(bEl){bEl.textContent=p2(oBE);bEl.style.color=vc(oBE);}
+  var bEl = document.getElementById('mVBE');
+  if (bEl) { bEl.textContent = p2(oBE); bEl.style.color = vc(oBE); }
   // Overall (atualizado via drawGauge)
 
   /* ── FPY POR ESTAÇÃO ── */
-  var ST_ORDER=['S_VI_B','S_VI_T','FVI','ICT','FBT','F1','F2','FV2','PACK','PACKING'];
-  var _excl=getCfg().excludeSt||[];
+  var ST_ORDER = ['S_VI_B', 'S_VI_T', 'FVI', 'ICT', 'FBT', 'F1', 'F2', 'FV2', 'PACK', 'PACKING'];
+  var _excl = getCfg().excludeSt || [];
   /* Inclui SEMPRE as estações da config do cliente, mesmo com 0 falhas */
   var _matrixSts = getCfg().matrix;
   var _allStSeen2 = {};
   var allSt = [];
-  _matrixSts.forEach(function(st){ if(_excl.indexOf(st)===-1){ _allStSeen2[st]=true; allSt.push(st); } });
-  Object.keys(sO).forEach(function(s){
-    if(_excl.indexOf(s)===-1 && !_allStSeen2[s]){ _allStSeen2[s]=true; allSt.push(s); }
+  _matrixSts.forEach(function (st) { if (_excl.indexOf(st) === -1) { _allStSeen2[st] = true; allSt.push(st); } });
+  Object.keys(sO).forEach(function (s) {
+    if (_excl.indexOf(s) === -1 && !_allStSeen2[s]) { _allStSeen2[s] = true; allSt.push(s); }
   });
-  allSt.sort(function(a,b){
-    var ia=ST_ORDER.indexOf(a),ib=ST_ORDER.indexOf(b);
-    if(ia===-1&&ib===-1)return a.localeCompare(b);
-    if(ia===-1)return 1;if(ib===-1)return -1;return ia-ib;
+  allSt.sort(function (a, b) {
+    var ia = ST_ORDER.indexOf(a), ib = ST_ORDER.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1; if (ib === -1) return -1; return ia - ib;
   });
-  document.getElementById('mBdSt').textContent=allSt.length+' estações';
-  var SMT_STS=getCfg().smtSts;
-  document.getElementById('mStGrid').innerHTML=allSt.map(function(st){
-    var v=parc(st),df=sD[st]||0,cls=vcl(v),col=vc(v);
-    var fase=SMT_STS.indexOf(st)!==-1?'SMT':'B.E';
-    var faseCol=SMT_STS.indexOf(st)!==-1?'var(--cyan)':'var(--amber)';
-    return '<div class="st2-cell '+cls+'">'+
-      '<div class="st2-lbl" style="color:'+faseCol+'">'+fase+'</div>'+
-      '<div class="st2-name">'+st+'</div>'+
-      '<div class="st2-fpy" style="color:'+col+'">'+p2(v)+'</div>'+
-      '<div class="st2-def">'+df+' falha'+(df!==1?'s':'')+'</div></div>';
+  document.getElementById('mBdSt').textContent = allSt.length + ' estações';
+  var SMT_STS = getCfg().smtSts;
+  document.getElementById('mStGrid').innerHTML = allSt.map(function (st) {
+    var v = parc(st), df = sD[st] || 0, cls = vcl(v), col = vc(v);
+    var fase = SMT_STS.indexOf(st) !== -1 ? 'SMT' : 'B.E';
+    var faseCol = SMT_STS.indexOf(st) !== -1 ? 'var(--cyan)' : 'var(--amber)';
+    return '<div class="st2-cell ' + cls + '">' +
+      '<div class="st2-lbl" style="color:' + faseCol + '">' + fase + '</div>' +
+      '<div class="st2-name">' + st + '</div>' +
+      '<div class="st2-fpy" style="color:' + col + '">' + p2(v) + '</div>' +
+      '<div class="st2-def">' + df + ' falha' + (df !== 1 ? 's' : '') + '</div></div>';
   }).join('');
 
   /* ── DEFEITOS POR ESTAÇÃO — tabela profissional ── */
-  var mDefLines=document.getElementById('mDefLines');
-  if(mDefLines){
-    var maxDf=Math.max.apply(null,allSt.map(function(st){return sD[st]||0;}).concat([1]));
-    mDefLines.innerHTML=allSt.map(function(st){
-      var df=sD[st]||0,t=sO[st]?sO[st].total:0;
-      var rate=t?((df/t)*100).toFixed(2):null;
-      var fpy=t?(1-df/t):null;
-      var fpyCol=fpy!==null?vc(fpy):'var(--t3)';
-      var bw=maxDf?Math.round((df/maxDf)*100):0;
-      var defCol=df>0?'var(--red)':'var(--green)';
-      var fpyBadgeBg=fpy===null?'#333':fpy>=THRESH.green?'#00e67622':fpy>=THRESH.amber?'#ffc40022':'#ff3d5a22';
-      return '<tr>'+
-        '<td style="font-weight:700;color:var(--t1);letter-spacing:1px">'+st+'</td>'+
-        '<td style="font-family:monospace;color:var(--t2)">'+t.toLocaleString('pt-BR')+'</td>'+
-        '<td style="font-family:monospace;font-weight:700;color:'+defCol+'">'+df+'</td>'+
-        '<td><div class="mdef-bar-wrap"><div class="mdef-bar-inner" style="width:'+bw+'%"></div></div></td>'+
-        '<td style="font-family:monospace;font-weight:700;color:'+(rate!==null&&rate>1?'var(--red)':'var(--amber)')+'">'+
-          (rate!==null?rate+'%':'—')+'</td>'+
-        '<td><span class="mdef-fpy-badge" style="color:'+fpyCol+';background:'+fpyBadgeBg+'">'+
-          (fpy!==null?(fpy*100).toFixed(2)+'%':'N/A')+'</span></td>'+
+  var mDefLines = document.getElementById('mDefLines');
+  if (mDefLines) {
+    var maxDf = Math.max.apply(null, allSt.map(function (st) { return sD[st] || 0; }).concat([1]));
+    mDefLines.innerHTML = allSt.map(function (st) {
+      var df = sD[st] || 0, t = sO[st] ? sO[st].total : 0;
+      var rate = t ? ((df / t) * 100).toFixed(2) : null;
+      var fpy = t ? (1 - df / t) : null;
+      var fpyCol = fpy !== null ? vc(fpy) : 'var(--t3)';
+      var bw = maxDf ? Math.round((df / maxDf) * 100) : 0;
+      var defCol = df > 0 ? 'var(--red)' : 'var(--green)';
+      var fpyBadgeBg = fpy === null ? '#333' : fpy >= THRESH.green ? '#00e67622' : fpy >= THRESH.amber ? '#ffc40022' : '#ff3d5a22';
+      return '<tr>' +
+        '<td style="font-weight:700;color:var(--t1);letter-spacing:1px">' + st + '</td>' +
+        '<td style="font-family:monospace;color:var(--t2)">' + t.toLocaleString('pt-BR') + '</td>' +
+        '<td style="font-family:monospace;font-weight:700;color:' + defCol + '">' + df + '</td>' +
+        '<td><div class="mdef-bar-wrap"><div class="mdef-bar-inner" style="width:' + bw + '%"></div></div></td>' +
+        '<td style="font-family:monospace;font-weight:700;color:' + (rate !== null && rate > 1 ? 'var(--red)' : 'var(--amber)') + '">' +
+        (rate !== null ? rate + '%' : '—') + '</td>' +
+        '<td><span class="mdef-fpy-badge" style="color:' + fpyCol + ';background:' + fpyBadgeBg + '">' +
+        (fpy !== null ? (fpy * 100).toFixed(2) + '%' : 'N/A') + '</span></td>' +
         '</tr>';
     }).join('');
   }
 
   /* ── FALHAS / HORA ── */
-  var hMap={};
-  defRows.forEach(function(r){var raw=S(r[F.failDate]);var m=raw.match(/\s(\d{1,2}):/);var h=m?parseInt(m[1]):0;var hk=(h<10?'0':'')+h+'h';hMap[hk]=(hMap[hk]||0)+1;});
-  var hKeys=Object.keys(hMap).sort();
-  var hVals=hKeys.map(function(k){return hMap[k];});
-  document.getElementById('mBdHr').textContent=totDedup+' falhas';
-  if(MONITOR_CHART){MONITOR_CHART.destroy();MONITOR_CHART=null;}
-  var mctx=document.getElementById('mCHour');
-  if(mctx){
-    MONITOR_CHART=new Chart(mctx.getContext('2d'),{
-      type:'bar',
-      data:{labels:hKeys,datasets:[{data:hVals,
-        backgroundColor:hVals.map(function(v){return v>10?'#ff2d4a55':v>5?'#ffb30055':'#b97fff55';}),
-        borderColor:hVals.map(function(v){return v>10?'#ff2d4a':v>5?'#ffb300':'#b97fff';}),
-        borderWidth:1,borderRadius:2}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-        scales:{x:{ticks:{color:'#3d6480',font:{size:8},maxRotation:0},grid:{color:'#0e2840'}},
-                y:{ticks:{color:'#3d6480',font:{size:8}},grid:{color:'#0e2840'},beginAtZero:true}}}
+  var hMap = {};
+  defRows.forEach(function (r) { var raw = S(r[F.failDate]); var m = raw.match(/\s(\d{1,2}):/); var h = m ? parseInt(m[1]) : 0; var hk = (h < 10 ? '0' : '') + h + 'h'; hMap[hk] = (hMap[hk] || 0) + 1; });
+  var hKeys = Object.keys(hMap).sort();
+  var hVals = hKeys.map(function (k) { return hMap[k]; });
+  document.getElementById('mBdHr').textContent = totDedup + ' falhas';
+  if (MONITOR_CHART) { MONITOR_CHART.destroy(); MONITOR_CHART = null; }
+  var mctx = document.getElementById('mCHour');
+  if (mctx) {
+    MONITOR_CHART = new Chart(mctx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: hKeys, datasets: [{
+          data: hVals,
+          backgroundColor: hVals.map(function (v) { return v > 10 ? '#ff2d4a55' : v > 5 ? '#ffb30055' : '#b97fff55'; }),
+          borderColor: hVals.map(function (v) { return v > 10 ? '#ff2d4a' : v > 5 ? '#ffb300' : '#b97fff'; }),
+          borderWidth: 1, borderRadius: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#3d6480', font: { size: 8 }, maxRotation: 0 }, grid: { color: '#0e2840' } },
+          y: { ticks: { color: '#3d6480', font: { size: 8 } }, grid: { color: '#0e2840' }, beginAtZero: true }
+        }
+      }
     });
   }
 
   /* ── WATERFALL TOP ISSUE ── */
-  (function(){
-    var wEl=document.getElementById('mWaterfall');
-    if(!wEl||typeof echarts==='undefined') return;
+  (function () {
+    var wEl = document.getElementById('mWaterfall');
+    if (!wEl || typeof echarts === 'undefined') return;
 
     /* Agrupa falhas por failDesc (usa defDedup — IGUAL ao Dashboard) */
-    var wMap={};
-    defDedup.forEach(function(r){
-      var v=S(r[F.failDesc])||'TBA';
-      wMap[v]=(wMap[v]||0)+1;
+    var wMap = {};
+    defDedup.forEach(function (r) {
+      var v = S(r[F.failDesc]) || 'TBA';
+      wMap[v] = (wMap[v] || 0) + 1;
     });
 
     /* Pega total de saida para calcular FPY loss % */
-    var totalOut=Object.keys(sO).reduce(function(s,k){
+    var totalOut = Object.keys(sO).reduce(function (s, k) {
       /* usa a estacao com mais saida como base (maior throughput) */
-      var t=sO[k]?sO[k].total:0; return s+t;
-    },0);
+      var t = sO[k] ? sO[k].total : 0; return s + t;
+    }, 0);
     /* Na verdade usa o total da primeira estacao SMT como base */
-    var baseTotal=0;
-    getCfg().matrix.forEach(function(st){
-      if(sO[st]&&sO[st].total>baseTotal) baseTotal=sO[st].total;
+    var baseTotal = 0;
+    getCfg().matrix.forEach(function (st) {
+      if (sO[st] && sO[st].total > baseTotal) baseTotal = sO[st].total;
     });
-    if(!baseTotal) baseTotal=Object.keys(sO).reduce(function(m,k){return Math.max(m,sO[k]?sO[k].total:0);},1);
+    if (!baseTotal) baseTotal = Object.keys(sO).reduce(function (m, k) { return Math.max(m, sO[k] ? sO[k].total : 0); }, 1);
 
     /* Top issues por quantidade, max 10 */
-    var issues=Object.keys(wMap).map(function(k){return{k:k,n:wMap[k],loss:+(wMap[k]/baseTotal*100).toFixed(2)};});
-    issues.sort(function(a,b){return b.n-a.n;});
-    issues=issues.slice(0,10);
+    var issues = Object.keys(wMap).map(function (k) { return { k: k, n: wMap[k], loss: +(wMap[k] / baseTotal * 100).toFixed(2) }; });
+    issues.sort(function (a, b) { return b.n - a.n; });
+    issues = issues.slice(0, 10);
 
     /* ══ CÁLCULO IGUAL AO EXCEL ══
        FPY Loss = (1 - FPY_inicial) * qty_causa / total_falhas
@@ -1905,32 +1968,32 @@ function renderMonitor() {
        Barra = pequena barra vermelha descendo do ACC anterior
        Total = barra verde/amarela/vermelha no FPY acumulado final
     */
-    var fpyStart = ov!==null ? +(ov*100).toFixed(4) : 100;
-    var totalFail = issues.reduce(function(s,i){return s+i.n;},0);
-    var defectRate = 1 - (fpyStart/100); /* taxa de defeito = 1 - FPY */
+    var fpyStart = ov !== null ? +(ov * 100).toFixed(4) : 100;
+    var totalFail = issues.reduce(function (s, i) { return s + i.n; }, 0);
+    var defectRate = 1 - (fpyStart / 100); /* taxa de defeito = 1 - FPY */
 
     /* Recalcula loss de cada causa com fórmula do Excel:
        loss% = (1 - FPY_inicial) * qty / total_falhas * 100  */
-    issues.forEach(function(it){
-      it.loss = totalFail>0 ? +(defectRate * it.n / totalFail * 100).toFixed(2) : 0;
+    issues.forEach(function (it) {
+      it.loss = totalFail > 0 ? +(defectRate * it.n / totalFail * 100).toFixed(2) : 0;
     });
 
     /* ACC acumulado — parte de fpyStart e SOMA os losses removidos */
     var accCur = fpyStart;
     var accValues = [fpyStart]; /* ACC[0] = FPY inicial */
-    issues.forEach(function(it){
+    issues.forEach(function (it) {
       accCur = +(accCur + it.loss).toFixed(4); /* mais precisão */
       accValues.push(+accCur.toFixed(2));
     });
-    var accFinal = accValues[accValues.length-1];
+    var accFinal = accValues[accValues.length - 1];
     /* Força 100.00% se muito próximo (evita 100.01%) */
-    if(accFinal > 99.995 && accFinal <= 100.05) accFinal = 100.00;
+    if (accFinal > 99.995 && accFinal <= 100.05) accFinal = 100.00;
 
     /* Arrays para o gráfico */
-    var labels    = ['FPY'];
-    var failQty   = [''  ];
-    var fpyLossRow= [''  ];
-    var accRow    = [fpyStart.toFixed(2)+'%'];
+    var labels = ['FPY'];
+    var failQty = [''];
+    var fpyLossRow = [''];
+    var accRow = [fpyStart.toFixed(2) + '%'];
     var targetRow = ['99,00%'];
 
     /* Waterfall ECharts:
@@ -1939,15 +2002,15 @@ function renderMonitor() {
        - Barra Total:       offset=0, val=accFinal (verde/amarelo/vermelho)
     */
     var offsetArr = [0];          /* parte invisível (base) */
-    var valArr    = [fpyStart];   /* parte visível */
-    var colArr    = [fpyStart>=99?'#00e676':fpyStart>=98?'#ffc400':'#cc2233'];
-    var isNegArr  = [false];      /* false = barra do fundo, true = barra suspensa */
+    var valArr = [fpyStart];   /* parte visível */
+    var colArr = [fpyStart >= 99 ? '#00e676' : fpyStart >= 98 ? '#ffc400' : '#cc2233'];
+    var isNegArr = [false];      /* false = barra do fundo, true = barra suspensa */
 
-    issues.forEach(function(it, idx){
+    issues.forEach(function (it, idx) {
       labels.push(it.k);
       failQty.push(it.n);
-      fpyLossRow.push(it.loss.toFixed(2)+'%');
-      accRow.push(accValues[idx+1].toFixed(2)+'%');
+      fpyLossRow.push(it.loss.toFixed(2) + '%');
+      accRow.push(accValues[idx + 1].toFixed(2) + '%');
       targetRow.push('99,00%');
       /* offset = ACC do ponto anterior (barra começa de cima do ACC anterior) */
       offsetArr.push(accValues[idx]);
@@ -1958,15 +2021,15 @@ function renderMonitor() {
 
     /* Barra Total */
     var totalQty = totalFail;
-    var totalLoss = +(defectRate*100).toFixed(2);
+    var totalLoss = +(defectRate * 100).toFixed(2);
     labels.push('Total');
     failQty.push(totalQty);
-    fpyLossRow.push((100-fpyStart).toFixed(2)+'%');
+    fpyLossRow.push((100 - fpyStart).toFixed(2) + '%');
     accRow.push('100.00%');
     targetRow.push('99,00%');
     offsetArr.push(0);
     valArr.push(100.00);
-    colArr.push(accFinal>=99?'#00e676':accFinal>=98?'#ffc400':'#ff3d5a');
+    colArr.push(accFinal >= 99 ? '#00e676' : accFinal >= 98 ? '#ffc400' : '#ff3d5a');
     isNegArr.push(false);
 
     /* alias para compatibilidade com tooltip abaixo */
@@ -1975,140 +2038,145 @@ function renderMonitor() {
 
     /* Monta series */
     /* Serie 1: offset invisivel (stack base) */
-    var offsetSeries={
-      type:'bar', stack:'wf', silent:true,
-      itemStyle:{color:'transparent'},
-      data:offsetArr.map(function(v,i){return isNegArr[i]?v:0;})
+    var offsetSeries = {
+      type: 'bar', stack: 'wf', silent: true,
+      itemStyle: { color: 'transparent' },
+      data: offsetArr.map(function (v, i) { return isNegArr[i] ? v : 0; })
     };
     /* Serie 2: barras coloridas */
-    var barSeries={
-      type:'bar', stack:'wf', barMaxWidth:50,
-      label:{show:true, position:'top', color:'#0F172A', fontSize:10, fontWeight:'normal',
-        formatter:function(p){
-          var i=p.dataIndex;
-          if(i===0) return fpyStart.toFixed(2)+'%';
-          if(i===labels.length-1) return '100.00%';
-          return issues[i-1].loss.toFixed(2)+'%';
+    var barSeries = {
+      type: 'bar', stack: 'wf', barMaxWidth: 50,
+      label: {
+        show: true, position: 'top', color: '#0F172A', fontSize: 10, fontWeight: 'normal',
+        formatter: function (p) {
+          var i = p.dataIndex;
+          if (i === 0) return fpyStart.toFixed(2) + '%';
+          if (i === labels.length - 1) return '100.00%';
+          return issues[i - 1].loss.toFixed(2) + '%';
         }
       },
-      itemStyle:{
-        color:function(p){return colArr[p.dataIndex];},
-        borderRadius:[3,3,0,0]
+      itemStyle: {
+        color: function (p) { return colArr[p.dataIndex]; },
+        borderRadius: [3, 3, 0, 0]
       },
-      data:valArr.map(function(v,i){
-        return {value:v, itemStyle:{color:colArr[i], borderRadius:[3,3,0,0],
-          shadowColor:colArr[i]+'66', shadowBlur:6}};
+      data: valArr.map(function (v, i) {
+        return {
+          value: v, itemStyle: {
+            color: colArr[i], borderRadius: [3, 3, 0, 0],
+            shadowColor: colArr[i] + '66', shadowBlur: 6
+          }
+        };
       })
     };
 
     /* Linha meta 99% */
-    var metaLine={
-      type:'line', data:labels.map(function(){return THRESH.target;}),
-      symbol:'none', lineStyle:{color:'#4488ff',width:2,type:'dashed'},
-      markPoint:{},
-      z:10, silent:true,
-      name:'Meta 99%'
+    var metaLine = {
+      type: 'line', data: labels.map(function () { return THRESH.target; }),
+      symbol: 'none', lineStyle: { color: '#4488ff', width: 2, type: 'dashed' },
+      markPoint: {},
+      z: 10, silent: true,
+      name: 'Meta 99%'
     };
 
     /* ── Quebra de texto nos labels do eixo X ── */
-    function wrapLabel(v, maxLen){
-      maxLen = maxLen||10;
-      if(v.length<=maxLen) return v;
+    function wrapLabel(v, maxLen) {
+      maxLen = maxLen || 10;
+      if (v.length <= maxLen) return v;
       /* divide em palavras e quebra em linhas */
-      var words=v.split(/[\s_\-]+/);
-      var lines=[], cur='';
-      words.forEach(function(w){
-        if((cur+' '+w).trim().length>maxLen && cur!=''){
-          lines.push(cur.trim()); cur=w;
-        } else { cur=(cur+' '+w).trim(); }
+      var words = v.split(/[\s_\-]+/);
+      var lines = [], cur = '';
+      words.forEach(function (w) {
+        if ((cur + ' ' + w).trim().length > maxLen && cur != '') {
+          lines.push(cur.trim()); cur = w;
+        } else { cur = (cur + ' ' + w).trim(); }
       });
-      if(cur) lines.push(cur.trim());
+      if (cur) lines.push(cur.trim());
       return lines.join('\n');
     }
 
-    var labelsWrapped = labels.map(function(v){ return wrapLabel(v,10); });
+    var labelsWrapped = labels.map(function (v) { return wrapLabel(v, 10); });
 
-    if(WATERFALL_CHART){WATERFALL_CHART.dispose();WATERFALL_CHART=null;}
-    WATERFALL_CHART=echarts.init(wEl,'dark');
+    if (WATERFALL_CHART) { WATERFALL_CHART.dispose(); WATERFALL_CHART = null; }
+    WATERFALL_CHART = echarts.init(wEl, 'dark');
 
     /* Calcula min do eixo Y dinamicamente */
     var yMin = Math.floor(fpyStart - 1);
-    if(yMin > 94) yMin = 94;
-    if(yMin < 90) yMin = 90;
+    if (yMin > 94) yMin = 94;
+    if (yMin < 90) yMin = 90;
 
     WATERFALL_CHART.setOption({
-      backgroundColor:'transparent',
-      grid:{top:36, bottom:4, left:52, right:12, containLabel:false},
-      xAxis:{
-        type:'category',
+      backgroundColor: 'transparent',
+      grid: { top: 36, bottom: 4, left: 52, right: 12, containLabel: false },
+      xAxis: {
+        type: 'category',
         data: labelsWrapped,
-        axisLabel:{show:false}, /* REMOVE labels do eixo X */
-        axisLine:{lineStyle:{color:'#1e3a50'}},
-        axisTick:{show:false},
-        splitLine:{show:false}
+        axisLabel: { show: false }, /* REMOVE labels do eixo X */
+        axisLine: { lineStyle: { color: '#1e3a50' } },
+        axisTick: { show: false },
+        splitLine: { show: false }
       },
-      yAxis:{
-        type:'value', min:yMin, max:101,
-        axisLabel:{color:'#334155',fontSize:9,formatter:'{value}%'},
-        splitLine:{lineStyle:{color:'#E2E8F0',type:'dashed'}},
-        axisLine:{lineStyle:{color:'#CBD5E1'}}
+      yAxis: {
+        type: 'value', min: yMin, max: 101,
+        axisLabel: { color: '#334155', fontSize: 9, formatter: '{value}%' },
+        splitLine: { lineStyle: { color: '#E2E8F0', type: 'dashed' } },
+        axisLine: { lineStyle: { color: '#CBD5E1' } }
       },
-      series:[
+      series: [
         offsetSeries,
         barSeries,
         /* Linha meta — z alto para ficar na frente */
         {
-          type:'line',
-          data:labels.map(function(){return THRESH.target;}),
-          name:'Meta 99%'
+          type: 'line',
+          data: labels.map(function () { return THRESH.target; }),
+          name: 'Meta 99%'
         }
       ],
-      tooltip:{
-        trigger:'axis', backgroundColor:'#ffffffee',
-        borderColor:'#CBD5E1', textStyle:{color:'#0F172A',fontSize:10},
-        formatter:function(params){
-          var i=params[0].dataIndex;
-          if(i===0) return '<b>FPY Inicial</b><br/>Overall: <b style="color:#ff4455">'+fpyStart.toFixed(2)+'%</b>';
-          if(i===labels.length-1) return '<b>Total Final</b><br/>FPY: <b style="color:'+colArr[i]+'">'+acc.toFixed(2)+'%</b><br/>Loss total: <b style="color:#ff4455">-'+(fpyStart-acc).toFixed(2)+'%</b>';
-          var it=issues[i-1];
-          return '<b>'+it.k+'</b><br/>Fail Qty: <b>'+it.n+'</b><br/>FPY Loss: <b style="color:#ff4455">-'+it.loss.toFixed(2)+'%</b><br/>ACC: <b style="color:#ffc400">'+accValues[i].toFixed(2)+'%</b>';
+      tooltip: {
+        trigger: 'axis', backgroundColor: '#ffffffee',
+        borderColor: '#CBD5E1', textStyle: { color: '#0F172A', fontSize: 10 },
+        formatter: function (params) {
+          var i = params[0].dataIndex;
+          if (i === 0) return '<b>FPY Inicial</b><br/>Overall: <b style="color:#ff4455">' + fpyStart.toFixed(2) + '%</b>';
+          if (i === labels.length - 1) return '<b>Total Final</b><br/>FPY: <b style="color:' + colArr[i] + '">' + acc.toFixed(2) + '%</b><br/>Loss total: <b style="color:#ff4455">-' + (fpyStart - acc).toFixed(2) + '%</b>';
+          var it = issues[i - 1];
+          return '<b>' + it.k + '</b><br/>Fail Qty: <b>' + it.n + '</b><br/>FPY Loss: <b style="color:#ff4455">-' + it.loss.toFixed(2) + '%</b><br/>ACC: <b style="color:#ffc400">' + accValues[i].toFixed(2) + '%</b>';
         }
       }
     });
 
     /* ── Tabela de dados embaixo do grafico (igual imagem) ── */
     /* Usa HTML nativo abaixo do canvas para melhor controle */
-    var tblDiv=document.getElementById('mWaterfallTable');
-    if(tblDiv){
-      var nCols=labels.length;
+    var tblDiv = document.getElementById('mWaterfallTable');
+    if (tblDiv) {
+      var nCols = labels.length;
       /* largura de cada coluna proporcional ao grafico */
       /* Cores dinâmicas para ACC baseado no valor */
       function getAccColor(v) {
-        if(!v || v==='') return '#00cc66';
+        if (!v || v === '') return '#00cc66';
         var num = parseFloat(v);
-        if(num >= 99.00) return '#00e676'; /* verde */
-        if(num >= 98.00) return '#ffc400'; /* amarelo */
+        if (num >= 99.00) return '#00e676'; /* verde */
+        if (num >= 98.00) return '#ffc400'; /* amarelo */
         return '#ff3d5a'; /* vermelho */
       }
-      
-      var accRowWithColors = accRow.map(function(v){ return {val:v, col:getAccColor(v)}; });
-      
-      var rows=[
-        {label:'Fail Qty',    color:'#5a8aaa',   vals:failQty, dynamic:false},
-        {label:'FPY/FPY Loss',color:'#ccaa00',   vals:fpyLossRow, dynamic:false},
-        {label:'ACC',         color:'#00cc66',   vals:accRowWithColors, dynamic:true},
-        {label:'Target',      color:'#4488ff',   vals:targetRow, dynamic:false}
+
+      var accRowWithColors = accRow.map(function (v) { return { val: v, col: getAccColor(v) }; });
+
+      var rows = [
+        { label: 'Fail Qty', color: '#5a8aaa', vals: failQty, dynamic: false },
+        { label: 'FPY/FPY Loss', color: '#ccaa00', vals: fpyLossRow, dynamic: false },
+        { label: 'ACC', color: '#00cc66', vals: accRowWithColors, dynamic: true },
+        { label: 'Target', color: '#4488ff', vals: targetRow, dynamic: false }
       ];
-      var html='<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;margin-top:0;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden">';
+      var html = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;margin-top:0;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden">';
       /* linha de labels (nomes de falha) — texto quebrado em 2 linhas */
-      html+='<tr><td style="width:90px;border-bottom:2px solid #1e3a5f;border-right:1px solid #CBD5E1;background:#F1F5F9"></td>';
-      labels.forEach(function(l,i){
+      html += '<tr><td style="width:90px;border-bottom:2px solid #1e3a5f;border-right:1px solid #CBD5E1;background:#F1F5F9"></td>';
+      labels.forEach(function (l, i) {
         /* Quebra em 2 linhas — mostra texto completo */
         var txt = l;
-        if(l.length > 12) {
+        if (l.length > 12) {
           /* quebra por espaço, hífen ou underscore */
           var words = l.split(/[\s\-_]+/);
-          if(words.length >= 2) {
+          if (words.length >= 2) {
             var mid = Math.ceil(words.length / 2);
             var line1 = words.slice(0, mid).join(' ');
             var line2 = words.slice(mid).join(' ');
@@ -2119,162 +2187,162 @@ function renderMonitor() {
             txt = l.slice(0, half) + '<br>' + l.slice(half);
           }
         }
-        html+='<td style="text-align:center;color:#0F172A;font-weight:700;padding:4px 2px;font-size:9px;line-height:1.3;vertical-align:middle;border-bottom:2px solid #1e3a5f;border-left:1px solid #E2E8F0;min-height:36px;overflow:hidden" title="'+l+'">'+txt+'</td>';
+        html += '<td style="text-align:center;color:#0F172A;font-weight:700;padding:4px 2px;font-size:9px;line-height:1.3;vertical-align:middle;border-bottom:2px solid #1e3a5f;border-left:1px solid #E2E8F0;min-height:36px;overflow:hidden" title="' + l + '">' + txt + '</td>';
       });
-      html+='</tr>';
+      html += '</tr>';
       /* linhas de dados */
-      rows.forEach(function(row){
-        html+='<tr>';
-        html+='<td style="color:'+row.color+';font-weight:700;font-size:10px;padding:3px 6px;white-space:nowrap;width:90px;border-right:1px solid #E2E8F0;background:#F8FAFC">'+row.label+'</td>';
-        row.vals.forEach(function(v,i){
+      rows.forEach(function (row) {
+        html += '<tr>';
+        html += '<td style="color:' + row.color + ';font-weight:700;font-size:10px;padding:3px 6px;white-space:nowrap;width:90px;border-right:1px solid #E2E8F0;background:#F8FAFC">' + row.label + '</td>';
+        row.vals.forEach(function (v, i) {
           var vStr, cellColor;
-          if(row.dynamic && v && typeof v === 'object') {
+          if (row.dynamic && v && typeof v === 'object') {
             /* ACC com cor dinâmica */
-            vStr = v.val===''||v.val===0?'':String(v.val);
+            vStr = v.val === '' || v.val === 0 ? '' : String(v.val);
             cellColor = v.col;
           } else {
             /* Outras linhas com cor fixa */
-            vStr = v===''||v===0?'':String(v);
+            vStr = v === '' || v === 0 ? '' : String(v);
             cellColor = row.color;
           }
-          html+='<td style="text-align:center;color:'+cellColor+';padding:3px 2px;font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:500;line-height:1.5;border-left:1px solid #E2E8F0">'+vStr+'</td>';
+          html += '<td style="text-align:center;color:' + cellColor + ';padding:3px 2px;font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:500;line-height:1.5;border-left:1px solid #E2E8F0">' + vStr + '</td>';
         });
-        html+='</tr>';
+        html += '</tr>';
       });
-      html+='</table>';
-      tblDiv.innerHTML=html;
+      html += '</table>';
+      tblDiv.innerHTML = html;
     }
 
     /* Resize quando o painel for mostrado */
-    window.addEventListener('resize',function(){if(WATERFALL_CHART) WATERFALL_CHART.resize();});
+    window.addEventListener('resize', function () { if (WATERFALL_CHART) WATERFALL_CHART.resize(); });
   })();
 
   /* ── TOP 10 CAUSAS ── */
-  var fdMap={};
-  defRows.forEach(function(r){var v=S(r[F.failDesc])||'TBA';fdMap[v]=(fdMap[v]||0)+1;});
-  var topFd=Object.keys(fdMap).map(function(k){return{k:k,v:fdMap[k]};}).sort(function(a,b){return b.v-a.v;}).slice(0,10);
-  var maxV=topFd.length?topFd[0].v:1;
-  document.getElementById('mPareto').innerHTML=topFd.map(function(it){
-    var p2x=Math.round((it.v/maxV)*100);
-    return '<div class="mc-pr"><div class="mc-pl" title="'+it.k+'">'+it.k+'</div>'+
-      '<div class="mc-pb"><div class="mc-pbi" style="width:'+p2x+'%"></div></div>'+
-      '<div class="mc-pv">'+it.v+'</div></div>';
+  var fdMap = {};
+  defRows.forEach(function (r) { var v = S(r[F.failDesc]) || 'TBA'; fdMap[v] = (fdMap[v] || 0) + 1; });
+  var topFd = Object.keys(fdMap).map(function (k) { return { k: k, v: fdMap[k] }; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 10);
+  var maxV = topFd.length ? topFd[0].v : 1;
+  document.getElementById('mPareto').innerHTML = topFd.map(function (it) {
+    var p2x = Math.round((it.v / maxV) * 100);
+    return '<div class="mc-pr"><div class="mc-pl" title="' + it.k + '">' + it.k + '</div>' +
+      '<div class="mc-pb"><div class="mc-pbi" style="width:' + p2x + '%"></div></div>' +
+      '<div class="mc-pv">' + it.v + '</div></div>';
   }).join('');
 
   /* ── TODAS OCORRÊNCIAS ordenadas por hora decrescente ── */
-  var allOcc=defRows.map(function(r){
-    var ser=S(r[F.serial])||'—', fd=S(r[F.failDesc])||'TBA';
-    var st=S(r[F.st])||'—';
-    var rawItm=S(r[F.item]); var itm=(rawItm&&rawItm.trim()!=='')?rawItm:'TBA';
-    var wo=S(r[F.wo])||'';
-    var mod=(woMap[wo]&&woMap[wo].modelo&&woMap[wo].modelo.trim()!==''?woMap[wo].modelo:'')||S(r['_modelo'])||'TBA';
-    var raw=S(r[F.failDate]), mh=raw.match(/(\d{1,2}:\d{2})/);
-    var hora=mh?mh[1].slice(0,5):'00:00';
-    var parts=hora.split(':');
-    return {ser:ser,fd:fd,st:st,itm:itm,mod:mod,hora:hora,min:parseInt(parts[0]||0)*60+parseInt(parts[1]||0)};
+  var allOcc = defRows.map(function (r) {
+    var ser = S(r[F.serial]) || '—', fd = S(r[F.failDesc]) || 'TBA';
+    var st = S(r[F.st]) || '—';
+    var rawItm = S(r[F.item]); var itm = (rawItm && rawItm.trim() !== '') ? rawItm : 'TBA';
+    var wo = S(r[F.wo]) || '';
+    var mod = (woMap[wo] && woMap[wo].modelo && woMap[wo].modelo.trim() !== '' ? woMap[wo].modelo : '') || S(r['_modelo']) || 'TBA';
+    var raw = S(r[F.failDate]), mh = raw.match(/(\d{1,2}:\d{2})/);
+    var hora = mh ? mh[1].slice(0, 5) : '00:00';
+    var parts = hora.split(':');
+    return { ser: ser, fd: fd, st: st, itm: itm, mod: mod, hora: hora, min: parseInt(parts[0] || 0) * 60 + parseInt(parts[1] || 0) };
   });
-  allOcc.sort(function(a,b){return b.min-a.min;});
-  var firstSer=allOcc.length?allOcc[0].ser:'';
-  var isNew=firstSer&&firstSer!==M_LAST_SER;
-  M_LAST_SER=firstSer;
-  document.getElementById('mRecent').innerHTML=allOcc.map(function(r,i){
-    var rowCls=(i===0&&isNew)?'class="mnew"':'';
-    return '<tr '+rowCls+'>'+
-      '<td style="color:var(--t1);font-size:9px;font-family:monospace">'+r.ser.slice(-10)+'</td>'+
-      '<td style="color:var(--cyan);font-size:9px;font-family:monospace;font-weight:700">'+r.hora+'</td>'+
-      '<td style="color:var(--cyan);font-weight:700">'+r.st+'</td>'+
-      '<td style="color:var(--amber);font-weight:700" title="'+r.fd+'">'+r.fd.slice(0,18)+'</td>'+
-      '<td style="color:var(--t2);font-size:9px" title="'+r.mod+'">'+r.mod.slice(0,14)+'</td>'+
-      '<td style="color:var(--t2)">'+r.itm.slice(0,10)+'</td></tr>';
+  allOcc.sort(function (a, b) { return b.min - a.min; });
+  var firstSer = allOcc.length ? allOcc[0].ser : '';
+  var isNew = firstSer && firstSer !== M_LAST_SER;
+  M_LAST_SER = firstSer;
+  document.getElementById('mRecent').innerHTML = allOcc.map(function (r, i) {
+    var rowCls = (i === 0 && isNew) ? 'class="mnew"' : '';
+    return '<tr ' + rowCls + '>' +
+      '<td style="color:var(--t1);font-size:9px;font-family:monospace">' + r.ser.slice(-10) + '</td>' +
+      '<td style="color:var(--cyan);font-size:9px;font-family:monospace;font-weight:700">' + r.hora + '</td>' +
+      '<td style="color:var(--cyan);font-weight:700">' + r.st + '</td>' +
+      '<td style="color:var(--amber);font-weight:700" title="' + r.fd + '">' + r.fd.slice(0, 18) + '</td>' +
+      '<td style="color:var(--t2);font-size:9px" title="' + r.mod + '">' + r.mod.slice(0, 14) + '</td>' +
+      '<td style="color:var(--t2)">' + r.itm.slice(0, 10) + '</td></tr>';
   }).join('');
-  document.getElementById('mBdRec').textContent=allOcc.length+' falhas';
+  document.getElementById('mBdRec').textContent = allOcc.length + ' falhas';
 
   /* ── VELOCIMETRO OVERALL ── */
   drawGauge(ov);
 }
 
-function drawGauge(val){
-  var cvs=document.getElementById('mGaugeCanvas'); if(!cvs) return;
-  var ctx=cvs.getContext('2d'), W=cvs.width, H=cvs.height;
-  ctx.clearRect(0,0,W,H);
+function drawGauge(val) {
+  var cvs = document.getElementById('mGaugeCanvas'); if (!cvs) return;
+  var ctx = cvs.getContext('2d'), W = cvs.width, H = cvs.height;
+  ctx.clearRect(0, 0, W, H);
   /* Centro na parte inferior do canvas, arco semicircular superior */
-  var cx=W/2, cy=H-8, R=94;
+  var cx = W / 2, cy = H - 8, R = 94;
   /* Arco: de 207° a 333° (em radianos) — semicirculo superior aberto */
-  var startA=Math.PI*(1+0.15), endA=Math.PI*(2-0.15);
-  var pct=val!==null?val*100:0;
-  var col=pct>=99?'#00e676':pct>=98?'#ffc400':'#ff3d5a';
+  var startA = Math.PI * (1 + 0.15), endA = Math.PI * (2 - 0.15);
+  var pct = val !== null ? val * 100 : 0;
+  var col = pct >= 99 ? '#00e676' : pct >= 98 ? '#ffc400' : '#ff3d5a';
 
   /* Track cinza */
-  ctx.beginPath(); ctx.arc(cx,cy,R,startA,endA);
-  ctx.strokeStyle='#162030'; ctx.lineWidth=20; ctx.lineCap='butt'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, R, startA, endA);
+  ctx.strokeStyle = '#162030'; ctx.lineWidth = 20; ctx.lineCap = 'butt'; ctx.stroke();
 
   /* Arco colorido gradiente */
-  var frac=val!==null?Math.max(0,Math.min(1,(pct-95)/5)):0;
-  if(frac>0){
+  var frac = val !== null ? Math.max(0, Math.min(1, (pct - 95) / 5)) : 0;
+  if (frac > 0) {
     /* Arco segmentado com cores */
-    var zones=[
-      {from:0,to:0.4,c0:'#ff3d5a',c1:'#ff7040'},
-      {from:0.4,to:0.6,c0:'#ff9020',c1:'#ffc400'},
-      {from:0.6,to:1.0,c0:'#80e060',c1:'#00e676'}
+    var zones = [
+      { from: 0, to: 0.4, c0: '#ff3d5a', c1: '#ff7040' },
+      { from: 0.4, to: 0.6, c0: '#ff9020', c1: '#ffc400' },
+      { from: 0.6, to: 1.0, c0: '#80e060', c1: '#00e676' }
     ];
-    zones.forEach(function(z){
-      if(frac<=z.from) return;
-      var zf=Math.min(frac,z.to);
-      var a0=startA+(endA-startA)*z.from;
-      var a1=startA+(endA-startA)*zf;
-      var gr=ctx.createLinearGradient(cx+R*Math.cos(a0),cy+R*Math.sin(a0),cx+R*Math.cos(a1),cy+R*Math.sin(a1));
-      gr.addColorStop(0,z.c0); gr.addColorStop(1,z.c1);
-      ctx.beginPath(); ctx.arc(cx,cy,R,a0,a1);
-      ctx.strokeStyle=gr; ctx.lineWidth=20; ctx.lineCap='butt'; ctx.stroke();
+    zones.forEach(function (z) {
+      if (frac <= z.from) return;
+      var zf = Math.min(frac, z.to);
+      var a0 = startA + (endA - startA) * z.from;
+      var a1 = startA + (endA - startA) * zf;
+      var gr = ctx.createLinearGradient(cx + R * Math.cos(a0), cy + R * Math.sin(a0), cx + R * Math.cos(a1), cy + R * Math.sin(a1));
+      gr.addColorStop(0, z.c0); gr.addColorStop(1, z.c1);
+      ctx.beginPath(); ctx.arc(cx, cy, R, a0, a1);
+      ctx.strokeStyle = gr; ctx.lineWidth = 20; ctx.lineCap = 'butt'; ctx.stroke();
     });
   }
 
   /* Marcas de escala */
-  var ticks=[{v:95,l:'95%',maj:true},{v:96,l:'',maj:false},{v:97,l:'97',maj:true},{v:98,l:'98',maj:true},{v:99,l:'99',maj:true},{v:100,l:'100%',maj:true}];
-  ticks.forEach(function(m){
-    var f=(m.v-95)/5, a=startA+(endA-startA)*f;
-    var r1=m.maj?R-14:R-8, r2=R+6;
+  var ticks = [{ v: 95, l: '95%', maj: true }, { v: 96, l: '', maj: false }, { v: 97, l: '97', maj: true }, { v: 98, l: '98', maj: true }, { v: 99, l: '99', maj: true }, { v: 100, l: '100%', maj: true }];
+  ticks.forEach(function (m) {
+    var f = (m.v - 95) / 5, a = startA + (endA - startA) * f;
+    var r1 = m.maj ? R - 14 : R - 8, r2 = R + 6;
     ctx.beginPath();
-    ctx.moveTo(cx+r1*Math.cos(a),cy+r1*Math.sin(a));
-    ctx.lineTo(cx+r2*Math.cos(a),cy+r2*Math.sin(a));
-    ctx.strokeStyle=m.maj?'#3a5575':'#243545'; ctx.lineWidth=m.maj?2:1; ctx.stroke();
-    if(m.l){
-      ctx.fillStyle='#4a7090'; ctx.font='bold 8px monospace'; ctx.textAlign='center';
-      ctx.fillText(m.l, cx+(R+22)*Math.cos(a), cy+(R+22)*Math.sin(a)+3);
+    ctx.moveTo(cx + r1 * Math.cos(a), cy + r1 * Math.sin(a));
+    ctx.lineTo(cx + r2 * Math.cos(a), cy + r2 * Math.sin(a));
+    ctx.strokeStyle = m.maj ? '#3a5575' : '#243545'; ctx.lineWidth = m.maj ? 2 : 1; ctx.stroke();
+    if (m.l) {
+      ctx.fillStyle = '#4a7090'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(m.l, cx + (R + 22) * Math.cos(a), cy + (R + 22) * Math.sin(a) + 3);
     }
   });
 
   /* Labels de zona */
-  ctx.font='bold 7px sans-serif'; ctx.textAlign='center';
-  ctx.fillStyle='#ff3d5a66'; ctx.fillText('CRIT', cx-R*0.60, cy-10);
-  ctx.fillStyle='#ffc40055'; ctx.fillText('ATEN', cx, cy-R*0.36-4);
-  ctx.fillStyle='#00e67666'; ctx.fillText('OK', cx+R*0.60, cy-10);
+  ctx.font = 'bold 7px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff3d5a66'; ctx.fillText('CRIT', cx - R * 0.60, cy - 10);
+  ctx.fillStyle = '#ffc40055'; ctx.fillText('ATEN', cx, cy - R * 0.36 - 4);
+  ctx.fillStyle = '#00e67666'; ctx.fillText('OK', cx + R * 0.60, cy - 10);
 
   /* Agulha */
-  if(val!==null){
-    var nfrac=Math.max(0,Math.min(1,(pct-95)/5));
-    var na=startA+(endA-startA)*nfrac;
+  if (val !== null) {
+    var nfrac = Math.max(0, Math.min(1, (pct - 95) / 5));
+    var na = startA + (endA - startA) * nfrac;
     /* Ponta da agulha */
-    var tipX=cx+(R-24)*Math.cos(na), tipY=cy+(R-24)*Math.sin(na);
+    var tipX = cx + (R - 24) * Math.cos(na), tipY = cy + (R - 24) * Math.sin(na);
     /* Base da agulha (lado oposto, curta) */
-    var baseX=cx+8*Math.cos(na+Math.PI), baseY=cy+8*Math.sin(na+Math.PI);
+    var baseX = cx + 8 * Math.cos(na + Math.PI), baseY = cy + 8 * Math.sin(na + Math.PI);
     ctx.save();
-    ctx.shadowColor=col; ctx.shadowBlur=14;
+    ctx.shadowColor = col; ctx.shadowBlur = 14;
     /* Haste principal */
-    ctx.beginPath(); ctx.moveTo(baseX,baseY); ctx.lineTo(tipX,tipY);
-    ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(baseX, baseY); ctx.lineTo(tipX, tipY);
+    ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
     /* Hub central */
-    ctx.beginPath(); ctx.arc(cx,cy,8,0,Math.PI*2);
-    ctx.fillStyle=col; ctx.shadowBlur=16; ctx.fill();
-    ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2);
-    ctx.fillStyle='#060d18'; ctx.shadowBlur=0; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+    ctx.fillStyle = col; ctx.shadowBlur = 16; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#060d18'; ctx.shadowBlur = 0; ctx.fill();
     ctx.restore();
   }
 
   /* Valor texto */
-  var vEl=document.getElementById('mVOv');
-  var vStr=val!==null?pct.toFixed(2)+'%':'—';
-  if(vEl){vEl.textContent=vStr; vEl.style.color=col; vEl.style.textShadow='0 0 24px '+col+'88';}
+  var vEl = document.getElementById('mVOv');
+  var vStr = val !== null ? pct.toFixed(2) + '%' : '—';
+  if (vEl) { vEl.textContent = vStr; vEl.style.color = col; vEl.style.textShadow = '0 0 24px ' + col + '88'; }
 }
 /* ══════════════════════════════════════════════════════════════
    SUPABASE INTEGRATION — v50
@@ -2282,31 +2350,31 @@ function drawGauge(val){
 ══════════════════════════════════════════════════════════════ */
 
 /* ── CONFIG ── substitua com seus dados ── */
-var SB_URL     = 'https://jaflfpyyybosbakokvcu.supabase.co';
+var SB_URL = 'https://jaflfpyyybosbakokvcu.supabase.co';
 var SB_ANONKEY = 'sb_publishable_QxwSShnXJ7qDZxkEqYP-Rg_5XmFwzvm';
 var ADMIN_PASS = '@Admin';
 
 /* ── CLIENTES — adicione ou remova conforme necessário ── */
 var CLIENTS = [
-  { id: 'acer',   label: 'ACER',   color: '#00d4ff' },
-  { id: 'hp',     label: 'HP',     color: '#0096D6' },
+  { id: 'acer', label: 'ACER', color: '#00d4ff' },
+  { id: 'hp', label: 'HP', color: '#0096D6' },
   { id: 'huawei', label: 'HUAWEI', color: '#CF0A2C' },
-  { id: 'asus',   label: 'ASUS',   color: '#00B9AE' }
+  { id: 'asus', label: 'ASUS', color: '#00B9AE' }
 ];
 
 /* ── Estado global ── */
-var IS_ADMIN          = false;
-var CURRENT_CLIENT    = CLIENTS[0].id;   /* cliente ativo no dashboard */
-var ADMIN_CLIENT      = CLIENTS[0].id;   /* cliente que admin está editando */
-var RAW_CLIENTS       = {};              /* {clientId: {out, def}} — estado admin */
-var CLIENT_CACHE      = {};             /* {clientId: {out,def,updated_at,default_filters}} */
-var AUTO_REFRESH_TMR  = null;
+var IS_ADMIN = false;
+var CURRENT_CLIENT = CLIENTS[0].id;   /* cliente ativo no dashboard */
+var ADMIN_CLIENT = CLIENTS[0].id;   /* cliente que admin está editando */
+var RAW_CLIENTS = {};              /* {clientId: {out, def}} — estado admin */
+var CLIENT_CACHE = {};             /* {clientId: {out,def,updated_at,default_filters}} */
+var AUTO_REFRESH_TMR = null;
 
 /* ══════════════════════════════════════════
    HELPERS DE PAINEL
 ══════════════════════════════════════════ */
 function showSubPanel(id) {
-  ['viewerLoading','viewerEmpty','adminLoginBox','adminUploadBox'].forEach(function(n){
+  ['viewerLoading', 'viewerEmpty', 'adminLoginBox', 'adminUploadBox'].forEach(function (n) {
     var el = document.getElementById(n);
     if (el) el.style.display = (n === id) ? '' : 'none';
   });
@@ -2319,16 +2387,16 @@ function showToast(msg, type) {
     t.id = 'sbToast';
     t.style.cssText = 'position:fixed;bottom:70px;right:18px;z-index:9999;padding:10px 18px;' +
       'border-radius:8px;font-size:12px;font-weight:700;letter-spacing:1px;' +
-      'transition:opacity 0.5s;backdrop-filter:blur(8px);pointer-events:none';
+      'transition:none;backdrop-filter:blur(8px);pointer-events:none';
     document.body.appendChild(t);
   }
-  var colors = {ok:'rgba(0,180,80,0.92)', err:'rgba(255,60,90,0.92)', info:'rgba(0,160,255,0.92)'};
+  var colors = { ok: 'rgba(0,180,80,0.92)', err: 'rgba(255,60,90,0.92)', info: 'rgba(0,160,255,0.92)' };
   t.style.opacity = '1';
   t.style.background = colors[type] || colors.info;
   t.style.color = '#fff';
   t.textContent = msg;
   clearTimeout(t._tmr);
-  t._tmr = setTimeout(function(){ t.style.opacity = '0'; }, 4000);
+  t._tmr = setTimeout(function () { t.style.opacity = '0'; }, 4000);
 }
 
 /* ══════════════════════════════════════════
@@ -2338,12 +2406,12 @@ function buildClientTabs() {
   var bar = document.getElementById('clientTabBar');
   if (!bar) return;
   bar.innerHTML = '';
-  CLIENTS.forEach(function(c) {
+  CLIENTS.forEach(function (c) {
     var btn = document.createElement('button');
     btn.className = 'client-tab' + (c.id === CURRENT_CLIENT ? ' active' : '');
     btn.id = 'ctab-' + c.id;
     btn.style.setProperty('--ctab-color', c.color);
-    btn.onclick = function(){ switchClient(c.id); };
+    btn.onclick = function () { switchClient(c.id); };
     btn.innerHTML = '<span></span><span></span><span></span><span></span>' + c.label;
     bar.appendChild(btn);
   });
@@ -2355,8 +2423,8 @@ var ADMIN_FILTERS = {}; /* {clientId: filterStateJson} — saved live by applyF(
 function switchClient(clientId) {
   /* Evita re-render do mesmo cliente */
   if (clientId === CURRENT_CLIENT &&
-      document.getElementById('dash') &&
-      document.getElementById('dash').style.display !== 'none') return;
+    document.getElementById('dash') &&
+    document.getElementById('dash').style.display !== 'none') return;
 
   /* Salva filtros atuais agora (redundante com applyF hook, mas garante o último estado) */
   if (IS_ADMIN && CURRENT_CLIENT) {
@@ -2368,7 +2436,7 @@ function switchClient(clientId) {
   CURRENT_CLIENT = clientId;
 
   /* Atualiza visual das tabs */
-  CLIENTS.forEach(function(c){
+  CLIENTS.forEach(function (c) {
     var btn = document.getElementById('ctab-' + c.id);
     if (btn) btn.classList.toggle('active', c.id === clientId);
   });
@@ -2379,11 +2447,11 @@ function switchClient(clientId) {
   if (src && src.out && src.def) {
     RAW.out = src.out;
     RAW.def = src.def;
-    killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = {fd:null,itm:null};
+    killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = { fd: null, itm: null };
 
     /* Guarda o clientId em closure para o then() */
     var targetClient = clientId;
-    run().then(function(){
+    run().then(function () {
       if (IS_ADMIN) {
         /* Restaura filtros do admin para este cliente */
         var saved = ADMIN_FILTERS[targetClient];
@@ -2409,9 +2477,9 @@ function switchClient(clientId) {
     /* Admin tentou trocar para cliente sem dados — volta para upload */
     showToast('⚠ Carregue os dados de ' + c_label(clientId) + ' primeiro', 'err');
     /* Reverte a tab visual */
-    CURRENT_CLIENT = CLIENTS.find(function(c){ return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out; }) ?
-      CLIENTS.find(function(c){ return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out; }).id : CURRENT_CLIENT;
-    CLIENTS.forEach(function(c){
+    CURRENT_CLIENT = CLIENTS.find(function (c) { return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out; }) ?
+      CLIENTS.find(function (c) { return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out; }).id : CURRENT_CLIENT;
+    CLIENTS.forEach(function (c) {
       var btn = document.getElementById('ctab-' + c.id);
       if (btn) btn.classList.toggle('active', c.id === CURRENT_CLIENT);
     });
@@ -2421,7 +2489,7 @@ function switchClient(clientId) {
 }
 
 function c_label(id) {
-  var c = CLIENTS.find(function(x){ return x.id === id; });
+  var c = CLIENTS.find(function (x) { return x.id === id; });
   return c ? c.label : id.toUpperCase();
 }
 
@@ -2431,7 +2499,7 @@ function c_label(id) {
 function captureFilterState() {
   /* Serializa MS_STATE como {key: [values]} */
   var state = {};
-  Object.keys(MS_STATE).forEach(function(k){
+  Object.keys(MS_STATE).forEach(function (k) {
     if (MS_STATE[k] && MS_STATE[k].size > 0) {
       state[k] = Array.from(MS_STATE[k]);
     }
@@ -2443,15 +2511,15 @@ function applyDefaultFilters(filtersJson) {
   try {
     var state = (typeof filtersJson === 'string') ? JSON.parse(filtersJson) : filtersJson;
     if (!state || Object.keys(state).length === 0) return;
-    Object.keys(state).forEach(function(key){
+    Object.keys(state).forEach(function (key) {
       var vals = state[key];
       if (!Array.isArray(vals) || vals.length === 0) return;
       if (!MS_STATE[key]) MS_STATE[key] = new Set();
-      vals.forEach(function(v){ MS_STATE[key].add(v); });
+      vals.forEach(function (v) { MS_STATE[key].add(v); });
       /* Atualiza visual dos checkboxes */
-      var list = document.getElementById('mslist-'+key);
+      var list = document.getElementById('mslist-' + key);
       if (list) {
-        list.querySelectorAll('.ms-item').forEach(function(el){
+        list.querySelectorAll('.ms-item').forEach(function (el) {
           var val = el.getAttribute('data-val');
           if (MS_STATE[key].has(val)) {
             el.classList.add('active');
@@ -2460,7 +2528,7 @@ function applyDefaultFilters(filtersJson) {
           }
         });
       }
-      var allEl = document.getElementById('msall-'+key);
+      var allEl = document.getElementById('msall-' + key);
       if (allEl) {
         allEl.classList.remove('active');
         var cb = allEl.querySelector('.ms-cb');
@@ -2469,7 +2537,7 @@ function applyDefaultFilters(filtersJson) {
       updateMSLabel(key);
     });
     applyF();
-  } catch(e) { console.warn('[applyDefaultFilters]', e); }
+  } catch (e) { console.warn('[applyDefaultFilters]', e); }
 }
 
 /* ══════════════════════════════════════════
@@ -2484,12 +2552,12 @@ function showAdminLogin() {
   }
   show('upZone'); hide('dash');
   showSubPanel('adminLoginBox');
-  setTimeout(function(){ var inp = document.getElementById('adminPwdInput'); if(inp) inp.focus(); }, 100);
+  setTimeout(function () { var inp = document.getElementById('adminPwdInput'); if (inp) inp.focus(); }, 100);
 }
 
 function adminLogin() {
   var inp = document.getElementById('adminPwdInput');
-  var pw  = inp ? inp.value : '';
+  var pw = inp ? inp.value : '';
   var err = document.getElementById('adminLoginErr');
   if (pw === ADMIN_PASS) {
     IS_ADMIN = true;
@@ -2504,7 +2572,7 @@ function adminLogin() {
       badge.style.cssText = 'position:fixed;top:6px;right:160px;z-index:9999;' +
         'background:#ff6b00;color:#fff;font-size:10px;letter-spacing:2px;' +
         'padding:4px 10px;border-radius:4px;font-weight:700;cursor:pointer';
-      badge.onclick = function(){ showUpZoneAdmin(); renderAdminUpload(); showSubPanel('adminUploadBox'); };
+      badge.onclick = function () { showUpZoneAdmin(); renderAdminUpload(); showSubPanel('adminUploadBox'); };
       document.body.appendChild(badge);
     }
     renderAdminUpload();
@@ -2540,17 +2608,17 @@ function renderAdminUpload() {
 
   /* Tabs de cliente */
   var tabsHtml = '<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">';
-  CLIENTS.forEach(function(c){
+  CLIENTS.forEach(function (c) {
     var isActive = c.id === ADMIN_CLIENT;
-    tabsHtml += '<button onclick="switchAdminClient(\''+c.id+'\')" id="admctab-'+c.id+'" style="' +
-      'padding:6px 18px;border-radius:20px;border:2px solid '+(isActive?c.color:'rgba(255,255,255,0.15)')+';' +
-      'background:'+(isActive?c.color+'22':'transparent')+';color:'+(isActive?c.color:'#888')+';' +
-      'font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all 0.2s">'+
-      c.label+'</button>';
+    tabsHtml += '<button onclick="switchAdminClient(\'' + c.id + '\')" id="admctab-' + c.id + '" style="' +
+      'padding:6px 18px;border-radius:20px;border:2px solid ' + (isActive ? c.color : 'rgba(255,255,255,0.15)') + ';' +
+      'background:' + (isActive ? c.color + '22' : 'transparent') + ';color:' + (isActive ? c.color : '#888') + ';' +
+      'font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:none">' +
+      c.label + '</button>';
   });
   tabsHtml += '</div>';
 
-  var clientStatus = CLIENTS.map(function(c){
+  var clientStatus = CLIENTS.map(function (c) {
     var hasData;
     if (c.id === 'huawei') {
       var hw = RAW_CLIENTS['huawei'] || {};
@@ -2561,64 +2629,64 @@ function renderAdminUpload() {
     } else {
       hasData = !!(RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out && RAW_CLIENTS[c.id].def);
     }
-    return '<span style="font-size:10px;color:'+(hasData?'#00e96a':'#555')+';margin-right:12px">' +
-      (hasData?'✅':'⬜') + ' ' + c.label + '</span>';
+    return '<span style="font-size:10px;color:' + (hasData ? '#00e96a' : '#555') + ';margin-right:12px">' +
+      (hasData ? '✅' : '⬜') + ' ' + c.label + '</span>';
   }).join('');
 
   var isHW = ADMIN_CLIENT === 'huawei';
   var isAS = ADMIN_CLIENT === 'asus';
   var uploadGrid = isHW ? buildHuaweiUploadCards() : isAS ? buildAsusUploadCards() : (
     '<div class="up-grid">' +
-      '<div class="ucard" id="c-out" onclick="document.getElementById(\'f-out\').click()">' +
-        '<span class="un">01 · OUTPUT · ' + c_label(ADMIN_CLIENT) + '</span>' +
-        '<span class="uico">📊</span>' +
-        '<div class="utit">OUT.xlsx — Dados de Produção</div>' +
-        '<div class="usub">Line · Work Order · Model Name · Model Serial<br>Test station · Placa Passou · Placa Falhou · <b>Total</b> · FPY (%)</div>' +
-        '<input type="file" id="f-out" accept=".xlsx,.xls" onchange="loadXL(this,\'out\')"/>' +
-        '<div class="ufile" id="n-out">Nenhum arquivo</div>' +
-      '</div>' +
-      '<div class="ucard" id="c-def" onclick="document.getElementById(\'f-def\').click()">' +
-        '<span class="un">02 · FALHAS · ' + c_label(ADMIN_CLIENT) + ' · OPCIONAL</span>' +
-        '<span class="uico">⚠️</span>' +
-        '<div class="utit">FALHAS.xlsx — Registro de Defeitos <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-        '<div class="usub">Serial · Work Order · Failure Code · Description<br>Test station · Failure date · Reason Code · Item<br>' +
-          '<span style="color:var(--t3)">Se não houver falhas no período, deixe em branco</span></div>' +
-        '<input type="file" id="f-def" accept=".xlsx,.xls" onchange="loadXL(this,\'def\')"/>' +
-        '<div class="ufile" id="n-def">Nenhum arquivo (será assumido zero defeitos)</div>' +
-      '</div>' +
+    '<div class="ucard" id="c-out" onclick="document.getElementById(\'f-out\').click()">' +
+    '<span class="un">01 · OUTPUT · ' + c_label(ADMIN_CLIENT) + '</span>' +
+    '<span class="uico">📊</span>' +
+    '<div class="utit">OUT.xlsx — Dados de Produção</div>' +
+    '<div class="usub">Line · Work Order · Model Name · Model Serial<br>Test station · Placa Passou · Placa Falhou · <b>Total</b> · FPY (%)</div>' +
+    '<input type="file" id="f-out" accept=".xlsx,.xls" onchange="loadXL(this,\'out\')"/>' +
+    '<div class="ufile" id="n-out">Nenhum arquivo</div>' +
+    '</div>' +
+    '<div class="ucard" id="c-def" onclick="document.getElementById(\'f-def\').click()">' +
+    '<span class="un">02 · FALHAS · ' + c_label(ADMIN_CLIENT) + ' · OPCIONAL</span>' +
+    '<span class="uico">⚠️</span>' +
+    '<div class="utit">FALHAS.xlsx — Registro de Defeitos <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
+    '<div class="usub">Serial · Work Order · Failure Code · Description<br>Test station · Failure date · Reason Code · Item<br>' +
+    '<span style="color:var(--t3)">Se não houver falhas no período, deixe em branco</span></div>' +
+    '<input type="file" id="f-def" accept=".xlsx,.xls" onchange="loadXL(this,\'def\')"/>' +
+    '<div class="ufile" id="n-def">Nenhum arquivo (será assumido zero defeitos)</div>' +
+    '</div>' +
     '</div>'
   );
 
-  box.innerHTML = 
+  box.innerHTML =
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
-      '<div>' +
-        '<div class="up-title" style="font-size:14px;text-align:left">📤 PUBLICAR DADOS DE PRODUÇÃO</div>' +
-        '<div class="up-sub" style="text-align:left">Carregue os arquivos para cada cliente, depois publique</div>' +
-      '</div>' +
-      '<button onclick="adminLogout()" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#888;' +
-        'padding:6px 14px;border-radius:6px;font-size:11px;cursor:pointer">Sair do Admin</button>' +
+    '<div>' +
+    '<div class="up-title" style="font-size:14px;text-align:left">📤 PUBLICAR DADOS DE PRODUÇÃO</div>' +
+    '<div class="up-sub" style="text-align:left">Carregue os arquivos para cada cliente, depois publique</div>' +
+    '</div>' +
+    '<button onclick="adminLogout()" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#888;' +
+    'padding:6px 14px;border-radius:6px;font-size:11px;cursor:pointer">Sair do Admin</button>' +
     '</div>' +
     tabsHtml +
     '<div style="margin-bottom:12px">' + clientStatus + '</div>' +
     uploadGrid +
     '<div class="abar" style="margin-top:16px">' +
-      '<span class="hint" id="hint">' + (isHW ? 'Carregue os 4 arquivos para publicar' : isAS ? 'Carregue pelo menos o Output L6 ASUS' : 'Carregue os 2 arquivos para publicar') + '</span>' +
+    '<span class="hint" id="hint">' + (isHW ? 'Carregue os 4 arquivos para publicar' : isAS ? 'Carregue pelo menos o Output L6 ASUS' : 'Carregue os 2 arquivos para publicar') + '</span>' +
     '</div>';
 
   /* Restaura estado de arquivos já carregados para este cliente */
   var existing = RAW_CLIENTS[ADMIN_CLIENT];
   if (ADMIN_CLIENT === 'asus') {
     if (existing) {
-      RAW_AS.outL6  = existing.outL6  || null;
-      RAW_AS.defL6  = existing.defL6  || null;
+      RAW_AS.outL6 = existing.outL6 || null;
+      RAW_AS.defL6 = existing.defL6 || null;
       RAW_AS.outL10 = existing.outL10 || null;
       RAW_AS.defL10 = existing.defL10 || null;
     }
     restoreAsusUploadUI();
   } else if (ADMIN_CLIENT === 'huawei') {
     if (existing) {
-      RAW_HW.outL6  = existing.outL6  || null;
-      RAW_HW.defL6  = existing.defL6  || null;
+      RAW_HW.outL6 = existing.outL6 || null;
+      RAW_HW.defL6 = existing.defL6 || null;
       RAW_HW.outL10 = existing.outL10 || null;
       RAW_HW.defL10 = existing.defL10 || null;
     }
@@ -2630,8 +2698,8 @@ function renderAdminUpload() {
     var ndef = document.getElementById('n-def');
     var cout = document.getElementById('c-out');
     var cdef = document.getElementById('c-def');
-    if (existing.out && nout) { nout.textContent = '✅ ' + c_label(ADMIN_CLIENT) + ' OUT — ' + existing.out.rows.length + ' registros'; if(cout) cout.classList.add('done'); }
-    if (existing.def && ndef) { ndef.textContent = '✅ ' + c_label(ADMIN_CLIENT) + ' FALHAS — ' + existing.def.rows.length + ' registros'; if(cdef) cdef.classList.add('done'); }
+    if (existing.out && nout) { nout.textContent = '✅ ' + c_label(ADMIN_CLIENT) + ' OUT — ' + existing.out.rows.length + ' registros'; if (cout) cout.classList.add('done'); }
+    if (existing.def && ndef) { ndef.textContent = '✅ ' + c_label(ADMIN_CLIENT) + ' FALHAS — ' + existing.def.rows.length + ' registros'; if (cdef) cdef.classList.add('done'); }
     checkReady();
   } else {
     RAW.out = null;
@@ -2644,8 +2712,8 @@ function switchAdminClient(clientId) {
   /* Salva dados + filtros do cliente atual antes de trocar */
   if (!RAW_CLIENTS[ADMIN_CLIENT]) RAW_CLIENTS[ADMIN_CLIENT] = {};
   if (ADMIN_CLIENT === 'huawei') {
-    if (RAW_HW.outL6)  RAW_CLIENTS[ADMIN_CLIENT].outL6  = RAW_HW.outL6;
-    if (RAW_HW.defL6)  RAW_CLIENTS[ADMIN_CLIENT].defL6  = RAW_HW.defL6;
+    if (RAW_HW.outL6) RAW_CLIENTS[ADMIN_CLIENT].outL6 = RAW_HW.outL6;
+    if (RAW_HW.defL6) RAW_CLIENTS[ADMIN_CLIENT].defL6 = RAW_HW.defL6;
     if (RAW_HW.outL10) RAW_CLIENTS[ADMIN_CLIENT].outL10 = RAW_HW.outL10;
     if (RAW_HW.defL10) RAW_CLIENTS[ADMIN_CLIENT].defL10 = RAW_HW.defL10;
   } else {
@@ -2664,12 +2732,12 @@ function switchAdminClient(clientId) {
   if (clientId === 'huawei') {
     /* Huawei usa RAW_HW — não RAW.out/def */
     if (saved) {
-      RAW_HW.outL6  = saved.outL6  || null;
-      RAW_HW.defL6  = saved.defL6  || null;
+      RAW_HW.outL6 = saved.outL6 || null;
+      RAW_HW.defL6 = saved.defL6 || null;
       RAW_HW.outL10 = saved.outL10 || null;
       RAW_HW.defL10 = saved.defL10 || null;
     } else {
-      RAW_HW = {outL6:null, defL6:null, outL10:null, defL10:null};
+      RAW_HW = { outL6: null, defL6: null, outL10: null, defL10: null };
     }
     RAW.out = null; RAW.def = null;
   } else if (saved) {
@@ -2693,19 +2761,21 @@ function checkReady() {
   var hint = document.getElementById('hint');
   if (hint) hint.textContent = ok
     ? (RAW.def
-        ? '✓ Pronto — clique em PUBLICAR'
-        : '✓ Sem arquivo de falhas? OK — será assumido zero defeitos. Clique em PUBLICAR')
+      ? '✓ Pronto — clique em PUBLICAR'
+      : '✓ Sem arquivo de falhas? OK — será assumido zero defeitos. Clique em PUBLICAR')
     : 'Aguardando OUTPUT...';
   if (ok) {
     /* Se não há def, cria estrutura vazia compatível */
     if (!RAW.def) {
-      RAW.def = { headers: ['Serial','Work Order','Failure Code','Description',
-        'Line','Test station','Failure date','Repair station','Reason Code','Description_1','Item'],
-        rows: [] };
+      RAW.def = {
+        headers: ['Serial', 'Work Order', 'Failure Code', 'Description',
+          'Line', 'Test station', 'Failure date', 'Repair station', 'Reason Code', 'Description_1', 'Item'],
+        rows: []
+      };
     }
     /* Salva automaticamente em RAW_CLIENTS */
     RAW_CLIENTS[ADMIN_CLIENT] = { out: RAW.out, def: RAW.def };
-    setStatus('warn','Pronto para publicar');
+    setStatus('warn', 'Pronto para publicar');
   }
 }
 
@@ -2714,8 +2784,8 @@ function checkReady() {
 ══════════════════════════════════════════ */
 /* Publicar TODOS os clientes carregados de uma vez */
 async function adminGenerateAndPublishAll() {
-  var toPublish = CLIENTS.filter(function(c){
-    if (c.id === 'asus')   return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
+  var toPublish = CLIENTS.filter(function (c) {
+    if (c.id === 'asus') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
     if (c.id === 'huawei') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
     return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out;
   });
@@ -2736,20 +2806,20 @@ async function adminGenerateAndPublishAll() {
       /* Configura RAW para o cliente atual */
       if (c.id === 'asus') {
         /* adminGenerateAsus faz tudo */
-        await new Promise(function(resolve) {
+        await new Promise(function (resolve) {
           var _orig = showPublishBar;
-          showPublishBar = function(){ resolve(); showPublishBar = _orig; };
+          showPublishBar = function () { resolve(); showPublishBar = _orig; };
           adminGenerateAsus();
         });
       } else if (c.id === 'huawei') {
-        await new Promise(function(resolve) {
+        await new Promise(function (resolve) {
           var _orig = showPublishBar;
-          showPublishBar = function(){ resolve(); showPublishBar = _orig; };
+          showPublishBar = function () { resolve(); showPublishBar = _orig; };
           adminGenerateHuawei();
         });
       } else {
         RAW.out = RAW_CLIENTS[c.id].out;
-        RAW.def = RAW_CLIENTS[c.id].def || { headers:[], rows:[] };
+        RAW.def = RAW_CLIENTS[c.id].def || { headers: [], rows: [] };
         await run();
         await saveClientToSupabase(c.id, '{}');
         CLIENT_CACHE[c.id] = { out: RAW.out, def: RAW.def, updated_at: new Date().toISOString() };
@@ -2757,7 +2827,7 @@ async function adminGenerateAndPublishAll() {
       showToast('✅ ' + c.label + ' publicado!', 'ok');
     }
     showToast('🎉 Todos os clientes publicados com sucesso!', 'ok');
-  } catch(e) {
+  } catch (e) {
     showToast('⚠ Erro: ' + e.message, 'err');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '☁ PUBLICAR'; }
@@ -2781,11 +2851,11 @@ function adminGenerateAndPublish() {
   showToast('⏳ Gerando dashboard...', 'info');
 
   /* Roda o dashboard para o admin ver e poder filtrar */
-  run().then(function(){
+  run().then(function () {
     /* Mostra botão "Publicar com filtros atuais" no dashboard */
     showPublishBar();
     showToast('✅ Dashboard gerado! Aplique filtros se quiser, depois publique.', 'ok');
-  }).catch(function(e){
+  }).catch(function (e) {
     showToast('⚠ Erro: ' + e.message, 'err');
     if (btnGo) btnGo.disabled = false;
   });
@@ -2806,8 +2876,8 @@ function updateFixedPublishBtn() {
       'display:flex;flex-direction:column;align-items:flex-end;gap:8px'
     ].join(';');
     /* Só visível quando upZone está ativo */
-    var upEl=document.getElementById('upZone');
-    if(upEl && upEl.style.display==='none') btn.style.display='none';
+    var upEl = document.getElementById('upZone');
+    if (upEl && upEl.style.display === 'none') btn.style.display = 'none';
     document.body.appendChild(btn);
 
     /* Injetar keyframes de animação */
@@ -2825,7 +2895,7 @@ function updateFixedPublishBtn() {
         '  border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;',
         '  letter-spacing:2px;cursor:pointer;padding:14px 28px;',
         '  text-transform:uppercase;white-space:nowrap;',
-        '  transition:transform 0.15s,opacity 0.15s;',
+        '  transition:none;',
         '}',
         '#fixedPublishBtn .pub-main:hover{transform:scale(1.05);opacity:0.92}',
         '#fixedPublishBtn .pub-main:active{transform:scale(0.97)}',
@@ -2833,7 +2903,7 @@ function updateFixedPublishBtn() {
         '  background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);',
         '  border:1px solid rgba(255,255,255,0.2);border-radius:8px;',
         '  color:rgba(255,255,255,0.7);font-size:10px;cursor:pointer;',
-        '  padding:6px 14px;letter-spacing:1px;transition:all 0.2s;',
+        '  padding:6px 14px;letter-spacing:1px;transition:none;',
         '}',
         '#fixedPublishBtn .pub-sec:hover{background:rgba(255,255,255,0.18);color:#fff}',
         '#fixedPublishBtn .pub-status{',
@@ -2849,20 +2919,20 @@ function updateFixedPublishBtn() {
   /* Garante cliente atual em RAW_CLIENTS */
   if (RAW.out && RAW.def) RAW_CLIENTS[ADMIN_CLIENT] = RAW_CLIENTS[ADMIN_CLIENT] || { out: RAW.out, def: RAW.def };
 
-  var loadedClients = CLIENTS.filter(function(c){
-    if (c.id === 'asus')   return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
+  var loadedClients = CLIENTS.filter(function (c) {
+    if (c.id === 'asus') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
     if (c.id === 'huawei') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
     return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out;
   });
 
-  var names  = loadedClients.map(function(c){ return c.label; }).join(' · ');
+  var names = loadedClients.map(function (c) { return c.label; }).join(' · ');
 
   btn.innerHTML =
     (loadedClients.length > 0
       ? '<div class="pub-status">📦 ' + names + ' prontos</div>'
       : '<div class="pub-status" style="color:rgba(255,200,100,0.9)">Carregue ao menos 1 arquivo de output</div>') +
     '<button class="pub-main" onclick="adminGenerateAndPublishAll()">' +
-      '☁ PUBLICAR' +
+    '☁ PUBLICAR' +
     '</button>' +
     '<button class="pub-sec" onclick="goBackToAdminUpload()">← Voltar</button>';
 }
@@ -2891,15 +2961,15 @@ function publishAllClients(noFilters) {
   RAW_CLIENTS[ADMIN_CLIENT] = RAW_CLIENTS[ADMIN_CLIENT] || {};
   RAW_CLIENTS[ADMIN_CLIENT].filters = currentFilters;
 
-  var toPublish = CLIENTS.filter(function(c){
-    if (c.id==='asus')   return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
-    if (c.id==='huawei') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
+  var toPublish = CLIENTS.filter(function (c) {
+    if (c.id === 'asus') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
+    if (c.id === 'huawei') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
     return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out;
   });
-  toPublish.forEach(function(c){
-    if (c.id!=='asus' && c.id!=='huawei')
-      if (!RAW_CLIENTS[c.id].def||!RAW_CLIENTS[c.id].def.rows)
-        RAW_CLIENTS[c.id].def={headers:[],rows:[]};
+  toPublish.forEach(function (c) {
+    if (c.id !== 'asus' && c.id !== 'huawei')
+      if (!RAW_CLIENTS[c.id].def || !RAW_CLIENTS[c.id].def.rows)
+        RAW_CLIENTS[c.id].def = { headers: [], rows: [] };
   });
   if (toPublish.length === 0) {
     showToast('⚠ Carregue ao menos um arquivo de output antes de publicar', 'err');
@@ -2910,7 +2980,7 @@ function publishAllClients(noFilters) {
   if (bar) bar.innerHTML = '<div style="color:#00d4ff;font-size:12px;padding:4px">⏳ Publicando ' + toPublish.length + ' cliente(s)...</div>';
 
   var now = new Date().toISOString();
-  var promises = toPublish.map(function(c){
+  var promises = toPublish.map(function (c) {
     /* Usa filtros do admin para cada cliente (cada um tem seus próprios filtros salvos) */
     var filt;
     if (c.id === ADMIN_CLIENT) {
@@ -2920,7 +2990,7 @@ function publishAllClients(noFilters) {
     } else {
       filt = RAW_CLIENTS[c.id].filters || '{}';
     }
-    return saveClientToSupabase(c.id, filt).then(function(){
+    return saveClientToSupabase(c.id, filt).then(function () {
       CLIENT_CACHE[c.id] = {
         out: RAW_CLIENTS[c.id].out,
         def: RAW_CLIENTS[c.id].def,
@@ -2930,13 +3000,13 @@ function publishAllClients(noFilters) {
     });
   });
 
-  Promise.all(promises).then(function(){
-    var names = toPublish.map(function(c){ return c.label; }).join(' + ');
+  Promise.all(promises).then(function () {
+    var names = toPublish.map(function (c) { return c.label; }).join(' + ');
     showToast('✅ ' + names + ' publicados!', 'ok');
     setStatus('on', names + ' · ' + new Date().toLocaleString('pt-BR'));
     /* Mantém a barra mas volta ao estado normal para novas ações */
     showPublishBar();
-  }).catch(function(e){
+  }).catch(function (e) {
     if (bar) bar.innerHTML = '<div style="color:#ff3d5a;font-size:12px;padding:4px">⚠ Erro: ' + e.message +
       ' <button onclick="showPublishBar()" style="margin-left:8px;padding:4px 10px;background:rgba(255,255,255,0.1);border:none;border-radius:4px;color:#fff;font-size:10px;cursor:pointer">Tentar novamente</button></div>';
     showToast('⚠ Erro ao publicar: ' + e.message, 'err');
@@ -2950,21 +3020,21 @@ async function saveClientToSupabase(clientId, filtersJson) {
   var data = RAW_CLIENTS[clientId] || { out: RAW.out, def: RAW.def };
   if (!data.out || !data.def) throw new Error('Sem dados para ' + clientId);
   var payload = {
-    client:          clientId,
-    updated_at:      new Date().toISOString(),
-    out_headers:     JSON.stringify(data.out.headers),
-    out_rows:        JSON.stringify(data.out.rows),
-    def_headers:     JSON.stringify(data.def.headers),
-    def_rows:        JSON.stringify(data.def.rows),
+    client: clientId,
+    updated_at: new Date().toISOString(),
+    out_headers: JSON.stringify(data.out.headers),
+    out_rows: JSON.stringify(data.out.rows),
+    def_headers: JSON.stringify(data.def.headers),
+    def_rows: JSON.stringify(data.def.rows),
     default_filters: filtersJson || '{}'
   };
   var res = await fetch(SB_URL + '/rest/v1/dashboard_data', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'apikey':        SB_ANONKEY,
+      'apikey': SB_ANONKEY,
       'Authorization': 'Bearer ' + SB_ANONKEY,
-      'Prefer':        'resolution=merge-duplicates'
+      'Prefer': 'resolution=merge-duplicates'
     },
     body: JSON.stringify(payload)
   });
@@ -2985,22 +3055,22 @@ async function loadClientFromSupabase(clientId) {
     if (!rows || rows.length === 0) { showSubPanel('viewerEmpty'); return; }
     var d = rows[0];
     var clientData = {
-      out:            { headers: JSON.parse(d.out_headers), rows: JSON.parse(d.out_rows) },
-      def:            { headers: JSON.parse(d.def_headers), rows: JSON.parse(d.def_rows) },
-      updated_at:     d.updated_at,
+      out: { headers: JSON.parse(d.out_headers), rows: JSON.parse(d.out_rows) },
+      def: { headers: JSON.parse(d.def_headers), rows: JSON.parse(d.def_rows) },
+      updated_at: d.updated_at,
       default_filters: d.default_filters || '{}'
     };
     CLIENT_CACHE[clientId] = clientData;
     RAW.out = clientData.out;
     RAW.def = clientData.def;
-    killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = {fd:null,itm:null};
+    killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = { fd: null, itm: null };
     await run();
     if (clientData.default_filters && clientData.default_filters !== '{}') {
       applyDefaultFilters(clientData.default_filters);
     }
     buildClientTabs();
     if (d.updated_at) setStatus('on', c_label(clientId) + ' · ' + new Date(d.updated_at).toLocaleString('pt-BR'));
-  } catch(e) {
+  } catch (e) {
     console.error('[loadClientFromSupabase]', e);
     showSubPanel('viewerEmpty');
   }
@@ -3020,18 +3090,18 @@ async function loadAllClients() {
     '<div style="color:#1e3a5f;font-size:16px;letter-spacing:3px;font-weight:700">CARREGANDO DASHBOARD</div>' +
     '<div id="sbLoadMsg" style="color:#475569;font-size:12px;letter-spacing:1px">Conectando ao banco de dados...</div>' +
     '<div style="width:220px;height:3px;background:#E2E8F0;border-radius:2px;overflow:hidden">' +
-      '<div id="sbBar" style="height:100%;width:10%;background:linear-gradient(90deg,#00d4ff,#7c3aed);transition:width 0.4s;border-radius:2px"></div>' +
+    '<div id="sbBar" style="height:100%;width:10%;background:linear-gradient(90deg,#00d4ff,#7c3aed);transition:none;border-radius:2px"></div>' +
     '</div>';
   document.body.appendChild(ldDiv);
 
   function sbStep(msg, pct) {
-    var m = document.getElementById('sbLoadMsg'); if(m) m.textContent = msg;
-    var b = document.getElementById('sbBar');     if(b) b.style.width = pct + '%';
+    var m = document.getElementById('sbLoadMsg'); if (m) m.textContent = msg;
+    var b = document.getElementById('sbBar'); if (b) b.style.width = pct + '%';
   }
   function removeLd() {
     if (!ldDiv.parentNode) return;
-    ldDiv.style.transition = 'opacity 0.5s'; ldDiv.style.opacity = '0';
-    setTimeout(function(){ if(ldDiv.parentNode) ldDiv.parentNode.removeChild(ldDiv); }, 500);
+    ldDiv.style.transition = 'none'; ldDiv.style.opacity = '0';
+    setTimeout(function () { if (ldDiv.parentNode) ldDiv.parentNode.removeChild(ldDiv); }, 500);
   }
 
   try {
@@ -3046,11 +3116,11 @@ async function loadAllClients() {
 
     sbStep('Processando dados...', 50);
     /* Popula cache */
-    allRows.forEach(function(d){
+    allRows.forEach(function (d) {
       CLIENT_CACHE[d.client] = {
-        out:            { headers: JSON.parse(d.out_headers), rows: JSON.parse(d.out_rows) },
-        def:            { headers: JSON.parse(d.def_headers), rows: JSON.parse(d.def_rows) },
-        updated_at:     d.updated_at,
+        out: { headers: JSON.parse(d.out_headers), rows: JSON.parse(d.out_rows) },
+        def: { headers: JSON.parse(d.def_headers), rows: JSON.parse(d.def_rows) },
+        updated_at: d.updated_at,
         default_filters: d.default_filters || '{}'
       };
     });
@@ -3063,7 +3133,7 @@ async function loadAllClients() {
     RAW.def = cd.def;
 
     sbStep('Renderizando...', 75);
-    await new Promise(function(r){ setTimeout(r,40); });
+    await new Promise(function (r) { setTimeout(r, 40); });
     await run();
     if (cd.default_filters && cd.default_filters !== '{}') applyDefaultFilters(cd.default_filters);
 
@@ -3073,11 +3143,11 @@ async function loadAllClients() {
     showLastUpdateBanner(cd.updated_at);
     removeLd();
     startAutoRefresh();
-  } catch(e) {
+  } catch (e) {
     console.error('[loadAllClients]', e);
-    var b = document.getElementById('sbBar'); if(b) b.style.background='#ff3d5a';
+    var b = document.getElementById('sbBar'); if (b) b.style.background = '#ff3d5a';
     sbStep('Erro: ' + e.message, 100);
-    setTimeout(function(){ removeLd(); showSubPanel('viewerEmpty'); }, 2500);
+    setTimeout(function () { removeLd(); showSubPanel('viewerEmpty'); }, 2500);
   }
 }
 
@@ -3104,10 +3174,10 @@ function showLastUpdateBanner(isoDate) {
   banner.innerHTML = buildLastUpdateHTML(isoDate);
   document.body.appendChild(banner);
   clearTimeout(banner._tmr);
-  banner._tmr = setTimeout(function(){
+  banner._tmr = setTimeout(function () {
     banner.style.transition = 'opacity 1s';
     banner.style.opacity = '0';
-    setTimeout(function(){ if(banner.parentNode) banner.parentNode.removeChild(banner); }, 1000);
+    setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 1000);
   }, 8000);
   /* Tick a cada minuto para manter "há X min" atualizado */
   clearInterval(_lastUpdateTimer);
@@ -3116,9 +3186,9 @@ function showLastUpdateBanner(isoDate) {
 
 function buildLastUpdateHTML(isoDate) {
   var dt = new Date(isoDate);
-  var fmt = dt.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  var fmt = dt.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   var diff = Math.round((Date.now() - dt.getTime()) / 60000);
-  var diffTxt = diff < 1 ? 'agora mesmo' : diff === 1 ? 'há 1 min' : diff < 60 ? 'há ' + diff + ' min' : 'há ' + Math.round(diff/60) + 'h';
+  var diffTxt = diff < 1 ? 'agora mesmo' : diff === 1 ? 'há 1 min' : diff < 60 ? 'há ' + diff + ' min' : 'há ' + Math.round(diff / 60) + 'h';
   return '<span style="color:#00d4ff;font-weight:700">🕐 Última atualização:</span> ' +
     '<span>' + fmt + ' <span style="color:#00d4ff">(' + diffTxt + ')</span></span>' +
     '<span style="color:#555;font-size:10px">· Atualização automática a cada 15 min</span>';
@@ -3133,7 +3203,7 @@ function updateLastUpdateIndicator() {
   var stxt = document.getElementById('stxt');
   if (stxt && _lastUpdateIso) {
     var diff = Math.round((Date.now() - new Date(_lastUpdateIso).getTime()) / 60000);
-    var diffTxt = diff < 1 ? 'agora mesmo' : diff === 1 ? 'há 1 min' : diff < 60 ? 'há ' + diff + ' min' : 'há ' + Math.round(diff/60) + 'h';
+    var diffTxt = diff < 1 ? 'agora mesmo' : diff === 1 ? 'há 1 min' : diff < 60 ? 'há ' + diff + ' min' : 'há ' + Math.round(diff / 60) + 'h';
     /* Só atualiza se não estiver em modo admin */
     if (!IS_ADMIN) {
       var cl = c_label(CURRENT_CLIENT);
@@ -3147,7 +3217,7 @@ function updateLastUpdateIndicator() {
 ══════════════════════════════════════════ */
 function startAutoRefresh() {
   clearInterval(AUTO_REFRESH_TMR);
-  AUTO_REFRESH_TMR = setInterval(async function(){
+  AUTO_REFRESH_TMR = setInterval(async function () {
     if (IS_ADMIN) return; /* não atualiza enquanto admin está usando */
     try {
       var res = await fetch(SB_URL + '/rest/v1/dashboard_data?select=*', {
@@ -3156,14 +3226,14 @@ function startAutoRefresh() {
       if (!res.ok) return;
       var allRows = await res.json();
       var changed = false;
-      allRows.forEach(function(d){
+      allRows.forEach(function (d) {
         var cached = CLIENT_CACHE[d.client];
         /* Verifica se updated_at mudou */
         if (!cached || cached.updated_at !== d.updated_at) {
           CLIENT_CACHE[d.client] = {
-            out:            { headers: JSON.parse(d.out_headers), rows: JSON.parse(d.out_rows) },
-            def:            { headers: JSON.parse(d.def_headers), rows: JSON.parse(d.def_rows) },
-            updated_at:     d.updated_at,
+            out: { headers: JSON.parse(d.out_headers), rows: JSON.parse(d.out_rows) },
+            def: { headers: JSON.parse(d.def_headers), rows: JSON.parse(d.def_rows) },
+            updated_at: d.updated_at,
             default_filters: d.default_filters || '{}'
           };
           if (d.client === CURRENT_CLIENT) changed = true;
@@ -3173,7 +3243,7 @@ function startAutoRefresh() {
         /* Recarrega silenciosamente o cliente atual */
         var cd = CLIENT_CACHE[CURRENT_CLIENT];
         RAW.out = cd.out; RAW.def = cd.def;
-        killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = {fd:null,itm:null};
+        killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = { fd: null, itm: null };
         await run();
         if (cd.default_filters && cd.default_filters !== '{}') applyDefaultFilters(cd.default_filters);
         buildClientTabs();
@@ -3181,7 +3251,7 @@ function startAutoRefresh() {
         showLastUpdateBanner(cd.updated_at);
         showToast('🔄 Dados atualizados automaticamente', 'info');
       }
-    } catch(e){ console.warn('[autoRefresh]', e); }
+    } catch (e) { console.warn('[autoRefresh]', e); }
   }, 15 * 60 * 1000); /* 15 minutos */
 }
 
@@ -3194,7 +3264,7 @@ function initSupabase() {
     history.replaceState(null, '', window.location.pathname);
     show('upZone'); hide('dash');
     showSubPanel('adminLoginBox');
-    setTimeout(function(){ var inp = document.getElementById('adminPwdInput'); if(inp) inp.focus(); }, 100);
+    setTimeout(function () { var inp = document.getElementById('adminPwdInput'); if (inp) inp.focus(); }, 100);
   } else {
     loadAllClients();
   }
@@ -3206,23 +3276,23 @@ function initSupabase() {
    Ao entrar fullscreen: cicla ACER → HP → ACER → ...
    Cada cliente fica 50s, contagem regressiva visível
 ══════════════════════════════════════════ */
-var SLIDESHOW_TMR    = null;
-var SLIDESHOW_TICK   = null;
+var SLIDESHOW_TMR = null;
+var SLIDESHOW_TICK = null;
 var SLIDESHOW_ACTIVE = false;
-var SLIDESHOW_IDX    = 0;
-var SLIDESHOW_SECS   = 50;
+var SLIDESHOW_IDX = 0;
+var SLIDESHOW_SECS = 50;
 
 function toggleFullscreen() {
   var btn = document.getElementById('btnFullscreen');
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(function(){});
+    document.documentElement.requestFullscreen().catch(function () { });
   } else {
     stopSlideshow();
     document.exitFullscreen();
   }
 }
 
-document.addEventListener('fullscreenchange', function(){
+document.addEventListener('fullscreenchange', function () {
   var btn = document.getElementById('btnFullscreen');
   if (document.fullscreenElement) {
     if (btn) { btn.textContent = '⛶✕'; btn.title = 'Sair da tela cheia'; btn.style.color = '#ff6b00'; }
@@ -3235,18 +3305,18 @@ document.addEventListener('fullscreenchange', function(){
 
 function startSlideshow() {
   /* Só inicia se tiver mais de 1 cliente com dados */
-  var available = CLIENTS.filter(function(c){ return CLIENT_CACHE[c.id] || (RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out); });
+  var available = CLIENTS.filter(function (c) { return CLIENT_CACHE[c.id] || (RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out); });
   if (available.length < 2) { showSlideshowIndicator(null); return; }
 
   SLIDESHOW_ACTIVE = true;
   /* Começa no cliente atual */
-  SLIDESHOW_IDX = available.findIndex(function(c){ return c.id === CURRENT_CLIENT; });
+  SLIDESHOW_IDX = available.findIndex(function (c) { return c.id === CURRENT_CLIENT; });
   if (SLIDESHOW_IDX < 0) SLIDESHOW_IDX = 0;
 
   showSlideshowIndicator(available, SLIDESHOW_SECS);
   var secsLeft = SLIDESHOW_SECS;
 
-  SLIDESHOW_TICK = setInterval(function(){
+  SLIDESHOW_TICK = setInterval(function () {
     secsLeft--;
     showSlideshowIndicator(available, secsLeft);
     if (secsLeft <= 0) {
@@ -3259,7 +3329,7 @@ function startSlideshow() {
       if (dash) {
         dash.style.opacity = '0';
         dash.style.transition = 'opacity 0.6s';
-        setTimeout(function(){ dash.style.opacity = '1'; }, 700);
+        setTimeout(function () { dash.style.opacity = '1'; }, 700);
       }
     }
   }, 1000);
@@ -3290,14 +3360,14 @@ function showSlideshowIndicator(available, secsLeft) {
     document.body.appendChild(ind);
   }
 
-  var dots = available.map(function(c, i){
+  var dots = available.map(function (c, i) {
     var isActive = c.id === CURRENT_CLIENT;
     return '<div style="display:flex;align-items:center;gap:5px">' +
       '<div style="width:8px;height:8px;border-radius:50%;background:' +
-        (isActive ? (c.color || '#00d4ff') : 'rgba(255,255,255,0.2)') +
-        ';transition:all 0.3s;box-shadow:' + (isActive ? '0 0 8px '+(c.color||'#00d4ff') : 'none') + '"></div>' +
-      '<span style="font-size:10px;font-weight:700;color:'+(isActive?'#fff':'#555')+';letter-spacing:1px">' + c.label + '</span>' +
-    '</div>';
+      (isActive ? (c.color || '#00d4ff') : 'rgba(255,255,255,0.2)') +
+      ';transition:none;box-shadow:' + (isActive ? '0 0 8px ' + (c.color || '#00d4ff') : 'none') + '"></div>' +
+      '<span style="font-size:10px;font-weight:700;color:' + (isActive ? '#fff' : '#555') + ';letter-spacing:1px">' + c.label + '</span>' +
+      '</div>';
   }).join('<div style="width:1px;height:14px;background:rgba(255,255,255,0.1)"></div>');
 
   /* Progress arc / countdown */
@@ -3307,17 +3377,17 @@ function showSlideshowIndicator(available, secsLeft) {
 
   ind.innerHTML = dots +
     '<div style="position:relative;width:32px;height:32px;flex-shrink:0">' +
-      '<svg width="32" height="32" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">' +
-        '<circle cx="16" cy="16" r="'+r+'" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>' +
-        '<circle cx="16" cy="16" r="'+r+'" fill="none" stroke="#00d4ff" stroke-width="2" ' +
-          'stroke-dasharray="'+dash_arr+'" stroke-linecap="round" style="transition:stroke-dasharray 0.9s linear"/>' +
-      '</svg>' +
-      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;' +
-        'font-size:9px;color:#00d4ff;font-weight:700">' + secsLeft + '</div>' +
+    '<svg width="32" height="32" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">' +
+    '<circle cx="16" cy="16" r="' + r + '" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>' +
+    '<circle cx="16" cy="16" r="' + r + '" fill="none" stroke="#00d4ff" stroke-width="2" ' +
+    'stroke-dasharray="' + dash_arr + '" stroke-linecap="round" style="transition:none"/>' +
+    '</svg>' +
+    '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;' +
+    'font-size:9px;color:#00d4ff;font-weight:700">' + secsLeft + '</div>' +
     '</div>' +
     '<button onclick="stopSlideshow();document.exitFullscreen();" title="Sair da apresentação" ' +
-      'style="background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;' +
-      'color:#555;font-size:10px;padding:3px 8px;cursor:pointer">✕</button>';
+    'style="background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;' +
+    'color:#555;font-size:10px;padding:3px 8px;cursor:pointer">✕</button>';
 }
 
 
@@ -3353,57 +3423,57 @@ function buildHuaweiUploadCards() {
   return '<div class="up-grid hw-grid">' +
     /* Card 1: Output L6 */
     '<div class="ucard" id="c-hw-outL6" onclick="document.getElementById(\'f-hw-outL6\').click()">' +
-      '<span class="un">01 · OUTPUT L6 · HUAWEI</span>' +
-      '<span class="uico">📊</span>' +
-      '<div class="utit">Output_huawei_L6.xlsx</div>' +
-      '<div class="usub">Line · Work Order · Model Name · Model Serial<br>Test station · Placa Passou · Placa Falhou · Total · FPY (%)</div>' +
-      '<input type="file" id="f-hw-outL6" accept=".xlsx,.xls" onchange="loadHW(this,\'outL6\')"/>' +
-      '<div class="ufile" id="n-hw-outL6">Nenhum arquivo</div>' +
+    '<span class="un">01 · OUTPUT L6 · HUAWEI</span>' +
+    '<span class="uico">📊</span>' +
+    '<div class="utit">Output_huawei_L6.xlsx</div>' +
+    '<div class="usub">Line · Work Order · Model Name · Model Serial<br>Test station · Placa Passou · Placa Falhou · Total · FPY (%)</div>' +
+    '<input type="file" id="f-hw-outL6" accept=".xlsx,.xls" onchange="loadHW(this,\'outL6\')"/>' +
+    '<div class="ufile" id="n-hw-outL6">Nenhum arquivo</div>' +
     '</div>' +
     /* Card 2: Falhas L6 — opcional */
     '<div class="ucard" id="c-hw-defL6" onclick="document.getElementById(\'f-hw-defL6\').click()">' +
-      '<span class="un">02 · FALHAS L6 · HUAWEI · OPCIONAL</span>' +
-      '<span class="uico">⚠️</span>' +
-      '<div class="utit">Falhas_L6_HUAWEI.xlsx <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-      '<div class="usub">Serial · Work Order · Failure Code · Description<br>Test station · Failure date · Item<br>' +
-        '<span style="color:var(--t3)">Se não houver falhas L6, deixe em branco</span></div>' +
-      '<input type="file" id="f-hw-defL6" accept=".xlsx,.xls" onchange="loadHW(this,\'defL6\')"/>' +
-      '<div class="ufile" id="n-hw-defL6">Nenhum arquivo (zero defeitos)</div>' +
+    '<span class="un">02 · FALHAS L6 · HUAWEI · OPCIONAL</span>' +
+    '<span class="uico">⚠️</span>' +
+    '<div class="utit">Falhas_L6_HUAWEI.xlsx <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
+    '<div class="usub">Serial · Work Order · Failure Code · Description<br>Test station · Failure date · Item<br>' +
+    '<span style="color:var(--t3)">Se não houver falhas L6, deixe em branco</span></div>' +
+    '<input type="file" id="f-hw-defL6" accept=".xlsx,.xls" onchange="loadHW(this,\'defL6\')"/>' +
+    '<div class="ufile" id="n-hw-defL6">Nenhum arquivo (zero defeitos)</div>' +
     '</div>' +
     /* Card 3: Output L10 — template download + upload (sem combobox) */
     '<div class="ucard" id="c-hw-outL10">' +
-      '<span class="un">03 · OUTPUT L10 · HUAWEI</span>' +
-      '<span class="uico">📋</span>' +
-      '<div class="utit">OUTPUT_L10_HUAWEI.xlsx</div>' +
-      '<div class="usub">ST-MP1 · ST-MP13 · ST-MP9<br>Input · Qty Pass · Qty Fail · First Pass<br>' +
-        '<span style="color:var(--t3);font-size:9px">Modelo definido por linha no template</span></div>' +
-      '<div style="display:flex;gap:6px;margin-top:12px">' +
-        '<button onclick="downloadL10Template()" style="flex:1;background:rgba(0,212,255,0.1);border:1px solid var(--cyan);' +
-          'color:var(--cyan);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-weight:700">⬇ BAIXAR TEMPLATE</button>' +
-        '<button onclick="document.getElementById(\'f-hw-outL10\').click()" style="flex:1;background:rgba(255,255,255,0.05);' +
-          'border:1px solid var(--ln2);color:var(--t1);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer">📂 CARREGAR</button>' +
-      '</div>' +
-      '<input type="file" id="f-hw-outL10" accept=".xlsx,.xls" onchange="loadHW(this,\'outL10\')"/>' +
-      '<div class="ufile" id="n-hw-outL10">Nenhum arquivo</div>' +
+    '<span class="un">03 · OUTPUT L10 · HUAWEI</span>' +
+    '<span class="uico">📋</span>' +
+    '<div class="utit">OUTPUT_L10_HUAWEI.xlsx</div>' +
+    '<div class="usub">ST-MP1 · ST-MP13 · ST-MP9<br>Input · Qty Pass · Qty Fail · First Pass<br>' +
+    '<span style="color:var(--t3);font-size:9px">Modelo definido por linha no template</span></div>' +
+    '<div style="display:flex;gap:6px;margin-top:12px">' +
+    '<button onclick="downloadL10Template()" style="flex:1;background:rgba(0,212,255,0.1);border:1px solid var(--cyan);' +
+    'color:var(--cyan);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-weight:700">⬇ BAIXAR TEMPLATE</button>' +
+    '<button onclick="document.getElementById(\'f-hw-outL10\').click()" style="flex:1;background:rgba(255,255,255,0.05);' +
+    'border:1px solid var(--ln2);color:var(--t1);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer">📂 CARREGAR</button>' +
+    '</div>' +
+    '<input type="file" id="f-hw-outL10" accept=".xlsx,.xls" onchange="loadHW(this,\'outL10\')"/>' +
+    '<div class="ufile" id="n-hw-outL10">Nenhum arquivo</div>' +
     '</div>' +
     /* Card 4: Falhas L10 (HTML xls) — opcional */
     '<div class="ucard" id="c-hw-defL10" onclick="document.getElementById(\'f-hw-defL10\').click()">' +
-      '<span class="un">04 · FALHAS L10 · HUAWEI · OPCIONAL</span>' +
-      '<span class="uico">🔴</span>' +
-      '<div class="utit">Falhas_L10_HUAWEI.xls <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-      '<div class="usub">Serial · Work Order · Estação · Descrição Falha<br><b>Formato HTML exportado do SFC/MES</b><br>' +
-        '<span style="color:var(--t3)">Se não houver falhas L10, deixe em branco</span></div>' +
-      '<input type="file" id="f-hw-defL10" accept=".xls,.xlsx,.html,.htm" onchange="loadHWDefL10(this)"/>' +
-      '<div class="ufile" id="n-hw-defL10">Nenhum arquivo (zero defeitos)</div>' +
+    '<span class="un">04 · FALHAS L10 · HUAWEI · OPCIONAL</span>' +
+    '<span class="uico">🔴</span>' +
+    '<div class="utit">Falhas_L10_HUAWEI.xls <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
+    '<div class="usub">Serial · Work Order · Estação · Descrição Falha<br><b>Formato HTML exportado do SFC/MES</b><br>' +
+    '<span style="color:var(--t3)">Se não houver falhas L10, deixe em branco</span></div>' +
+    '<input type="file" id="f-hw-defL10" accept=".xls,.xlsx,.html,.htm" onchange="loadHWDefL10(this)"/>' +
+    '<div class="ufile" id="n-hw-defL10">Nenhum arquivo (zero defeitos)</div>' +
     '</div>' +
-  '</div>';
+    '</div>';
 }
 
 function restoreHuaweiUploadUI() {
-  var map = {outL6:'📊 Output L6', defL6:'⚠️ Falhas L6', outL10:'📋 Output L10', defL10:'🔴 Falhas L10'};
-  ['outL6','defL6','outL10','defL10'].forEach(function(k){
-    var nEl = document.getElementById('n-hw-'+k);
-    var cEl = document.getElementById('c-hw-'+k);
+  var map = { outL6: '📊 Output L6', defL6: '⚠️ Falhas L6', outL10: '📋 Output L10', defL10: '🔴 Falhas L10' };
+  ['outL6', 'defL6', 'outL10', 'defL10'].forEach(function (k) {
+    var nEl = document.getElementById('n-hw-' + k);
+    var cEl = document.getElementById('c-hw-' + k);
     if (RAW_HW[k] && nEl) {
       var rows = RAW_HW[k].rows ? RAW_HW[k].rows.length : 0;
       nEl.textContent = '✅ ' + map[k] + ' — ' + rows + ' registros';
@@ -3417,41 +3487,41 @@ function restoreHuaweiUploadUI() {
 function loadHW(input, key) {
   var file = input.files[0];
   if (!file) return;
-  var nEl = document.getElementById('n-hw-'+key);
-  var cEl = document.getElementById('c-hw-'+key);
+  var nEl = document.getElementById('n-hw-' + key);
+  var cEl = document.getElementById('c-hw-' + key);
   if (nEl) nEl.textContent = '⏳ Lendo ' + file.name + '...';
   var reader = new FileReader();
-  reader.onerror = function() { if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Erro ao ler'; } };
-  reader.onload = function(e) {
+  reader.onerror = function () { if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Erro ao ler'; } };
+  reader.onload = function (e) {
     try {
       if (typeof XLSX === 'undefined') throw new Error('Biblioteca XLSX não carregada');
-      var wb  = XLSX.read(e.target.result, {type:'binary', cellDates:false, raw:false});
-      var ws  = wb.Sheets[wb.SheetNames[0]];
-      var aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', blankrows:false});
+      var wb = XLSX.read(e.target.result, { type: 'binary', cellDates: false, raw: false });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false });
       /* L10 output tem título na row 0, headers na row 1, dados na row 2+ */
       var startRow = (key === 'outL10') ? 1 : 1;
-      if (!aoa || aoa.length <= startRow) { 
-        if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Estrutura inválida'; } return; 
+      if (!aoa || aoa.length <= startRow) {
+        if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Estrutura inválida'; } return;
       }
-      var rawH = (aoa[startRow]||[]).map(function(h){ return String(h==null?'':h).trim(); });
-      var seen = {}, headers = rawH.map(function(h){
-        if (seen[h]===undefined){seen[h]=0;return h;} seen[h]++;return h+'_'+seen[h];
+      var rawH = (aoa[startRow] || []).map(function (h) { return String(h == null ? '' : h).trim(); });
+      var seen = {}, headers = rawH.map(function (h) {
+        if (seen[h] === undefined) { seen[h] = 0; return h; } seen[h]++; return h + '_' + seen[h];
       });
       var rows = [];
-      for (var i = startRow+1; i < aoa.length; i++) {
+      for (var i = startRow + 1; i < aoa.length; i++) {
         var r = aoa[i], hasVal = false;
-        for (var j=0;j<r.length;j++){if(r[j]!==''&&r[j]!==null&&r[j]!==undefined){hasVal=true;break;}}
+        for (var j = 0; j < r.length; j++) { if (r[j] !== '' && r[j] !== null && r[j] !== undefined) { hasVal = true; break; } }
         if (!hasVal) continue;
         var obj = {};
-        headers.forEach(function(h,k2){ obj[h] = (r[k2]!==undefined&&r[k2]!==null)?r[k2]:''; });
+        headers.forEach(function (h, k2) { obj[h] = (r[k2] !== undefined && r[k2] !== null) ? r[k2] : ''; });
         rows.push(obj);
       }
-      RAW_HW[key] = {headers:headers, rows:rows};
-      if (nEl) { nEl.style.color=''; nEl.textContent='✅ '+file.name+' — '+rows.length+' registros'; }
+      RAW_HW[key] = { headers: headers, rows: rows };
+      if (nEl) { nEl.style.color = ''; nEl.textContent = '✅ ' + file.name + ' — ' + rows.length + ' registros'; }
       if (cEl) cEl.classList.add('done');
       checkReady();
-    } catch(err) {
-      if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Erro: '+err.message; }
+    } catch (err) {
+      if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Erro: ' + err.message; }
     }
   };
   reader.readAsBinaryString(file);
@@ -3465,13 +3535,13 @@ function loadHWDefL10(input) {
   var cEl = document.getElementById('c-hw-defL10');
   if (nEl) nEl.textContent = '⏳ Lendo ' + file.name + '...';
   var reader = new FileReader();
-  reader.onerror = function() { if(nEl){nEl.style.color='#ff3d5a';nEl.textContent='❌ Erro ao ler';} };
-  reader.onload = function(e) {
+  reader.onerror = function () { if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Erro ao ler'; } };
+  reader.onload = function (e) {
     try {
       /* Detecta encoding: FF FE = UTF-16 LE */
       var bytes = new Uint8Array(e.target.result);
       var text;
-      if (bytes[0]===0xFF && bytes[1]===0xFE) {
+      if (bytes[0] === 0xFF && bytes[1] === 0xFE) {
         text = new TextDecoder('utf-16le').decode(e.target.result.slice(2));
       } else {
         text = new TextDecoder('utf-8').decode(e.target.result);
@@ -3480,25 +3550,25 @@ function loadHWDefL10(input) {
       var trList = text.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || [];
       if (trList.length === 0) {
         /* Tenta como XLSX se falhar HTML */
-        if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Formato não reconhecido — use o .xls original'; }
+        if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Formato não reconhecido — use o .xls original'; }
         return;
       }
-      function stripTags(s){ return s.replace(/<[^>]+>/g,'').trim(); }
+      function stripTags(s) { return s.replace(/<[^>]+>/g, '').trim(); }
       var headers = [];
       var rows = [];
-      trList.forEach(function(tr, idx) {
-        var cells = (tr.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)||[]).map(function(td){return stripTags(td);});
-        if (idx===0) { headers=cells; }
-        else if (cells.length>0) {
-          var obj={}; headers.forEach(function(h,k){obj[h]=cells[k]||'';}); rows.push(obj);
+      trList.forEach(function (tr, idx) {
+        var cells = (tr.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || []).map(function (td) { return stripTags(td); });
+        if (idx === 0) { headers = cells; }
+        else if (cells.length > 0) {
+          var obj = {}; headers.forEach(function (h, k) { obj[h] = cells[k] || ''; }); rows.push(obj);
         }
       });
-      RAW_HW.defL10 = {headers:headers, rows:rows};
-      if (nEl) { nEl.style.color=''; nEl.textContent='✅ '+file.name+' — '+rows.length+' registros'; }
+      RAW_HW.defL10 = { headers: headers, rows: rows };
+      if (nEl) { nEl.style.color = ''; nEl.textContent = '✅ ' + file.name + ' — ' + rows.length + ' registros'; }
       if (cEl) cEl.classList.add('done');
       checkReady();
-    } catch(err) {
-      if (nEl) { nEl.style.color='#ff3d5a'; nEl.textContent='❌ Erro: '+err.message; }
+    } catch (err) {
+      if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Erro: ' + err.message; }
     }
   };
   reader.readAsArrayBuffer(file);
@@ -3506,7 +3576,7 @@ function loadHWDefL10(input) {
 
 /* ── checkReady para Huawei — somente outL6 é obrigatório ── */
 var _origCheckReady = checkReady;
-checkReady = function() {
+checkReady = function () {
   if (typeof ADMIN_CLIENT !== 'undefined' && ADMIN_CLIENT === 'asus') {
     checkReadyAsus();
     return;
@@ -3523,11 +3593,11 @@ checkReady = function() {
       } else {
         var noFiles = [];
         if (!RAW_HW.outL10) noFiles.push('Output L10');
-        if (!RAW_HW.defL6)  noFiles.push('Falhas L6');
+        if (!RAW_HW.defL6) noFiles.push('Falhas L6');
         if (!RAW_HW.defL10) noFiles.push('Falhas L10');
         /* Garante estruturas vazias para os opcionais ausentes */
         if (!RAW_HW.outL10) RAW_HW.outL10 = { headers: [], rows: [] };
-        if (!RAW_HW.defL6)  RAW_HW.defL6  = { headers: [], rows: [] };
+        if (!RAW_HW.defL6) RAW_HW.defL6 = { headers: [], rows: [] };
         if (!RAW_HW.defL10) RAW_HW.defL10 = { headers: [], rows: [] };
         hint.textContent = noFiles.length
           ? '✓ Sem ' + noFiles.join(' / ') + ' — OK, zero defeitos assumido. Clique em GERAR'
@@ -3546,7 +3616,7 @@ function downloadL10Template() {
   var bin = atob(b64);
   var arr = new Uint8Array(bin.length);
   for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  var blob = new Blob([arr], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var blob = new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'OUTPUT_L10_HUAWEI_TEMPLATE.xlsx';
@@ -3561,8 +3631,8 @@ function downloadL10Template() {
 function normTurnoHW(v) {
   if (!v) return '1ºT';
   var s = String(v).toUpperCase();
-  if (s.indexOf('2')>-1 || s.indexOf('TARDE')>-1) return '2ºT';
-  if (s.indexOf('3')>-1 || s.indexOf('NOITE')>-1) return '3ºT';
+  if (s.indexOf('2') > -1 || s.indexOf('TARDE') > -1) return '2ºT';
+  if (s.indexOf('3') > -1 || s.indexOf('NOITE') > -1) return '3ºT';
   return '1ºT';
 }
 
@@ -3573,36 +3643,40 @@ function adminGenerateHuawei() {
   }
   /* Garante estruturas vazias para arquivos opcionais não carregados */
   if (!RAW_HW.outL10) RAW_HW.outL10 = { headers: [], rows: [] };
-  if (!RAW_HW.defL6)  RAW_HW.defL6  = { headers: [], rows: [] };
+  if (!RAW_HW.defL6) RAW_HW.defL6 = { headers: [], rows: [] };
   if (!RAW_HW.defL10) RAW_HW.defL10 = { headers: [], rows: [] };
   /* Cria estrutura vazia para falhas se não fornecidas */
-  var EMPTY_DEF_L6 = { headers: RAW_HW.defL6 ? RAW_HW.defL6.headers :
-    ['Serial','Work Order','Failure Code','Description','Line','Test station',
-     'Failure date','Repair station','Reason Code','Description_1','Item'], rows: [] };
-  var EMPTY_DEF_L10 = { headers: ['CT Number','Work Order','Código Falha','Descrição Categoria',
-    'Linha Produção','Estação','Data Falha','Hora Falha','Estação Reparo','Código Categoria',
-    'Comentário','Família','Turno Falha'], rows: [] };
+  var EMPTY_DEF_L6 = {
+    headers: RAW_HW.defL6 ? RAW_HW.defL6.headers :
+      ['Serial', 'Work Order', 'Failure Code', 'Description', 'Line', 'Test station',
+        'Failure date', 'Repair station', 'Reason Code', 'Description_1', 'Item'], rows: []
+  };
+  var EMPTY_DEF_L10 = {
+    headers: ['CT Number', 'Work Order', 'Código Falha', 'Descrição Categoria',
+      'Linha Produção', 'Estação', 'Data Falha', 'Hora Falha', 'Estação Reparo', 'Código Categoria',
+      'Comentário', 'Família', 'Turno Falha'], rows: []
+  };
 
-  if (!RAW_HW.defL6)  RAW_HW.defL6  = EMPTY_DEF_L6;
+  if (!RAW_HW.defL6) RAW_HW.defL6 = EMPTY_DEF_L6;
   if (!RAW_HW.defL10) RAW_HW.defL10 = EMPTY_DEF_L10;
   var btnGo = document.getElementById('btnGo');
   if (btnGo) btnGo.disabled = true;
   showToast('⏳ Processando dados Huawei...', 'info');
 
   /* ── L6 Output: já é padrão Foxconn ── */
-  var STD_HEADERS_OUT = ['Line','Work Order','Model Name','Model Serial','Test station',
-    'Placa Passou','Placa Falhou','Total','Defect Rate (%)','FPY (%)'];
+  var STD_HEADERS_OUT = ['Line', 'Work Order', 'Model Name', 'Model Serial', 'Test station',
+    'Placa Passou', 'Placa Falhou', 'Total', 'Defect Rate (%)', 'FPY (%)'];
 
   /* ── Replace Model Name no outL6 ASUS: PN → nome do modelo ── */
-  RAW_AS.outL6.rows.forEach(function(r) {
+  RAW_AS.outL6.rows.forEach(function (r) {
     /* Model Name (col C) = PN como '59MB14AB-MB0B01S' → 'TUF GAMING B550M-PLUS' */
-    var mnKey = Object.keys(r).find(function(k){
+    var mnKey = Object.keys(r).find(function (k) {
       return k.toLowerCase().indexOf('model name') !== -1 ||
-             k.toLowerCase().indexOf('model serial') !== -1 ||
-             k === 'Model Name' || k === 'Model Serial';
+        k.toLowerCase().indexOf('model serial') !== -1 ||
+        k === 'Model Name' || k === 'Model Serial';
     });
     /* Tenta cada coluna Model Name / Model Serial */
-    ['Model Name','Model Serial'].forEach(function(col) {
+    ['Model Name', 'Model Serial'].forEach(function (col) {
       if (r[col] !== undefined) {
         r[col] = asusModelName(r[col]);
       }
@@ -3612,53 +3686,53 @@ function adminGenerateHuawei() {
   /* ── Normaliza L10 Output → formato padrão ── */
   /* Prioridade de modelo: 1) coluna "Modelo" no arquivo, 2) ComboBox selecionado */
   var selectedModel = HW_SELECTED_MODEL || '';
-  var outL10Norm = RAW_HW.outL10.rows.map(function(r){
-    var inp  = parseFloat(String(r['Input']||0).replace(',','.'))||0;
-    var pass = parseFloat(String(r['Qty Pass']||0).replace(',','.'))||0;
-    var fail = parseFloat(String(r['Qty Fail']||0).replace(',','.'))||0;
-    var fpRaw = String(r['First Pass']||'').replace('%','').replace(',','.').trim();
-    var fp = parseFloat(fpRaw)||0;
-    var rowModel = String(r['Modelo']||r['Model Name']||r['Model']||r['Família']||r['Familia']||selectedModel||'').trim();
+  var outL10Norm = RAW_HW.outL10.rows.map(function (r) {
+    var inp = parseFloat(String(r['Input'] || 0).replace(',', '.')) || 0;
+    var pass = parseFloat(String(r['Qty Pass'] || 0).replace(',', '.')) || 0;
+    var fail = parseFloat(String(r['Qty Fail'] || 0).replace(',', '.')) || 0;
+    var fpRaw = String(r['First Pass'] || '').replace('%', '').replace(',', '.').trim();
+    var fp = parseFloat(fpRaw) || 0;
+    var rowModel = String(r['Modelo'] || r['Model Name'] || r['Model'] || r['Família'] || r['Familia'] || selectedModel || '').trim();
     return {
-      'Line':'L10', 'Work Order': '', 'Model Name': rowModel,
-      'Model Serial': rowModel, 'Test station': String(r['Event Name']||'').trim(),
+      'Line': 'L10', 'Work Order': '', 'Model Name': rowModel,
+      'Model Serial': rowModel, 'Test station': String(r['Event Name'] || '').trim(),
       'Placa Passou': pass, 'Placa Falhou': fail, 'Total': inp,
-      'Defect Rate (%)':'', 'FPY (%)': Math.round(fp*100)
+      'Defect Rate (%)': '', 'FPY (%)': Math.round(fp * 100)
     };
   });
 
   /* ── Normaliza L10 Falhas → formato padrão ── */
-  var defL10Norm = RAW_HW.defL10.rows.map(function(r){
-    var dt = String(r['Data Falha']||'').trim();
-    var hr = String(r['Hora Falha']||'').trim();
+  var defL10Norm = RAW_HW.defL10.rows.map(function (r) {
+    var dt = String(r['Data Falha'] || '').trim();
+    var hr = String(r['Hora Falha'] || '').trim();
     // getShift precisa de " HH:MM:SS"
     var failDate = dt + ' ' + hr + ':00';
     return {
-      'Serial':        String(r['CT Number']||r['Serial']||'').trim(),
-      'Work Order':    String(r['Work Order']||'').trim(),
-      'Failure Code':  String(r['Código Falha']||'').trim(),
-      'Description':   String(r['Descrição Categoria']||'').trim(),
-      'Line':          String(r['Linha Produção']||'').trim(),
-      'Test station':  String(r['Estação']||'').trim(),
-      'Failure date':  failDate,
-      'Repair station':String(r['Estação Reparo']||'').trim(),
-      'Reason Code':   String(r['Código Categoria']||'').trim(),
+      'Serial': String(r['CT Number'] || r['Serial'] || '').trim(),
+      'Work Order': String(r['Work Order'] || '').trim(),
+      'Failure Code': String(r['Código Falha'] || '').trim(),
+      'Description': String(r['Descrição Categoria'] || '').trim(),
+      'Line': String(r['Linha Produção'] || '').trim(),
+      'Test station': String(r['Estação'] || '').trim(),
+      'Failure date': failDate,
+      'Repair station': String(r['Estação Reparo'] || '').trim(),
+      'Reason Code': String(r['Código Categoria'] || '').trim(),
       /* Comentário: "U6M CURTO DE SOLDA" → Item="U6M", Description_1="CURTO DE SOLDA"
          Se vazio → Item="TBA", Description_1="TBA" (igual L6) */
-      'Description_1': (function(){
-        var comentario = String(r['Comentário']||r['Comentario']||'').trim();
+      'Description_1': (function () {
+        var comentario = String(r['Comentário'] || r['Comentario'] || '').trim();
         if (!comentario) return 'TBA';
         var spaceIdx = comentario.indexOf(' ');
-        return spaceIdx > -1 ? comentario.slice(spaceIdx+1).trim() : 'TBA';
+        return spaceIdx > -1 ? comentario.slice(spaceIdx + 1).trim() : 'TBA';
       })(),
-      'Item': (function(){
-        var comentario = String(r['Comentário']||r['Comentario']||'').trim();
+      'Item': (function () {
+        var comentario = String(r['Comentário'] || r['Comentario'] || '').trim();
         if (!comentario) return 'TBA';
         var spaceIdx = comentario.indexOf(' ');
         return spaceIdx > -1 ? comentario.slice(0, spaceIdx).trim() : comentario;
       })(),
-      '_modelo':       String(r['Modelo']||r['Família']||r['Familia']||r['Sku']||r['Model Name']||selectedModel||'').trim(),
-      '_turno':        normTurnoHW(r['Turno Falha'])
+      '_modelo': String(r['Modelo'] || r['Família'] || r['Familia'] || r['Sku'] || r['Model Name'] || selectedModel || '').trim(),
+      '_turno': normTurnoHW(r['Turno Falha'])
     };
   });
 
@@ -3669,13 +3743,13 @@ function adminGenerateHuawei() {
      - Só L6:  headers L6, rows L6
      - Só L10: headers normalizados (padrão L6), rows L10
      - Ambos:  concatena L6 + L10 */
-  var hasDefL6  = RAW_HW.defL6  && RAW_HW.defL6.rows  && RAW_HW.defL6.rows.length  > 0;
+  var hasDefL6 = RAW_HW.defL6 && RAW_HW.defL6.rows && RAW_HW.defL6.rows.length > 0;
   var hasDefL10 = RAW_HW.defL10 && RAW_HW.defL10.rows && RAW_HW.defL10.rows.length > 0;
-  var STD_DEF_HEADERS = ['Serial','Work Order','Failure Code','Description','Line',
-    'Test station','Failure date','Repair station','Reason Code','Description_1','Item','_modelo','_turno'];
-  var defRows_L6  = hasDefL6  ? RAW_HW.defL6.rows  : [];
-  var defRows_L10 = hasDefL10 ? defL10Norm         : [];
-  var defHeaders  = STD_DEF_HEADERS;
+  var STD_DEF_HEADERS = ['Serial', 'Work Order', 'Failure Code', 'Description', 'Line',
+    'Test station', 'Failure date', 'Repair station', 'Reason Code', 'Description_1', 'Item', '_modelo', '_turno'];
+  var defRows_L6 = hasDefL6 ? RAW_HW.defL6.rows : [];
+  var defRows_L10 = hasDefL10 ? defL10Norm : [];
+  var defHeaders = STD_DEF_HEADERS;
   var combinedDef = { headers: defHeaders, rows: defRows_L6.concat(defRows_L10) };
 
   /* Injeta em RAW e chama run() padrão */
@@ -3684,16 +3758,16 @@ function adminGenerateHuawei() {
 
   /* Salva em RAW_CLIENTS */
   RAW_CLIENTS['huawei'] = {
-    outL6:RAW_HW.outL6, defL6:RAW_HW.defL6, outL10:RAW_HW.outL10, defL10:RAW_HW.defL10,
+    outL6: RAW_HW.outL6, defL6: RAW_HW.defL6, outL10: RAW_HW.outL10, defL10: RAW_HW.defL10,
     out: combinedOut, def: combinedDef
   };
 
-  run().then(function(){
+  run().then(function () {
     showPublishBar();
     showToast('✅ Dashboard Huawei gerado!', 'ok');
     if (btnGo) btnGo.disabled = false;
-  }).catch(function(e){
-    showToast('⚠ Erro: '+e.message,'err');
+  }).catch(function (e) {
+    showToast('⚠ Erro: ' + e.message, 'err');
     if (btnGo) btnGo.disabled = false;
   });
 }
@@ -3718,7 +3792,7 @@ var ASUS_PN_MAP = {
   '59MB0Y90-MB0B01S': 'PRIME J4005I-C/BR',
   '59MB13T0-MB0A01S': 'TUF GAMING X570-PLUS/BR',
   '59MB14AB-MB0B01S': 'TUF GAMING B550M-PLUS',
-  '60MB14AB-MB0B3Q':  'TUF GAMING B550M-PLUS',
+  '60MB14AB-MB0B3Q': 'TUF GAMING B550M-PLUS',
   '59MB151B-MB0B01S': 'PRIME A520M-E',
   '59MB17WB-MB0A01S': 'PRIME B450M-GAMING II',
   '59MB18UB-MB0A01S': 'TUF GAMING Z690-PLUS D4',
@@ -3731,20 +3805,20 @@ var ASUS_PN_MAP = {
   '59MB1K7B-MB0A01S': 'PRIME H610M-EC D4',
   '59MB1B6B-MB0A01S': 'PRIME H610M-CS D4',
   /* L10 P/N (SKUNO) */
-  '90MB0Y90-C1BAY0':  'PRIME J4005I-C/BR',
-  '90MB13T0-C1BAY0':  'TUF GAMING X570-PLUS/BR',
-  '90MB14A0-C1BAY0':  'TUF GAMING B550M-PLUS',
-  '90MB1510-C1BAY0':  'PRIME A520M-E',
-  '90MB17W0-C1BAY0':  'PRIME B450M-GAMING II',
-  '90MB18U0-C1BAY0':  'TUF GAMING Z690-PLUS D4',
-  '90MB19N0-C1BAY0':  'PRIME H610M-E D4',
-  '90MB17E0-C1BAY0':  'PRIME H510M-E',
-  '90MB1BJ0-C1BAY0':  'TUF GAMING X670E-PLUS',
-  '90MB1BG0-C1BAY0':  'TUF GAMING B650M-PLUS',
-  '90MB14I0-C1BAY0':  'PRIME B550M-A',
-  '90MB1E80-C1BAY0':  'PRIME H510M-K R2.0',
-  '90MB1K70-C1BCY0':  'PRIME H610M-EC D4',
-  '90MB1B60-C1BAY0':  'PRIME H610M-CS D4'
+  '90MB0Y90-C1BAY0': 'PRIME J4005I-C/BR',
+  '90MB13T0-C1BAY0': 'TUF GAMING X570-PLUS/BR',
+  '90MB14A0-C1BAY0': 'TUF GAMING B550M-PLUS',
+  '90MB1510-C1BAY0': 'PRIME A520M-E',
+  '90MB17W0-C1BAY0': 'PRIME B450M-GAMING II',
+  '90MB18U0-C1BAY0': 'TUF GAMING Z690-PLUS D4',
+  '90MB19N0-C1BAY0': 'PRIME H610M-E D4',
+  '90MB17E0-C1BAY0': 'PRIME H510M-E',
+  '90MB1BJ0-C1BAY0': 'TUF GAMING X670E-PLUS',
+  '90MB1BG0-C1BAY0': 'TUF GAMING B650M-PLUS',
+  '90MB14I0-C1BAY0': 'PRIME B550M-A',
+  '90MB1E80-C1BAY0': 'PRIME H510M-K R2.0',
+  '90MB1K70-C1BCY0': 'PRIME H610M-EC D4',
+  '90MB1B60-C1BAY0': 'PRIME H610M-CS D4'
 };
 
 function asusModelName(pn) {
@@ -3761,7 +3835,7 @@ function downloadAsusL10Template() {
   var bin = atob(ASUS_L10_TEMPLATE_B64);
   var arr = new Uint8Array(bin.length);
   for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  var blob = new Blob([arr], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var blob = new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'TEMPLATE_OUTPUT_L10_ASUS.xlsx';
@@ -3776,55 +3850,55 @@ function buildAsusUploadCards() {
 
     /* Card 1: Output L6 */
     '<div class="ucard" id="c-as-outL6" onclick="document.getElementById(\'f-as-outL6\').click()">' +
-      '<span class="un">01 · OUTPUT L6 · ASUS</span>' +
-      '<span class="uico">📊</span>' +
-      '<div class="utit">Output_ASUS_L6.xlsx</div>' +
-      '<div class="usub">Line · Work Order · Model Name<br>Test station · Placa Passou · Total · FPY</div>' +
-      '<input type="file" id="f-as-outL6" accept=".xlsx,.xls" onchange="loadAS(this,\'outL6\')"/>' +
-      '<div class="ufile" id="n-as-outL6">Nenhum arquivo</div>' +
+    '<span class="un">01 · OUTPUT L6 · ASUS</span>' +
+    '<span class="uico">📊</span>' +
+    '<div class="utit">Output_ASUS_L6.xlsx</div>' +
+    '<div class="usub">Line · Work Order · Model Name<br>Test station · Placa Passou · Total · FPY</div>' +
+    '<input type="file" id="f-as-outL6" accept=".xlsx,.xls" onchange="loadAS(this,\'outL6\')"/>' +
+    '<div class="ufile" id="n-as-outL6">Nenhum arquivo</div>' +
     '</div>' +
 
     /* Card 2: Falhas L6 — opcional */
     '<div class="ucard" id="c-as-defL6" onclick="document.getElementById(\'f-as-defL6\').click()">' +
-      '<span class="un">02 · FALHAS L6 · ASUS · OPCIONAL</span>' +
-      '<span class="uico">⚠️</span>' +
-      '<div class="utit">Falhas_L6_ASUS.xlsx <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-      '<div class="usub">Serial · Work Order · Failure Code<br>Test station · Failure date · Item<br>' +
-        '<span style="color:var(--t3)">Se não houver falhas L6, deixe em branco</span></div>' +
-      '<input type="file" id="f-as-defL6" accept=".xlsx,.xls" onchange="loadAS(this,\'defL6\')"/>' +
-      '<div class="ufile" id="n-as-defL6">Nenhum arquivo (zero defeitos)</div>' +
+    '<span class="un">02 · FALHAS L6 · ASUS · OPCIONAL</span>' +
+    '<span class="uico">⚠️</span>' +
+    '<div class="utit">Falhas_L6_ASUS.xlsx <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
+    '<div class="usub">Serial · Work Order · Failure Code<br>Test station · Failure date · Item<br>' +
+    '<span style="color:var(--t3)">Se não houver falhas L6, deixe em branco</span></div>' +
+    '<input type="file" id="f-as-defL6" accept=".xlsx,.xls" onchange="loadAS(this,\'defL6\')"/>' +
+    '<div class="ufile" id="n-as-defL6">Nenhum arquivo (zero defeitos)</div>' +
     '</div>' +
 
     /* Card 3: Output L10 */
     '<div class="ucard" id="c-as-outL10">' +
-      '<span class="un">03 · OUTPUT L10 · ASUS · TUF + PRIME</span>' +
-      '<span class="uico">📋</span>' +
-      '<div class="utit">OUTPUT_L10_ASUS.xlsx</div>' +
-      '<div class="usub">TUF: AVI · FT1 · FT2 · AUTO_OBA · AVIPK<br>PRIME: AVI · FT2 · AUTO_OBA · AVIPK<br>' +
-        '<span style="color:var(--t3);font-size:9px">Primeira coluna = Modelo</span></div>' +
-      '<div style="display:flex;gap:6px;margin-top:10px">' +
-        '<button onclick="downloadAsusL10Template()" style="flex:1;background:rgba(0,185,174,0.1);border:1px solid #00B9AE;' +
-          'color:#00B9AE;padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-weight:700">⬇ TEMPLATE</button>' +
-        '<button onclick="document.getElementById(\'f-as-outL10\').click()" style="flex:1;background:rgba(255,255,255,0.05);' +
-          'border:1px solid var(--ln2);color:var(--t1);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer">📂 CARREGAR</button>' +
-      '</div>' +
-      '<input type="file" id="f-as-outL10" accept=".xlsx,.xls" onchange="loadAS(this,\'outL10\')"/>' +
-      '<div class="ufile" id="n-as-outL10">Nenhum arquivo</div>' +
+    '<span class="un">03 · OUTPUT L10 · ASUS · TUF + PRIME</span>' +
+    '<span class="uico">📋</span>' +
+    '<div class="utit">OUTPUT_L10_ASUS.xlsx</div>' +
+    '<div class="usub">TUF: AVI · FT1 · FT2 · AUTO_OBA · AVIPK<br>PRIME: AVI · FT2 · AUTO_OBA · AVIPK<br>' +
+    '<span style="color:var(--t3);font-size:9px">Primeira coluna = Modelo</span></div>' +
+    '<div style="display:flex;gap:6px;margin-top:10px">' +
+    '<button onclick="downloadAsusL10Template()" style="flex:1;background:rgba(0,185,174,0.1);border:1px solid #00B9AE;' +
+    'color:#00B9AE;padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-weight:700">⬇ TEMPLATE</button>' +
+    '<button onclick="document.getElementById(\'f-as-outL10\').click()" style="flex:1;background:rgba(255,255,255,0.05);' +
+    'border:1px solid var(--ln2);color:var(--t1);padding:5px 8px;border-radius:5px;font-size:10px;cursor:pointer">📂 CARREGAR</button>' +
+    '</div>' +
+    '<input type="file" id="f-as-outL10" accept=".xlsx,.xls" onchange="loadAS(this,\'outL10\')"/>' +
+    '<div class="ufile" id="n-as-outL10">Nenhum arquivo</div>' +
     '</div>' +
 
     /* Card 4: Falhas L10 — arquivo ASP */
     '<div class="ucard" id="c-as-defL10" onclick="document.getElementById(\'f-as-defL10\').click()">' +
-      '<span class="un">04 · FALHAS L10 · ASUS · ASP · OPCIONAL</span>' +
-      '<span class="uico">🔴</span>' +
-      '<div class="utit">sfcmondailyfailurerpt.asp <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
-      '<div class="usub">SYSSERIALNO · WORKORDERNO · DESCRIPTION<br>FAILUREEVENTPOINT · REPAIRCOMMENT<br>' +
-        '<b>Formato HTML exportado do SFC</b><br>' +
-        '<span style="color:var(--t3)">Se não houver falhas L10, deixe em branco</span></div>' +
-      '<input type="file" id="f-as-defL10" accept=".asp,.html,.htm,.txt" onchange="loadAsusDefL10(this)"/>' +
-      '<div class="ufile" id="n-as-defL10">Nenhum arquivo (zero defeitos)</div>' +
+    '<span class="un">04 · FALHAS L10 · ASUS · ASP · OPCIONAL</span>' +
+    '<span class="uico">🔴</span>' +
+    '<div class="utit">sfcmondailyfailurerpt.asp <span style="font-size:10px;color:var(--amber)">(opcional)</span></div>' +
+    '<div class="usub">SYSSERIALNO · WORKORDERNO · DESCRIPTION<br>FAILUREEVENTPOINT · REPAIRCOMMENT<br>' +
+    '<b>Formato HTML exportado do SFC</b><br>' +
+    '<span style="color:var(--t3)">Se não houver falhas L10, deixe em branco</span></div>' +
+    '<input type="file" id="f-as-defL10" accept=".asp,.html,.htm,.txt" onchange="loadAsusDefL10(this)"/>' +
+    '<div class="ufile" id="n-as-defL10">Nenhum arquivo (zero defeitos)</div>' +
     '</div>' +
 
-  '</div>';
+    '</div>';
 }
 
 /* ── Carrega arquivo ASUS (outL6, defL6, outL10) ── */
@@ -3832,23 +3906,23 @@ function loadAS(input, key) {
   var file = input.files[0];
   if (!file) return;
   var reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     try {
-      var wb = XLSX.read(e.target.result, {type:'binary'});
+      var wb = XLSX.read(e.target.result, { type: 'binary' });
       if (key === 'outL10') {
         /* L10 tem abas TUF e PRIME — lê as duas e combina */
         var rows = [];
-        ['TUF','PRIME'].forEach(function(aba) {
+        ['TUF', 'PRIME'].forEach(function (aba) {
           if (wb.SheetNames.indexOf(aba) === -1) return;
           var ws = wb.Sheets[aba];
-          var raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+          var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
           /* Linha 1 = título, linha 2 = headers */
-          var hdrs = raw[1] ? raw[1].map(function(h){ return String(h).trim(); }) : [];
+          var hdrs = raw[1] ? raw[1].map(function (h) { return String(h).trim(); }) : [];
           for (var i = 2; i < raw.length; i++) {
             var r = raw[i];
-            if (!r || !r.some(function(v){ return v !== ''; })) continue;
+            if (!r || !r.some(function (v) { return v !== ''; })) continue;
             var obj = {};
-            hdrs.forEach(function(h, ci){ obj[h] = r[ci] !== undefined ? r[ci] : ''; });
+            hdrs.forEach(function (h, ci) { obj[h] = r[ci] !== undefined ? r[ci] : ''; });
             obj['_aba'] = aba; /* TUF ou PRIME */
             rows.push(obj);
           }
@@ -3857,30 +3931,30 @@ function loadAS(input, key) {
       } else {
         /* L6 output/falhas — formato padrão, linha 1 = headers */
         var ws = wb.Sheets[wb.SheetNames[0]];
-        var raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        var raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
         /* Detecta se linha 1 é título (não tem 'Line' nem 'Work Order') e headers ficam na linha 2 */
         var hdrRow = 0;
         if (raw[0] && raw[1]) {
-          var r0 = raw[0].map(function(v){ return String(v).toLowerCase(); }).join(' ');
-          var r1 = raw[1].map(function(v){ return String(v).toLowerCase(); }).join(' ');
+          var r0 = raw[0].map(function (v) { return String(v).toLowerCase(); }).join(' ');
+          var r1 = raw[1].map(function (v) { return String(v).toLowerCase(); }).join(' ');
           if (r1.indexOf('line') !== -1 || r1.indexOf('work order') !== -1 || r1.indexOf('model') !== -1 || r1.indexOf('serial') !== -1 || r1.indexOf('test station') !== -1) {
             hdrRow = 1; /* headers na linha 2 */
           }
         }
-        var hdrs = raw[hdrRow] ? raw[hdrRow].map(function(h){ return String(h).trim(); }) : [];
+        var hdrs = raw[hdrRow] ? raw[hdrRow].map(function (h) { return String(h).trim(); }) : [];
         /* Renomeia duplicatas de headers para evitar sobrescrita no objeto:
            Se 'Description' aparecer 2x, a segunda vira 'Description_J' */
         var hdrsUniq = []; var seen = {};
-        hdrs.forEach(function(h) {
+        hdrs.forEach(function (h) {
           if (seen[h]) { hdrsUniq.push(h + '_J'); } /* segunda ocorrência = col J */
           else { hdrsUniq.push(h); seen[h] = true; }
         });
         var rows = [];
         for (var i = hdrRow + 1; i < raw.length; i++) {
           var r = raw[i];
-          if (!r.some(function(v){ return v !== ''; })) continue;
+          if (!r.some(function (v) { return v !== ''; })) continue;
           var obj = {};
-          hdrsUniq.forEach(function(h, ci){ obj[h] = r[ci] !== undefined ? r[ci] : ''; });
+          hdrsUniq.forEach(function (h, ci) { obj[h] = r[ci] !== undefined ? r[ci] : ''; });
           rows.push(obj);
         }
         RAW_AS[key] = { headers: hdrsUniq, rows: rows };
@@ -3893,7 +3967,7 @@ function loadAS(input, key) {
       RAW_CLIENTS['asus'] = RAW_CLIENTS['asus'] || {};
       RAW_CLIENTS['asus'][key] = RAW_AS[key];
       checkReadyAsus();
-    } catch(err) {
+    } catch (err) {
       showToast('❌ Erro ao ler ' + file.name + ': ' + err.message, 'err');
     }
   };
@@ -3905,7 +3979,7 @@ function loadAsusDefL10(input) {
   var file = input.files[0];
   if (!file) return;
   var reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     try {
       var html = e.target.result;
       /* Parser de tabelas HTML */
@@ -3918,7 +3992,7 @@ function loadAsusDefL10(input) {
       if (nEl) nEl.textContent = '✅ ' + file.name + ' — ' + rows.length + ' falhas';
       if (cEl) cEl.classList.add('done');
       checkReadyAsus();
-    } catch(err) {
+    } catch (err) {
       showToast('❌ Erro ao ler ASP: ' + err.message, 'err');
     }
   };
@@ -3944,15 +4018,15 @@ function parseAsusAsp(html) {
   var headers = [];
   var data = [];
 
-  rows.forEach(function(tr, ri) {
+  rows.forEach(function (tr, ri) {
     var cells = tr.querySelectorAll('td, th');
-    var vals = Array.from(cells).map(function(td){ return td.textContent.trim(); });
+    var vals = Array.from(cells).map(function (td) { return td.textContent.trim(); });
     if (ri === 0) {
       headers = vals;
     } else {
-      if (!vals.some(function(v){ return v !== ''; })) return;
+      if (!vals.some(function (v) { return v !== ''; })) return;
       var obj = {};
-      headers.forEach(function(h, ci){ obj[h] = vals[ci] !== undefined ? vals[ci] : ''; });
+      headers.forEach(function (h, ci) { obj[h] = vals[ci] !== undefined ? vals[ci] : ''; });
       data.push(obj);
     }
   });
@@ -3968,19 +4042,19 @@ function parseAsusAsp(html) {
      "NDF"                    → item=NDF,   desc=TBA
 */
 function parseRepairComment(rc) {
-  if (!rc || !rc.trim()) return {item:'TBA', desc:'TBA'};
+  if (!rc || !rc.trim()) return { item: 'TBA', desc: 'TBA' };
   var s = rc.trim();
   /* tenta " - " (espaço traço espaço) */
   var idx = s.indexOf(' - ');
-  if (idx > 0) return {item: s.slice(0,idx).trim(), desc: s.slice(idx+3).trim()||'TBA'};
+  if (idx > 0) return { item: s.slice(0, idx).trim(), desc: s.slice(idx + 3).trim() || 'TBA' };
   /* tenta "-" (traço sem espaço) */
   idx = s.indexOf('-');
-  if (idx > 0) return {item: s.slice(0,idx).trim(), desc: s.slice(idx+1).trim()||'TBA'};
+  if (idx > 0) return { item: s.slice(0, idx).trim(), desc: s.slice(idx + 1).trim() || 'TBA' };
   /* tenta primeiro espaço */
   idx = s.indexOf(' ');
-  if (idx > 0) return {item: s.slice(0,idx).trim(), desc: s.slice(idx+1).trim()||'TBA'};
+  if (idx > 0) return { item: s.slice(0, idx).trim(), desc: s.slice(idx + 1).trim() || 'TBA' };
   /* sem separador */
-  return {item: s, desc: 'TBA'};
+  return { item: s, desc: 'TBA' };
 }
 
 /* ── checkReady ASUS — só outL6 obrigatório ── */
@@ -3995,7 +4069,7 @@ function checkReadyAsus() {
     } else {
       var miss = [];
       if (!RAW_AS.outL10 || !RAW_AS.outL10.rows.length) miss.push('Output L10');
-      if (!RAW_AS.defL6  || !RAW_AS.defL6.rows.length)  miss.push('Falhas L6');
+      if (!RAW_AS.defL6 || !RAW_AS.defL6.rows.length) miss.push('Falhas L6');
       if (!RAW_AS.defL10 || !RAW_AS.defL10.rows.length) miss.push('Falhas L10');
       hint.textContent = miss.length
         ? '✓ Sem ' + miss.join(', ') + ' — OK (zero defeitos). Clique em GERAR'
@@ -4006,8 +4080,8 @@ function checkReadyAsus() {
 
 /* ── Restaura UI ao voltar para aba ASUS ── */
 function restoreAsusUploadUI() {
-  var map = {outL6:'📊 Output L6', defL6:'⚠️ Falhas L6', outL10:'📋 Output L10', defL10:'🔴 Falhas L10 ASP'};
-  ['outL6','defL6','outL10','defL10'].forEach(function(k){
+  var map = { outL6: '📊 Output L6', defL6: '⚠️ Falhas L6', outL10: '📋 Output L10', defL10: '🔴 Falhas L10 ASP' };
+  ['outL6', 'defL6', 'outL10', 'defL10'].forEach(function (k) {
     var nEl = document.getElementById('n-as-' + k);
     var cEl = document.getElementById('c-as-' + k);
     if (RAW_AS[k] && nEl) {
@@ -4025,27 +4099,27 @@ function adminGenerateAsus() {
     showToast('⚠ Carregue pelo menos o Output L6 ASUS', 'err'); return;
   }
   /* Garante estruturas vazias */
-  if (!RAW_AS.defL6  || !RAW_AS.defL6.rows)  RAW_AS.defL6  = {headers:[], rows:[]};
-  if (!RAW_AS.outL10 || !RAW_AS.outL10.rows) RAW_AS.outL10 = {headers:[], rows:[]};
-  if (!RAW_AS.defL10 || !RAW_AS.defL10.rows) RAW_AS.defL10 = {headers:[], rows:[]};
+  if (!RAW_AS.defL6 || !RAW_AS.defL6.rows) RAW_AS.defL6 = { headers: [], rows: [] };
+  if (!RAW_AS.outL10 || !RAW_AS.outL10.rows) RAW_AS.outL10 = { headers: [], rows: [] };
+  if (!RAW_AS.defL10 || !RAW_AS.defL10.rows) RAW_AS.defL10 = { headers: [], rows: [] };
 
   var btnGo = document.getElementById('btnGo');
   if (btnGo) btnGo.disabled = true;
   showToast('⏳ Processando dados ASUS...', 'info');
 
-  var STD_HEADERS_OUT = ['Line','Work Order','Model Name','Model Serial','Test station',
-    'Placa Passou','Placa Falhou','Total','Defect Rate (%)','FPY (%)'];
+  var STD_HEADERS_OUT = ['Line', 'Work Order', 'Model Name', 'Model Serial', 'Test station',
+    'Placa Passou', 'Placa Falhou', 'Total', 'Defect Rate (%)', 'FPY (%)'];
 
   /* ── Replace Model Name no outL6 ASUS: PN → nome do modelo ── */
-  RAW_AS.outL6.rows.forEach(function(r) {
+  RAW_AS.outL6.rows.forEach(function (r) {
     /* Model Name (col C) = PN como '59MB14AB-MB0B01S' → 'TUF GAMING B550M-PLUS' */
-    var mnKey = Object.keys(r).find(function(k){
+    var mnKey = Object.keys(r).find(function (k) {
       return k.toLowerCase().indexOf('model name') !== -1 ||
-             k.toLowerCase().indexOf('model serial') !== -1 ||
-             k === 'Model Name' || k === 'Model Serial';
+        k.toLowerCase().indexOf('model serial') !== -1 ||
+        k === 'Model Name' || k === 'Model Serial';
     });
     /* Tenta cada coluna Model Name / Model Serial */
-    ['Model Name','Model Serial'].forEach(function(col) {
+    ['Model Name', 'Model Serial'].forEach(function (col) {
       if (r[col] !== undefined) {
         r[col] = asusModelName(r[col]);
       }
@@ -4059,27 +4133,27 @@ function adminGenerateAsus() {
      TUF yield: FT1, FT2 | PRIME yield: FT1, FT2
      Produção BE = AVIPK
   */
-  var outL10Norm = RAW_AS.outL10.rows.map(function(r) {
-    var aba   = String(r['_aba'] || '').toUpperCase();         /* TUF ou PRIME */
+  var outL10Norm = RAW_AS.outL10.rows.map(function (r) {
+    var aba = String(r['_aba'] || '').toUpperCase();         /* TUF ou PRIME */
     var modelo = asusModelName(String(r['Modelo'] || r['Model Name'] || '').trim());
-    var st     = String(r['Event Name'] || '').trim();
-    var inp    = parseFloat(String(r['Input'] || 0).replace(',','.'))||0;
-    var pass   = parseFloat(String(r['Qty Pass'] || 0).replace(',','.'))||0;
-    var fail   = parseFloat(String(r['Qty Fail'] || 0).replace(',','.'))||0;
-    var fpRaw  = String(r['First Pass'] || '').replace('%','').replace(',','.').trim();
-    var fp     = parseFloat(fpRaw)||0;
+    var st = String(r['Event Name'] || '').trim();
+    var inp = parseFloat(String(r['Input'] || 0).replace(',', '.')) || 0;
+    var pass = parseFloat(String(r['Qty Pass'] || 0).replace(',', '.')) || 0;
+    var fail = parseFloat(String(r['Qty Fail'] || 0).replace(',', '.')) || 0;
+    var fpRaw = String(r['First Pass'] || '').replace('%', '').replace(',', '.').trim();
+    var fp = parseFloat(fpRaw) || 0;
     return {
-      'Line':           'L10',
-      'Work Order':     '',            /* outL10 não tem WO real — modelo via _modelo */
-      'Model Name':     modelo,
-      'Model Serial':   modelo,
-      'Test station':   st,
-      'Placa Passou':   pass,
-      'Placa Falhou':   fail,
-      'Total':          inp,
-      'Defect Rate (%)':'',
-      'FPY (%)':        Math.round(fp * 100),
-      '_aba':           aba
+      'Line': 'L10',
+      'Work Order': '',            /* outL10 não tem WO real — modelo via _modelo */
+      'Model Name': modelo,
+      'Model Serial': modelo,
+      'Test station': st,
+      'Placa Passou': pass,
+      'Placa Falhou': fail,
+      'Total': inp,
+      'Defect Rate (%)': '',
+      'FPY (%)': Math.round(fp * 100),
+      '_aba': aba
     };
   });
 
@@ -4090,16 +4164,16 @@ function adminGenerateAsus() {
      REPAIRCOMMENT → parseRepairComment → Item + Description_1
      Work Order = DESCRIPTION (join com woMap via Modelo)
   */
-  var defL10Norm = (function() {
+  var defL10Norm = (function () {
     var result = [];
-    RAW_AS.defL10.rows.forEach(function(r) {
-      var desc      = String(r['DESCRIPTION'] || '').trim();
-      var st        = String(r['FAILUREEVENTPOINT'] || '').trim();
-      var dtFull    = String(r['FAILUREDATE'] || '').trim();
-      var hr        = String(r['FAILURECHECKOUTTIME'] || '').trim();
-      var failDate  = dtFull + ' ' + hr;
-      var rcRaw     = String(r['REPAIRCOMMENT'] || '').trim();
-      var noteRaw   = String(r['NOTE'] || '').trim();
+    RAW_AS.defL10.rows.forEach(function (r) {
+      var desc = String(r['DESCRIPTION'] || '').trim();
+      var st = String(r['FAILUREEVENTPOINT'] || '').trim();
+      var dtFull = String(r['FAILUREDATE'] || '').trim();
+      var hr = String(r['FAILURECHECKOUTTIME'] || '').trim();
+      var failDate = dtFull + ' ' + hr;
+      var rcRaw = String(r['REPAIRCOMMENT'] || '').trim();
+      var noteRaw = String(r['NOTE'] || '').trim();
 
       /* ── Regras NOTE / REPAIRCOMMENT ──
          A) REPAIRCOMMENT = NDF (qualquer posição):
@@ -4112,15 +4186,15 @@ function adminGenerateAsus() {
          C) REPAIRCOMMENT preenchido (sem NDF):
             → rc = parseRepairComment
             → noteVal = noteRaw se preenchido, senão 'Sem Cadastro' */
-      var isNDF   = rcRaw.toUpperCase().indexOf('NDF') !== -1;
+      var isNDF = rcRaw.toUpperCase().indexOf('NDF') !== -1;
       var rcEmpty = (rcRaw === '');
 
       var rc, noteVal;
       if (isNDF) {
-        rc = {item: 'Screening', desc: 'Screening'};
+        rc = { item: 'Screening', desc: 'Screening' };
         noteVal = noteRaw !== '' ? noteRaw : 'Screening';
       } else if (rcEmpty) {
-        rc = {item: 'TBA', desc: 'TBA'};
+        rc = { item: 'TBA', desc: 'TBA' };
         noteVal = noteRaw !== '' ? noteRaw : 'Sem Cadastro';
       } else {
         rc = parseRepairComment(rcRaw);
@@ -4128,17 +4202,17 @@ function adminGenerateAsus() {
       }
 
       /* Modelo via SKUNO com replace PN → nome real */
-      var skuno   = String(r['SKUNO'] || '').trim();
-      var woJoin  = asusModelName(skuno) || asusModelName(desc) || desc;
+      var skuno = String(r['SKUNO'] || '').trim();
+      var woJoin = asusModelName(skuno) || asusModelName(desc) || desc;
       /* Determina aba TUF/PRIME para join com outL10 (mantém compatibilidade) */
       var modelKey = woJoin.toUpperCase().indexOf('TUF') !== -1 ? 'TUF' :
-                     woJoin.toUpperCase().indexOf('PRIME') !== -1 ? 'PRIME' : woJoin;
+        woJoin.toUpperCase().indexOf('PRIME') !== -1 ? 'PRIME' : woJoin;
       /* Tenta encontrar linha correspondente no outL10 para consistência */
       if (RAW_AS.outL10 && RAW_AS.outL10.rows.length > 0) {
         for (var i = 0; i < RAW_AS.outL10.rows.length; i++) {
           var o = RAW_AS.outL10.rows[i];
           var oAba = String(o['_aba'] || '').toUpperCase();
-          var oSt  = String(o['Event Name'] || '').trim();
+          var oSt = String(o['Event Name'] || '').trim();
           var oMod = asusModelName(String(o['Modelo'] || o['Model Name'] || '').trim());
           if (oMod === woJoin && oSt === st) { break; }
           if (oAba === modelKey && oSt === st && !oMod) { break; }
@@ -4146,21 +4220,21 @@ function adminGenerateAsus() {
       }
 
       result.push({
-        'Serial':          String(r['SYSSERIALNO'] || '').trim(),
-        'Work Order':      String(r['WORKORDERNO'] || '').trim(),
-        'Failure Code':    String(r['FAILURECODE'] || '').trim(),
-        'Description':     noteVal,   /* Fix 5: NOTE = Descrição Técnica (descTec) */
-        'Line':            String(r['FAILUREPDLINE'] || '').trim(),
-        'Test station':    st,
-        'Failure date':    failDate,
-        'Repair station':  String(r['REPAIRSTATION'] || '').trim(),
-        'Reason Code':     String(r['CATEGORYNAME'] || '').trim(),
-        'Description_1':   rc.desc,   /* Fail Description (pareto) */
-        'Item':            rc.item,
-        '_modelo':         woJoin,
-        '_turno':          '1ºT',
-        '_desc_produto':   desc,
-        '_eventpoint':     st
+        'Serial': String(r['SYSSERIALNO'] || '').trim(),
+        'Work Order': String(r['WORKORDERNO'] || '').trim(),
+        'Failure Code': String(r['FAILURECODE'] || '').trim(),
+        'Description': noteVal,   /* Fix 5: NOTE = Descrição Técnica (descTec) */
+        'Line': String(r['FAILUREPDLINE'] || '').trim(),
+        'Test station': st,
+        'Failure date': failDate,
+        'Repair station': String(r['REPAIRSTATION'] || '').trim(),
+        'Reason Code': String(r['CATEGORYNAME'] || '').trim(),
+        'Description_1': rc.desc,   /* Fail Description (pareto) */
+        'Item': rc.item,
+        '_modelo': woJoin,
+        '_turno': '1ºT',
+        '_desc_produto': desc,
+        '_eventpoint': st
       });
     });
     return result;
@@ -4169,14 +4243,14 @@ function adminGenerateAsus() {
   /* ── Combina L6 + L10 ── */
   var combinedOut = { headers: STD_HEADERS_OUT, rows: RAW_AS.outL6.rows.concat(outL10Norm) };
 
-  var STD_DEF_HEADERS = ['Serial','Work Order','Failure Code','Description','Line',
-    'Test station','Failure date','Repair station','Reason Code','Description_1','Item','_modelo','_turno'];
+  var STD_DEF_HEADERS = ['Serial', 'Work Order', 'Failure Code', 'Description', 'Line',
+    'Test station', 'Failure date', 'Repair station', 'Reason Code', 'Description_1', 'Item', '_modelo', '_turno'];
 
   /* ── Normaliza defL6 ASUS — mesma lógica da Acer ──
      Mapeia colunas pelo nome (colN), mesmo que estejam em posições diferentes.
      Coluna J do arquivo = "Description" → vai para Description_1 (Fail Reason do pareto).
      Separação Item + Description_1: primeiro espaço ou traço (igual L10 ASP). */
-  var hasDefL6  = RAW_AS.defL6.rows.length  > 0;
+  var hasDefL6 = RAW_AS.defL6.rows.length > 0;
   var hasDefL10 = RAW_AS.defL10.rows.length > 0;
 
   /* ── defL6Norm ASUS ──
@@ -4185,42 +4259,42 @@ function adminGenerateAsus() {
        col J (índice 9) = Fail Reason → Description_1 (pareto)
      Como ambas têm o mesmo nome, lemos por ÍNDICE de posição no array de headers.
      Os demais campos usam colN normalmente pois têm nomes únicos. */
-  var defL6Norm = (function() {
+  var defL6Norm = (function () {
     var fh6 = RAW_AS.defL6.headers;
     /* Com o renomeio no loadAS, col D = 'Description', col J = 'Description_J' */
     function cn6(cands) { return colN(fh6, cands); }
 
-    return RAW_AS.defL6.rows.map(function(r) {
+    return RAW_AS.defL6.rows.map(function (r) {
       /* col D = 'Description' → descTec (filtro DESC. TÉCNICA) */
-      var desc       = String(r['Description'] || r[cn6(['Description','Descrição','Desc'])] || '').trim();
+      var desc = String(r['Description'] || r[cn6(['Description', 'Descrição', 'Desc'])] || '').trim();
       /* col J = 'Description_J' (renomeado no loadAS para evitar sobrescrita) */
       var failReason = String(r['Description_J'] || '').trim();
       if (!failReason) failReason = desc; /* fallback */
 
-      var ser   = String(r[cn6(['Serial','Serial Number','CT Number','SN'])]||'').trim();
-      var wo    = String(r[cn6(['Work Order','WO','Ordem de Trabalho'])]||'').trim();
-      var fc    = String(r[cn6(['Failure Code','Código Falha','Fail Code'])]||'').trim();
-      var linha = String(r[cn6(['Line','Linha','Production Line'])]||'').trim();
-      var st    = String(r[cn6(['Test station','Test Station','Station','Estação'])]||'').trim();
-      var fdate = String(r[cn6(['Failure date','Failure Date','Data Falha','Date'])]||'').trim();
-      var repSt = String(r[cn6(['Repair station','Repair Station','Estação Reparo'])]||'').trim();
-      var reason= String(r[cn6(['Reason Code','Código Categoria','Reason'])]||'').trim();
-      var item  = String(r[cn6(['Item','Componente','Component','Part'])]||'').trim();
+      var ser = String(r[cn6(['Serial', 'Serial Number', 'CT Number', 'SN'])] || '').trim();
+      var wo = String(r[cn6(['Work Order', 'WO', 'Ordem de Trabalho'])] || '').trim();
+      var fc = String(r[cn6(['Failure Code', 'Código Falha', 'Fail Code'])] || '').trim();
+      var linha = String(r[cn6(['Line', 'Linha', 'Production Line'])] || '').trim();
+      var st = String(r[cn6(['Test station', 'Test Station', 'Station', 'Estação'])] || '').trim();
+      var fdate = String(r[cn6(['Failure date', 'Failure Date', 'Data Falha', 'Date'])] || '').trim();
+      var repSt = String(r[cn6(['Repair station', 'Repair Station', 'Estação Reparo'])] || '').trim();
+      var reason = String(r[cn6(['Reason Code', 'Código Categoria', 'Reason'])] || '').trim();
+      var item = String(r[cn6(['Item', 'Componente', 'Component', 'Part'])] || '').trim();
 
       return {
-        'Serial':        ser,
-        'Work Order':    wo,
-        'Failure Code':  fc,
-        'Description':   desc,          /* col D → descTec → filtro DESC. TÉCNICA */
-        'Line':          linha,
-        'Test station':  st,
-        'Failure date':  fdate,
-        'Repair station':repSt,
-        'Reason Code':   reason,
+        'Serial': ser,
+        'Work Order': wo,
+        'Failure Code': fc,
+        'Description': desc,          /* col D → descTec → filtro DESC. TÉCNICA */
+        'Line': linha,
+        'Test station': st,
+        'Failure date': fdate,
+        'Repair station': repSt,
+        'Reason Code': reason,
         'Description_1': failReason || 'TBA', /* col J → pareto Fail Description */
-        'Item':          item || 'TBA',
-        '_modelo':       '',
-        '_turno':        '1ºT'
+        'Item': item || 'TBA',
+        '_modelo': '',
+        '_turno': '1ºT'
       };
     });
   })();
@@ -4239,11 +4313,11 @@ function adminGenerateAsus() {
     out: combinedOut, def: combinedDef
   };
 
-  run().then(function() {
+  run().then(function () {
     showPublishBar();
     showToast('✅ Dashboard ASUS gerado!', 'ok');
     if (btnGo) btnGo.disabled = false;
-  }).catch(function(e) {
+  }).catch(function (e) {
     showToast('⚠ Erro: ' + e.message, 'err');
     if (btnGo) btnGo.disabled = false;
   });
@@ -4253,25 +4327,25 @@ function adminGenerateAsus() {
    FIM ASUS
 ═══════════════════════════════════════════════════════════════ */
 
-window.addEventListener('DOMContentLoaded', function(){
+window.addEventListener('DOMContentLoaded', function () {
   setTimeout(initSupabase, 100);
 
   /* Mobile: fecha dropdowns ao tocar fora */
-  document.addEventListener('touchstart', function(e){
+  document.addEventListener('touchstart', function (e) {
     if (!e.target.closest('.ms-wrap')) {
-      document.querySelectorAll('.ms-wrap.open').forEach(function(el){
+      document.querySelectorAll('.ms-wrap.open').forEach(function (el) {
         el.classList.remove('open');
       });
     }
-  }, { passive:true });
+  }, { passive: true });
 
   /* Mobile: previne scroll do body quando dropdown está aberto */
-  document.addEventListener('touchmove', function(e){
+  document.addEventListener('touchmove', function (e) {
     if (document.querySelector('.ms-wrap.open')) {
       /* permite scroll dentro do dropdown */
       if (!e.target.closest('.ms-drop')) e.preventDefault();
     }
-  }, { passive:false });
+  }, { passive: false });
 
   /* Adiciona classe 'mobile' ao body para JS poder checar */
   if (window.innerWidth <= 640 || ('ontouchstart' in window)) {

@@ -44,7 +44,7 @@ function showToast(msg, type) {
     t.id = 'sbToast';
     t.style.cssText = 'position:fixed;bottom:70px;right:18px;z-index:9999;padding:10px 18px;' +
       'border-radius:8px;font-size:12px;font-weight:700;letter-spacing:1px;' +
-      'transition:opacity 0.5s;backdrop-filter:blur(8px);pointer-events:none';
+      'transition:none;backdrop-filter:blur(8px);pointer-events:none';
     document.body.appendChild(t);
   }
   var colors = { ok: 'rgba(0,180,80,0.92)', err: 'rgba(255,60,90,0.92)', info: 'rgba(0,160,255,0.92)' };

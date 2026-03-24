@@ -417,7 +417,7 @@ function renderDashRow2(stOut, stDef, defDedup, ov) {
         '<td style="font-weight:700;color:#0F172A;letter-spacing:0.5px;font-size:11px">' + st + '</td>' +
         '<td style="font-family:IBM Plex Mono,monospace;color:#334155">' + fmt(t) + '</td>' +
         '<td style="font-family:IBM Plex Mono,monospace;font-weight:700;color:' + defCol + '">' + df + '</td>' +
-        '<td><div style="width:100%;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden"><div style="width:' + bw + '%;height:100%;background:' + (df > 0 ? '#8b1a1a' : '#047857') + ';border-radius:4px;transition:width 0.6s ease"></div></div></td>' +
+        '<td><div style="width:100%;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden"><div style="width:' + bw + '%;height:100%;background:' + (df > 0 ? '#8b1a1a' : '#047857') + ';border-radius:4px;transition:none"></div></div></td>' +
         '<td style="font-family:IBM Plex Mono,monospace;font-weight:700;color:' + rateCol + '">' + (rate !== null ? rate + '%' : '—') + '</td>' +
         '<td><span style="font-family:IBM Plex Mono,monospace;font-weight:700;color:' + fpyCol + ';background:' + fpyBg + ';padding:2px 8px;border-radius:4px;font-size:11px">' + (fpy !== null ? (fpy * 100).toFixed(2) + '%' : 'N/A') + '</span></td>' +
         '</tr>';
