@@ -259,7 +259,6 @@
       <!-- ABAS -->
       <div class="tab-bar">
         <button class="tab-btn active" id="tab-dash" onclick="switchTab('dash')">📊 Dashboard</button>
-        <button class="tab-btn" id="tab-monitor" onclick="switchTab('monitor')">📺 Monitor · Chão de Fábrica</button>
       </div>
 
       <!-- ABA 1: DASHBOARD -->
@@ -275,7 +274,7 @@
             <div class="secln"></div>
           </div>
           <div
-            style="display:grid;grid-template-columns:1fr 1fr 310px;grid-template-rows:1fr;gap:10px;align-items:stretch;margin-bottom:0">
+            style="display:grid;grid-template-columns:1fr 1fr 310px;grid-template-rows:auto auto;gap:10px;align-items:stretch;margin-bottom:0">
 
             <!-- Col1 Linha1: Pareto FD (maior — ocupa todo o espaço vertical disponível) -->
             <div class="cc" style="margin-bottom:0;grid-column:1;grid-row:1">
@@ -328,7 +327,7 @@
                   </div>
                   <span class="badge br" id="bdHr">—</span>
                 </div>
-                <div style="position:relative;flex:1;min-height:0;overflow:hidden"><canvas id="cHour"></canvas></div>
+                <div style="position:relative;flex:1;min-height:100px;overflow:hidden"><canvas id="cHour"></canvas></div>
               </div>
               <div class="cc" style="margin-bottom:0;overflow:hidden;flex:1;display:flex;flex-direction:column">
                 <div class="cch" style="flex-shrink:0">
@@ -338,7 +337,7 @@
                   </div>
                   <span class="badge ba" id="bdTurno">—</span>
                 </div>
-                <div style="position:relative;flex:1;min-height:0;overflow:hidden"><canvas id="cTurno"></canvas></div>
+                <div style="position:relative;flex:1;min-height:100px;overflow:hidden"><canvas id="cTurno"></canvas></div>
               </div>
             </div>
 
@@ -402,14 +401,12 @@
                 </div>
               </div>
               <div style="width:100%;display:flex;flex-direction:column">
-                <div id="dashWaterfall" style="width:100%;height:200px;min-height:200px"></div>
+                <div id="dashWaterfall" style="width:100%;height:240px;min-height:240px"></div>
                 <div id="dashWaterfallTable" style="width:100%;overflow-x:auto;border-top:2px solid #E2E8F0"></div>
               </div>
             </div>
 
           </div>
-
-        </div>
 
       <!-- ROW 3: TODAS AS OCORRÊNCIAS -->
       <div class="sec" style="margin-top:10px">
@@ -459,160 +456,6 @@
 
     </div><!-- /panel-dash -->
 
-    <!-- ABA 2: MONITOR CHÃO DE FÁBRICA -->
-    <div class="tab-panel" id="panel-monitor">
-      <!-- ═══ MONITOR: layout fixo 3 colunas igual imagem ═══ -->
-      <div style="display:flex;flex-direction:column;gap:8px">
-
-        <!-- HEADER oculto — mDot e mClock mantidos para o JS funcionar -->
-        <div style="display:none">
-          <div id="mDot"></div>
-          <span id="mTxt"></span>
-          <div id="mClock"></div>
-          <div id="mDate"></div>
-        </div>
-
-        <!-- LINHA 1: [Velocímetro 260px] | [FPY Estações flex] | [Top10 Causas 260px] -->
-        <div style="display:grid;grid-template-columns:260px 1fr 260px;gap:8px;min-height:280px">
-
-          <!-- VELOCÍMETRO -->
-          <div class="mon-card" style="--mc:var(--green);align-items:center;justify-content:center;padding:12px">
-            <div class="mc-title" style="text-align:center;margin-bottom:6px">OVERALLL OFICIAL</div>
-            <canvas id="mGaugeCanvas" width="220" height="130" style="display:block;max-width:100%"></canvas>
-            <div id="mVOv"
-              style="font-family:monospace;font-size:32px;font-weight:900;text-align:center;margin-top:2px;transition:color .4s;letter-spacing:1px">
-              —</div>
-            <div style="font-size:8px;color:var(--t3);letter-spacing:2px;text-align:center;margin-top:1px">SMT ×
-              BACK-END</div>
-            <div style="display:flex;gap:8px;margin-top:8px;width:100%">
-              <div
-                style="flex:1;text-align:center;background:var(--bg3);border-radius:5px;padding:5px;border:1px solid var(--ln2)">
-                <div style="font-size:7px;color:var(--t3);letter-spacing:1px;margin-bottom:2px">SMT</div>
-                <div id="mVSMT" style="font-family:monospace;font-size:13px;font-weight:700;color:var(--cyan)">—</div>
-              </div>
-              <div
-                style="flex:1;text-align:center;background:var(--bg3);border-radius:5px;padding:5px;border:1px solid var(--ln2)">
-                <div style="font-size:7px;color:var(--t3);letter-spacing:1px;margin-bottom:2px">B.E.</div>
-                <div id="mVBE" style="font-family:monospace;font-size:13px;font-weight:700;color:var(--amber)">—</div>
-              </div>
-            </div>
-            <!-- hidden compat -->
-            <div id="mKpi0" style="display:none"></div>
-            <div id="mKpi1" style="display:none"></div>
-            <div id="mKpi2" style="display:none"></div>
-            <div id="mOvBar" style="display:none"></div>
-            <div id="mKb0" style="display:none"></div>
-            <div id="mKb1" style="display:none"></div>
-            <div id="mKb2" style="display:none"></div>
-            <div id="mKb3" style="display:none"></div>
-            <div id="mKb4" style="display:none"></div>
-            <div id="mBdHr" style="display:none"></div>
-          </div>
-
-          <!-- FPY POR ESTAÇÃO — grid 3×N fixo -->
-          <div class="mon-card" style="--mc:var(--cyan);padding:12px">
-            <div class="mc-hdr" style="margin-bottom:8px">
-              <span class="mc-title">FPY POR ESTAÇÃO</span>
-              <span class="mc-badge" id="mBdSt" style="color:var(--cyan)">—</span>
-            </div>
-            <div class="st2-grid" id="mStGrid"></div>
-          </div>
-
-          <!-- TOP 10 CAUSAS -->
-          <div class="mon-card" style="--mc:var(--amber);padding:12px">
-            <div class="mc-hdr" style="margin-bottom:8px">
-              <span class="mc-title">TOP 10 CAUSAS</span>
-              <span class="mc-badge" id="mBdSt2" style="color:var(--amber)">PARETO</span>
-            </div>
-            <div class="mc-par" id="mPareto"></div>
-          </div>
-
-        </div><!-- /linha 1 -->
-
-        <!-- LINHA 2: [Defeitos por Estação] + [Waterfall] lado a lado -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-
-          <!-- TABELA DEFEITOS POR ESTAÇÃO -->
-          <div class="mon-card" style="--mc:var(--red);padding:12px">
-            <div class="mc-hdr" style="margin-bottom:6px">
-              <span class="mc-title">DEFEITOS POR ESTAÇÃO</span>
-              <div style="display:flex;gap:10px;font-size:8px;letter-spacing:1px;color:var(--t3)">
-                <span><span style="color:var(--red)">●</span> QTD</span>
-                <span><span style="color:var(--amber)">●</span> RATE%</span>
-                <span><span style="color:var(--green)">●</span> FPY%</span>
-              </div>
-            </div>
-            <div style="overflow-x:auto">
-              <table class="mdef-tbl" style="min-width:400px">
-                <thead>
-                  <tr>
-                    <th>Estação</th>
-                    <th>Total OUT</th>
-                    <th>Falhas</th>
-                    <th style="min-width:120px">Volume</th>
-                    <th style="color:var(--amber)">Rate %</th>
-                    <th style="color:var(--green)">FPY %</th>
-                  </tr>
-                </thead>
-                <tbody id="mDefLines"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- WATERFALL TOP ISSUE -->
-          <div class="mon-card" style="--mc:#1e3a5f;padding:12px">
-            <div class="mc-hdr" style="margin-bottom:4px">
-              <span class="mc-title" style="color:#0F172A;font-size:11px;font-weight:800;letter-spacing:2px">TOP ISSUE —
-                WATERFALL FPY</span>
-              <div style="display:flex;gap:12px;font-size:10px;font-weight:600;color:#334155">
-                <span style="display:flex;align-items:center;gap:4px"><span
-                    style="width:12px;height:12px;background:#dc2f02;display:inline-block;border-radius:2px"></span>
-                  Impacto</span>
-                <span style="display:flex;align-items:center;gap:4px"><span
-                    style="width:12px;height:12px;background:#047857;display:inline-block;border-radius:2px"></span>
-                  Acumulado</span>
-                <span style="display:flex;align-items:center;gap:4px"><span
-                    style="width:16px;height:2px;background:#1e3a5f;display:inline-block"></span> Meta 99%</span>
-              </div>
-            </div>
-            <!-- Gráfico e tabela num único wrapper sem gap -->
-            <div style="width:100%;display:flex;flex-direction:column;gap:0">
-              <div id="mWaterfall" style="width:100%;height:185px;min-height:185px"></div>
-              <div id="mWaterfallTable" style="width:100%;overflow-x:auto;margin-top:0;border-top:2px solid #E2E8F0">
-              </div>
-            </div>
-          </div>
-
-        </div><!-- /linha 2 -->
-
-        <!-- LINHA 3: Ocorrências full width -->
-        <div class="mon-card" style="--mc:var(--blue);padding:12px;flex:1">
-          <div class="mc-hdr" style="margin-bottom:6px">
-            <span class="mc-title">OCORRÊNCIAS — ordenado por hora ↓</span>
-            <span class="mc-badge" id="mBdRec" style="color:var(--blue)">LIVE</span>
-          </div>
-          <div style="overflow:auto;max-height:360px">
-            <table class="mc-tbl" style="min-width:800px">
-              <thead>
-                <tr>
-                  <th>Serial</th>
-                  <th style="color:var(--cyan)">Hora ↓</th>
-                  <th>Estação</th>
-                  <th>Falha</th>
-                  <th>Modelo</th>
-                  <th>Item</th>
-                </tr>
-              </thead>
-              <tbody id="mRecent"></tbody>
-            </table>
-          </div>
-        </div>
-
-      </div><!-- /monitor flex -->
-
-      <!-- canvas hidden compat -->
-      <canvas id="mCHour" style="display:none"></canvas>
-    </div><!-- /panel-monitor -->
 
   </div><!-- /dash -->
   </div><!-- /wrap -->
@@ -624,8 +467,7 @@
        3. parser   → loadXL, checkReady, parseRepairComment
        4. filters  → MS_STATE, buildMultiSelect, applyF
        5. charts   → render, killCharts, pareto, barLabels
-       6. monitor  → renderMonitor, drawGauge, renderDashRow2
-       7. run      → run() — pipeline principal
+       6. run      → run() — pipeline principal
        8. supabase → Supabase, Admin, Publicação, Slideshow
        9. clients/huawei → pipeline Huawei
       10. clients/asus   → pipeline ASUS
@@ -635,7 +477,6 @@
   <script src="parser.js"></script>
   <script src="filters.js"></script>
   <script src="charts.js"></script>
-  <script src="monitor.js"></script>
   <script src="run.js"></script>
   <script src="supabase.js"></script>
   <script src="huawei.js"></script>

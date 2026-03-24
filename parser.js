@@ -19,14 +19,14 @@ function loadXL(input, key) {
   if (nEl) nEl.textContent = '⏳ Lendo ' + file.name + '...';
 
   var reader = new FileReader();
-  reader.onerror = function() {
+  reader.onerror = function () {
     if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Erro ao ler arquivo'; }
   };
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     try {
       if (typeof XLSX === 'undefined') throw new Error('Biblioteca XLSX não carregada');
-      var wb  = XLSX.read(e.target.result, { type: 'binary', cellDates: false, raw: false });
-      var ws  = wb.Sheets[wb.SheetNames[0]];
+      var wb = XLSX.read(e.target.result, { type: 'binary', cellDates: false, raw: false });
+      var ws = wb.Sheets[wb.SheetNames[0]];
       var aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false });
       if (!aoa || aoa.length < 3) {
         if (nEl) { nEl.style.color = '#ff3d5a'; nEl.textContent = '❌ Estrutura inválida — requer 3+ linhas'; }
@@ -34,8 +34,8 @@ function loadXL(input, key) {
       }
 
       /* Deduplica headers */
-      var rawH = (aoa[1] || []).map(function(h) { return String(h == null ? '' : h).trim(); });
-      var seen = {}, headers = rawH.map(function(h) {
+      var rawH = (aoa[1] || []).map(function (h) { return String(h == null ? '' : h).trim(); });
+      var seen = {}, headers = rawH.map(function (h) {
         if (seen[h] === undefined) { seen[h] = 0; return h; }
         seen[h]++; return h + '_' + seen[h];
       });
@@ -47,7 +47,7 @@ function loadXL(input, key) {
         for (var j = 0; j < r.length; j++) { if (r[j] !== '' && r[j] !== null && r[j] !== undefined) { hasVal = true; break; } }
         if (!hasVal) continue;
         var obj = {};
-        headers.forEach(function(h, k) { obj[h] = (r[k] !== undefined && r[k] !== null) ? r[k] : ''; });
+        headers.forEach(function (h, k) { obj[h] = (r[k] !== undefined && r[k] !== null) ? r[k] : ''; });
         rows.push(obj);
       }
       RAW[key] = { headers: headers, rows: rows };
@@ -73,8 +73,8 @@ function checkReady() {
   var hint = document.getElementById('hint');
   if (hint) hint.textContent = ok
     ? (RAW.def
-        ? '✓ Arquivos prontos — clique em GERAR DASHBOARD'
-        : '✓ Sem arquivo de falhas? OK — zero defeitos assumido. Clique em GERAR')
+      ? '✓ Arquivos prontos — clique em GERAR DASHBOARD'
+      : '✓ Sem arquivo de falhas? OK — zero defeitos assumido. Clique em GERAR')
     : 'Aguardando OUTPUT...';
   if (ok) {
     if (!RAW.def) {
@@ -108,7 +108,7 @@ function parseRepairComment(rc) {
 
 /* ── resetAll — limpa estado para novo upload ── */
 function resetAll() {
-  ['out', 'def'].forEach(function(k) {
+  ['out', 'def'].forEach(function (k) {
     RAW[k] = null;
     var c = document.getElementById('c-' + k); if (c) c.classList.remove('done');
     var n = document.getElementById('n-' + k); if (n) n.textContent = 'Nenhum arquivo';

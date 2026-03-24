@@ -191,7 +191,9 @@ function clearAllF() {
     });
     updateMSLabel(key);
   });
-  render(DATA);
+  /* chama applyF() para que DATA._dropDefRows / defRows sejam reconstruídos
+     com os filtros agora limpos — render(DATA) direto deixaria dados velhos */
+  applyF();
 }
 
 /* ── Captura e restaura estado de filtros (admin) ── */

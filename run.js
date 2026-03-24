@@ -139,12 +139,6 @@ async function run() {
     var hb = document.getElementById('hBtnUpload'); if (hb) hb.style.display = '';
     setStatus('on', 'Dashboard ativo');
     var _fpb = document.getElementById('fixedPublishBtn'); if (_fpb) _fpb.style.display = 'none';
-    setTimeout(function() {
-      try {
-        if (DATA && DATA.F) renderDashRow2(DATA._sO || {}, DATA._sD || {}, DATA.defRows || [], DATA._ov != null ? DATA._ov : DATA.overal);
-      } catch (e) { console.warn('[renderDashRow2]', e); }
-    }, 150);
-
   } catch (err) {
     hide('ldZone');
     showErr('Erro: ' + err.message);

@@ -75,11 +75,6 @@ var CHART_FILTER     = { fd: null, itm: null };
 var _chartRendering  = false;
 var HOUR_FILTER      = null;
 
-/* ── Monitor ── */
-var MONITOR_CHART    = null;
-var WATERFALL_CHART  = null;
-var M_LAST_SER       = '';
-
 /* ── Slideshow (modo fullscreen) ── */
 var SLIDESHOW_TMR    = null;
 var SLIDESHOW_TICK   = null;

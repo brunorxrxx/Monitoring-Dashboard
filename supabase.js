@@ -182,12 +182,20 @@ function switchClient(clientId) {
     }
   } else if (IS_ADMIN) {
     /* Admin sem dados — abre painel de upload direto no cliente correto */
+    showToast('⚠ Nenhum dado carregado para ' + c_label(clientId) + '. Dashboard não pode ser acessado.', 'info');
     ADMIN_CLIENT = clientId;
+    /* Limpeza AGRESSIVA para isolamento total */
+    RAW.out = null; RAW.def = null;
+    if (typeof RAW_HW !== 'undefined') { RAW_HW.outL6 = null; RAW_HW.defL6 = null; RAW_HW.outL10 = null; RAW_HW.defL10 = null; }
+    if (typeof RAW_AS !== 'undefined') { RAW_AS.outL6 = null; RAW_AS.defL6 = null; RAW_AS.outL10 = null; RAW_AS.defL10 = null; }
+
     showUpZoneAdmin();
     renderAdminUpload();
     showSubPanel('adminUploadBox');
   } else {
-    loadClientFromSupabase(clientId);
+    /* Mostra alerta de "Dashboard não pode ser acessado" se não há dados */
+    showToast('⚠ Não há arquivos disponíveis para visualização neste cliente. Dashboard não pode ser acessado.', 'err');
+    showSubPanel('viewerEmpty');
   }
 }
 
@@ -299,7 +307,7 @@ var adminTimeoutID;
 function resetAdminTimeout() {
   if (adminTimeoutID) clearTimeout(adminTimeoutID);
   if (IS_ADMIN) {
-    adminTimeoutID = setTimeout(function() {
+    adminTimeoutID = setTimeout(function () {
       adminLogout();
       showToast('Sessão de Administrador expirada por inatividade (30 minutos)', 'warn');
       showAdminLogin();
@@ -318,6 +326,9 @@ window.addEventListener('scroll', resetAdminTimeout);
 function adminLogout() {
   IS_ADMIN = false;
   RAW_CLIENTS = {};
+  CLIENT_CACHE = {};
+  ADMIN_FILTERS = {};
+  RAW.out = null; RAW.def = null;
   var hdr = document.querySelector('header'); if (hdr) hdr.style.display = '';
   var lock = document.getElementById('adminAccessBtn');
   if (lock) lock.style.display = '';
@@ -355,12 +366,13 @@ function renderAdminUpload() {
     var hasData;
     if (c.id === 'huawei') {
       var hw = RAW_CLIENTS['huawei'] || {};
-      hasData = !!(hw.outL6 && hw.defL6 && hw.outL10 && hw.defL10);
+      hasData = !!(hw.outL6);
     } else if (c.id === 'asus') {
       var as_ = RAW_CLIENTS['asus'] || {};
       hasData = !!(as_.outL6);
     } else {
-      hasData = !!(RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out && RAW_CLIENTS[c.id].def);
+      var d = RAW_CLIENTS[c.id];
+      hasData = !!(d && d.out && d.out.rows && d.out.rows.length > 0);
     }
     return '<span style="font-size:10px;color:' + (hasData ? '#00e96a' : '#555') + ';margin-right:12px">' +
       (hasData ? '✅' : '⬜') + ' ' + c.label + '</span>';
@@ -394,8 +406,12 @@ function renderAdminUpload() {
     '<div class="up-title" style="font-size:14px;text-align:left">📤 PUBLICAR DADOS DE PRODUÇÃO</div>' +
     '<div class="up-sub" style="text-align:left">Carregue os arquivos para cada cliente, depois publique</div>' +
     '</div>' +
+    '<div style="display:flex;align-items:center;gap:12px">' +
+    '<button onclick="deleteClientDataFromSupabase(ADMIN_CLIENT)" style="background:transparent;border:1px solid #ff3d5a;color:#ff3d5a;' +
+    'padding:6px 14px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600">🗑 LIMPAR DADOS DO BANCO</button>' +
     '<button onclick="adminLogout()" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#888;' +
     'padding:6px 14px;border-radius:6px;font-size:11px;cursor:pointer">Sair do Admin</button>' +
+    '</div>' +
     '</div>' +
     tabsHtml +
     '<div style="margin-bottom:12px">' + clientStatus + '</div>' +
@@ -469,12 +485,12 @@ function switchAdminClient(clientId) {
     if (RAW.out) RAW_CLIENTS[ADMIN_CLIENT].out = RAW.out;
     if (RAW.def) RAW_CLIENTS[ADMIN_CLIENT].def = RAW.def;
   }
-  /* Captura filtros que o admin aplicou no dashboard (se estiver visível) */
-  if (document.getElementById('dash') && document.getElementById('dash').style.display !== 'none') {
-    var captured = captureFilterState();
-    RAW_CLIENTS[ADMIN_CLIENT].filters = captured;
-    ADMIN_FILTERS[ADMIN_CLIENT] = captured;
-  }
+
+  /* Limpeza TOTAL antes de restaurar o novo cliente */
+  RAW.out = null; RAW.def = null;
+  if (typeof RAW_HW !== 'undefined') { RAW_HW.outL6 = null; RAW_HW.defL6 = null; RAW_HW.outL10 = null; RAW_HW.defL10 = null; }
+  if (typeof RAW_AS !== 'undefined') { RAW_AS.outL6 = null; RAW_AS.defL6 = null; RAW_AS.outL10 = null; RAW_AS.defL10 = null; }
+
   ADMIN_CLIENT = clientId;
   /* Restaura RAW do novo cliente */
   var saved = RAW_CLIENTS[clientId];
@@ -518,7 +534,7 @@ function switchAdminClient(clientId) {
 function checkReadyDefault() {
   /* Para Acer/HP: apenas o arquivo OUT é obrigatório.
      Se não houver FALHAS, assume lista vazia (zero defeitos no período). */
-  var ok = !!(RAW.out); /* falhas são opcionais */
+  var ok = !!(RAW.out && RAW.out.rows && RAW.out.rows.length > 0);
   var btnGo = document.getElementById('btnGo');
   if (btnGo) btnGo.disabled = !ok;
   var hint = document.getElementById('hint');
@@ -536,8 +552,10 @@ function checkReadyDefault() {
         rows: []
       };
     }
-    /* Salva automaticamente em RAW_CLIENTS */
-    RAW_CLIENTS[ADMIN_CLIENT] = { out: RAW.out, def: RAW.def };
+    /* Salva automaticamente em RAW_CLIENTS — apenas se ADMIN_CLIENT estiver correto */
+    if (ADMIN_CLIENT) {
+      RAW_CLIENTS[ADMIN_CLIENT] = { out: RAW.out, def: RAW.def };
+    }
     setStatus('warn', 'Pronto para publicar');
   }
 }
@@ -598,6 +616,11 @@ async function adminGenerateAndPublishAll() {
   } catch (e) {
     showToast('⚠ Erro: ' + e.message, 'err');
   } finally {
+    /* Limpeza FINAL do estado global para evitar vazamento */
+    RAW.out = null; RAW.def = null;
+    if (typeof RAW_HW !== 'undefined') { RAW_HW.outL6 = null; RAW_HW.defL6 = null; RAW_HW.outL10 = null; RAW_HW.defL10 = null; }
+    if (typeof RAW_AS !== 'undefined') { RAW_AS.outL6 = null; RAW_AS.defL6 = null; RAW_AS.outL10 = null; RAW_AS.defL10 = null; }
+
     var hdr = document.querySelector('header'); if (hdr) hdr.style.display = '';
     if (btn) { btn.disabled = false; btn.textContent = '☁ PUBLICAR'; }
     updateFixedPublishBtn();
@@ -614,13 +637,14 @@ function adminGenerateAndPublish() {
     return;
   }
   if (!RAW.out) { showToast('⚠ Carregue o arquivo de output primeiro', 'err'); return; }
+
+  /* Sincroniza CURRENT_CLIENT para que switchClient salve RAW.out no cliente correto */
+  CURRENT_CLIENT = ADMIN_CLIENT;
+
   if (!RAW.def || !RAW.def.rows) RAW.def = { headers: [], rows: [] }; /* zero defeitos */
   var btnGo = document.getElementById('btnGo');
   if (btnGo) btnGo.disabled = true;
   showToast('⏳ Gerando dashboard...', 'info');
-
-  /* Sincroniza CURRENT_CLIENT para que switchClient salve RAW.out no cliente correto */
-  CURRENT_CLIENT = ADMIN_CLIENT;
 
   /* Salva dados do cliente atual em RAW_CLIENTS antes de rodar */
   if (!RAW_CLIENTS[ADMIN_CLIENT]) RAW_CLIENTS[ADMIN_CLIENT] = {};
@@ -632,6 +656,8 @@ function adminGenerateAndPublish() {
     buildClientTabs(); /* ressincroniza aba ativa com CURRENT_CLIENT */
     showPublishBar();
     showToast('✅ Dashboard gerado! Aplique filtros se quiser, depois publique.', 'ok');
+    /* Limpa RAW global após gerar para evitar vazamentos em outros contextos */
+    RAW.out = null; RAW.def = null;
   }).catch(function (e) {
     showToast('⚠ Erro: ' + e.message, 'err');
     if (btnGo) btnGo.disabled = false;
@@ -734,13 +760,13 @@ function updateFixedPublishBtn() {
 
   btn.innerHTML =
     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">' +
-      (loadedClients.length > 0
-        ? '<div class="pub-status">📦 ' + names + ' prontos</div>'
-        : '<div class="pub-status" style="color:rgba(255,200,100,0.9)">Carregue ao menos 1 arquivo de output</div>') +
-      '<button class="pub-main" onclick="adminGenerateAndPublishAll()">' +
-      '☁ PUBLICAR' +
-      '</button>' +
-      '<button class="pub-sec" onclick="goBackToAdminUpload()">← Voltar</button>' +
+    (loadedClients.length > 0
+      ? '<div class="pub-status">📦 ' + names + ' prontos</div>'
+      : '<div class="pub-status" style="color:rgba(255,200,100,0.9)">Carregue ao menos 1 arquivo de output</div>') +
+    '<button class="pub-main" onclick="adminGenerateAndPublishAll()">' +
+    '☁ PUBLICAR' +
+    '</button>' +
+    '<button class="pub-sec" onclick="goBackToAdminUpload()">← Voltar</button>' +
     '</div>' +
     badgeHtml;
 }
@@ -835,8 +861,10 @@ function publishAllClients(noFilters) {
    SUPABASE — salvar / carregar
 ══════════════════════════════════════════ */
 async function saveClientToSupabase(clientId, filtersJson) {
-  var data = RAW_CLIENTS[clientId] || { out: RAW.out, def: RAW.def };
-  if (!data.out || !data.def) throw new Error('Sem dados para ' + clientId);
+  var data = RAW_CLIENTS[clientId];
+  if (!data || !data.out || !data.def) {
+    throw new Error('Sem dados salvos em memória para o cliente ' + c_label(clientId) + '. Carregue os arquivos primeiro.');
+  }
   var payload = {
     client: clientId,
     updated_at: new Date().toISOString(),
@@ -857,6 +885,41 @@ async function saveClientToSupabase(clientId, filtersJson) {
     body: JSON.stringify(payload)
   });
   if (!res.ok) { var err = await res.text(); throw new Error(err); }
+}
+
+async function deleteClientDataFromSupabase(clientId) {
+  if (!confirm('⚠ ATENÇÃO: Isso irá apagar permanentemente os dados de ' + c_label(clientId) + ' do banco de dados. Deseja continuar?')) return;
+
+  showToast('⏳ Apagando dados de ' + c_label(clientId) + '...', 'info');
+  try {
+    var res = await fetch(SB_URL + '/rest/v1/dashboard_data?client=eq.' + clientId, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SB_ANONKEY,
+        'Authorization': 'Bearer ' + SB_ANONKEY
+      }
+    });
+    if (!res.ok) { var err = await res.text(); throw new Error(err); }
+
+    /* Limpa localmente */
+    delete RAW_CLIENTS[clientId];
+    delete CLIENT_CACHE[clientId];
+    if (clientId === CURRENT_CLIENT) {
+      RAW.out = null; RAW.def = null;
+      DATA = {};
+    }
+
+    showToast('✅ Dados de ' + c_label(clientId) + ' removidos do banco!', 'ok');
+    renderAdminUpload();
+    /* Se era o cliente ativo, recarrega o dashboard (mostrará vazio) */
+    if (clientId === CURRENT_CLIENT) {
+      buildClientTabs();
+      showSubPanel('adminUploadBox');
+    }
+  } catch (e) {
+    console.error('[deleteClientData]', e);
+    showToast('❌ Erro ao apagar: ' + e.message, 'err');
+  }
 }
 
 async function loadClientFromSupabase(clientId) {
@@ -943,10 +1006,23 @@ async function loadAllClients() {
       };
     });
 
-    /* Carrega primeiro cliente (ou o atual se disponível) */
-    var firstId = CLIENT_CACHE[CURRENT_CLIENT] ? CURRENT_CLIENT : Object.keys(CLIENT_CACHE)[0];
-    CURRENT_CLIENT = firstId;
-    var cd = CLIENT_CACHE[firstId];
+    /* Regra de entrada: 
+       1. Se apenas 1 cliente tem dados -> Entra direto nele.
+       2. Se vários -> Acer é o padrão (se tiver dados).
+       3. Caso contrário, o primeiro com dados. */
+    var idsWithData = Object.keys(CLIENT_CACHE);
+    var startId = 'acer';
+
+    if (idsWithData.length === 1) {
+      startId = idsWithData[0];
+    } else if (idsWithData.indexOf('acer') === -1 && idsWithData.length > 0) {
+      startId = idsWithData[0];
+    } else if (idsWithData.length === 0) {
+      removeLd(); showSubPanel('viewerEmpty'); return;
+    }
+
+    CURRENT_CLIENT = startId;
+    var cd = CLIENT_CACHE[startId];
     RAW.out = cd.out;
     RAW.def = cd.def;
 
@@ -957,7 +1033,7 @@ async function loadAllClients() {
 
     sbStep('Pronto!', 100);
     buildClientTabs();
-    if (cd.updated_at) setStatus('on', c_label(firstId) + ' · ' + new Date(cd.updated_at).toLocaleString('pt-BR'));
+    if (cd.updated_at) setStatus('on', c_label(startId) + ' · ' + new Date(cd.updated_at).toLocaleString('pt-BR'));
     showLastUpdateBanner(cd.updated_at);
     removeLd();
     startAutoRefresh();

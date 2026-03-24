@@ -18,6 +18,22 @@ html,body{
 * { transition: none !important; animation: none !important; }
 canvas { transition: none !important; animation: none !important; }
 
+/* ── Login: imagem flutuante (override do * animation:none acima) ── */
+#adminLoginBox .login-left img {
+  animation: floatFx 4s ease-in-out infinite !important;
+  filter: drop-shadow(0 24px 40px rgba(30, 64, 175, 0.45))
+          drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25)) !important;
+  transform-origin: center bottom !important;
+}
+
+/* ── Client tabs: bordas luminosas animadas (override do * acima) ── */
+.client-tab                    { transition: color 0.2s ease !important; }
+.client-tab span               { transition: opacity 0.3s !important; }
+.client-tab span:nth-child(1)  { animation: ctab-top    2s linear         infinite !important; }
+.client-tab span:nth-child(2)  { animation: ctab-right  2s linear -1s     infinite !important; }
+.client-tab span:nth-child(3)  { animation: ctab-bottom 2s linear         infinite !important; }
+.client-tab span:nth-child(4)  { animation: ctab-left   2s linear -1s     infinite !important; }
+
 /* ════ VARIÁVEIS LIGHT ════ */
 :root{
   /* Backgrounds */
@@ -301,7 +317,7 @@ header{
 }
 .kpi-taxa{ font-size:20px; font-weight:800; font-family:'IBM Plex Mono',monospace; letter-spacing:1px; }
 .kpi-taxa-alert{ border-color:#8b1a1a!important; box-shadow:0 0 0 2px rgba(139,26,26,0.15)!important; }
-.kpi-taxa-blink{ /* animação removida — valor estático */ }
+
 .kpi-prod{ border-color:var(--kc)!important; box-shadow:0 2px 8px rgba(30,58,95,0.08); }
 .kpi-pair{ padding:0!important; overflow:hidden; height:100px!important; border-top:3px solid var(--kc)!important; border-radius:var(--r-md); }
 .kpi-pair-inner{ display:flex; height:100%; }
@@ -628,7 +644,7 @@ header{
 
 /* ════ CHART ROW ════ */
 .chart-row-right{ display:flex; flex-direction:column; gap:10px; overflow:hidden; }
-.chart-row-right .cc{ overflow:hidden; flex:1; min-height:0; }
+.chart-row-right .cc{ overflow:hidden; flex:1; min-height:120px; }
 .cw2{ flex:1; position:relative; min-height:80px; }
 
 /* ════ CURSOR BLINK ════ */
