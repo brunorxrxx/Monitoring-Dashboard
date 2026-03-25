@@ -311,17 +311,21 @@ function parseRepairComment(rc) {
   return {item: s, desc: 'TBA'};
 }
 
-/* ── checkReady ASUS — só outL6 obrigatório ── */
+/* ── checkReady ASUS — outL6 OU outL10 obrigatório ── */
 function checkReadyAsus() {
-  var ok = !!(RAW_AS.outL6 && RAW_AS.outL6.rows && RAW_AS.outL6.rows.length > 0);
+  var ok = !!(
+    (RAW_AS.outL6  && RAW_AS.outL6.rows  && RAW_AS.outL6.rows.length  > 0) ||
+    (RAW_AS.outL10 && RAW_AS.outL10.rows && RAW_AS.outL10.rows.length > 0)
+  );
   var btn = document.getElementById('btnGo');
   if (btn) btn.disabled = !ok;
   var hint = document.getElementById('hint');
   if (hint) {
     if (!ok) {
-      hint.textContent = 'Aguardando Output L6 ASUS...';
+      hint.textContent = 'Aguardando Output L6 ou Output L10 ASUS...';
     } else {
       var miss = [];
+      if (!RAW_AS.outL6  || !RAW_AS.outL6.rows.length)  miss.push('Output L6');
       if (!RAW_AS.outL10 || !RAW_AS.outL10.rows.length) miss.push('Output L10');
       if (!RAW_AS.defL6  || !RAW_AS.defL6.rows.length)  miss.push('Falhas L6');
       if (!RAW_AS.defL10 || !RAW_AS.defL10.rows.length) miss.push('Falhas L10');
@@ -349,9 +353,13 @@ function restoreAsusUploadUI() {
 
 /* ── adminGenerateAsus ── */
 function adminGenerateAsus() {
-  if (!RAW_AS.outL6 || !RAW_AS.outL6.rows.length) {
-    showToast('⚠ Carregue pelo menos o Output L6 ASUS', 'err'); return;
+  var hasOut = (RAW_AS.outL6 && RAW_AS.outL6.rows && RAW_AS.outL6.rows.length > 0) ||
+               (RAW_AS.outL10 && RAW_AS.outL10.rows && RAW_AS.outL10.rows.length > 0);
+  if (!hasOut) {
+    showToast('⚠ Carregue pelo menos o Output L6 ou Output L10 ASUS', 'err'); return;
   }
+  if (!RAW_AS.outL6)  RAW_AS.outL6  = { headers: [], rows: [] };
+  if (!RAW_AS.defL6)  RAW_AS.defL6  = { headers: [], rows: [] };
   /* Garante estruturas vazias */
   if (!RAW_AS.defL6  || !RAW_AS.defL6.rows)  RAW_AS.defL6  = {headers:[], rows:[]};
   if (!RAW_AS.outL10 || !RAW_AS.outL10.rows) RAW_AS.outL10 = {headers:[], rows:[]};

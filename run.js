@@ -53,6 +53,19 @@ async function run() {
       }
     });
 
+    /* ── REGRA HP: CONTAMINAÇÃO → Screening no Fail Description ── */
+    if (CURRENT_CLIENT === 'hp') {
+      defRows.forEach(function(r) {
+        /* 'CONTAMINA' e ASCII puro - encontra CONTAMINACAO independente de encoding */
+        var found = Object.keys(r).some(function(k) {
+          return String(r[k] == null ? '' : r[k]).toUpperCase().indexOf('CONTAMINA') !== -1;
+        });
+        if (found) {
+          r[F.descTec] = 'Screening Input BE';
+        }
+      });
+    }
+
     /* ── WO → modelo/linha (join para tabela pareto) ── */
     var woMap = {};
     outRows.forEach(function(r) {
@@ -136,6 +149,7 @@ async function run() {
     render(DATA);
 
     hide('ldZone'); hide('upZone'); show('dash');
+    if (typeof buildClientTabs === 'function') buildClientTabs();
     var hb = document.getElementById('hBtnUpload'); if (hb) hb.style.display = '';
     setStatus('on', 'Dashboard ativo');
     var _fpb = document.getElementById('fixedPublishBtn'); if (_fpb) _fpb.style.display = 'none';

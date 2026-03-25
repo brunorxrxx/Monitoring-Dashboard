@@ -15,6 +15,7 @@
 var SB_URL = 'https://jaflfpyyybosbakokvcu.supabase.co';
 var SB_ANONKEY = 'sb_publishable_QxwSShnXJ7qDZxkEqYP-Rg_5XmFwzvm';
 var ADMIN_PASS = '@Admin';
+var VIEWER_PASS = '@Fox2024';  /* senha para acesso ao dashboard (modo visualizador) */
 
 /* ── CLIENTES — adicione ou remova conforme necessário ── */
 var CLIENTS = [
@@ -132,31 +133,57 @@ function switchClient(clientId) {
     hasData = !!(src && src.out && src.def);
   } else if (clientId === 'huawei') {
     var hw = RAW_CLIENTS[clientId] || {};
-    hasData = !!(hw.outL6);
+    hasData = !!(hw.out || hw.outL6 || hw.outL10);
   } else if (clientId === 'asus') {
     var as_ = RAW_CLIENTS[clientId] || {};
-    hasData = !!(as_.outL6);
+    hasData = !!(as_.out || as_.outL6 || as_.outL10);
   } else {
     hasData = !!(src && src.out && src.def);
   }
 
   if (hasData) {
     if (IS_ADMIN && clientId === 'huawei') {
-      /* Admin: regenera Huawei a partir dos arquivos raw */
       var hwSrc = RAW_CLIENTS[clientId];
-      RAW_HW.outL6 = hwSrc.outL6 || null;
-      RAW_HW.defL6 = hwSrc.defL6 || null;
-      RAW_HW.outL10 = hwSrc.outL10 || null;
-      RAW_HW.defL10 = hwSrc.defL10 || null;
-      adminGenerateHuawei();
+      if (hwSrc.outL6 || hwSrc.outL10) {
+        /* Tem arquivos raw → regenera dashboard */
+        RAW_HW.outL6 = hwSrc.outL6 || null;
+        RAW_HW.defL6 = hwSrc.defL6 || null;
+        RAW_HW.outL10 = hwSrc.outL10 || null;
+        RAW_HW.defL10 = hwSrc.defL10 || null;
+        adminGenerateHuawei();
+      } else {
+        /* Só tem dados processados (já publicado) → usa out/def diretamente */
+        src = hwSrc;
+        RAW.out = hwSrc.out; RAW.def = hwSrc.def;
+        killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = { fd: null, itm: null };
+        var _hwTarget = clientId;
+        run().then(function () {
+          var saved = ADMIN_FILTERS[_hwTarget];
+          if (saved && saved !== '{}') applyDefaultFilters(saved);
+          if (document.getElementById('adminPublishBar')) showPublishBar();
+        });
+      }
     } else if (IS_ADMIN && clientId === 'asus') {
-      /* Admin: regenera ASUS a partir dos arquivos raw */
       var asSrc = RAW_CLIENTS[clientId];
-      RAW_AS.outL6 = asSrc.outL6 || null;
-      RAW_AS.defL6 = asSrc.defL6 || null;
-      RAW_AS.outL10 = asSrc.outL10 || null;
-      RAW_AS.defL10 = asSrc.defL10 || null;
-      adminGenerateAsus();
+      if (asSrc.outL6 || asSrc.outL10) {
+        /* Tem arquivos raw → regenera dashboard */
+        RAW_AS.outL6 = asSrc.outL6 || null;
+        RAW_AS.defL6 = asSrc.defL6 || null;
+        RAW_AS.outL10 = asSrc.outL10 || null;
+        RAW_AS.defL10 = asSrc.defL10 || null;
+        adminGenerateAsus();
+      } else {
+        /* Só tem dados processados (já publicado) → usa out/def diretamente */
+        src = asSrc;
+        RAW.out = asSrc.out; RAW.def = asSrc.def;
+        killCharts(); DATA = {}; MS_STATE = {}; CHART_FILTER = { fd: null, itm: null };
+        var _asTarget = clientId;
+        run().then(function () {
+          var saved = ADMIN_FILTERS[_asTarget];
+          if (saved && saved !== '{}') applyDefaultFilters(saved);
+          if (document.getElementById('adminPublishBar')) showPublishBar();
+        });
+      }
     } else {
       /* Visitante (qualquer cliente) ou Admin ACER/HP: usa out/def do cache diretamente */
       RAW.out = src.out;
@@ -271,6 +298,13 @@ function adminLogin() {
   var inp = document.getElementById('adminPwdInput');
   var pw = inp ? inp.value : '';
   var err = document.getElementById('adminLoginErr');
+  if (pw === VIEWER_PASS) {
+    /* Acesso visualizador — carrega dashboard sem modo admin */
+    if (inp) inp.value = '';
+    if (err) err.style.display = 'none';
+    showViewer();
+    return;
+  }
   if (pw === ADMIN_PASS) {
     IS_ADMIN = true;
     if (inp) inp.value = '';
@@ -362,14 +396,15 @@ function renderAdminUpload() {
   });
   tabsHtml += '</div>';
 
+  syncRawToClients();
   var clientStatus = CLIENTS.map(function (c) {
     var hasData;
     if (c.id === 'huawei') {
       var hw = RAW_CLIENTS['huawei'] || {};
-      hasData = !!(hw.outL6);
+      hasData = !!(hw.out || hw.outL6 || hw.outL10);
     } else if (c.id === 'asus') {
       var as_ = RAW_CLIENTS['asus'] || {};
-      hasData = !!(as_.outL6);
+      hasData = !!(as_.out || as_.outL6 || as_.outL10);
     } else {
       var d = RAW_CLIENTS[c.id];
       hasData = !!(d && d.out && d.out.rows && d.out.rows.length > 0);
@@ -417,7 +452,7 @@ function renderAdminUpload() {
     '<div style="margin-bottom:12px">' + clientStatus + '</div>' +
     uploadGrid +
     '<div class="abar" style="margin-top:16px">' +
-    '<span class="hint" id="hint">' + (isHW ? 'Carregue os 4 arquivos para publicar' : isAS ? 'Carregue pelo menos o Output L6 ASUS' : 'Carregue os 2 arquivos para publicar') + '</span>' +
+    '<span class="hint" id="hint">' + (isHW ? 'Carregue pelo menos Output L6 ou L10 Huawei' : isAS ? 'Carregue pelo menos Output L6 ou L10 ASUS' : 'Carregue os 2 arquivos para publicar') + '</span>' +
     '<button id="btnGo" onclick="adminGenerateAndPublish()" disabled ' +
     'style="background:linear-gradient(135deg,#1e3a5f,#1e40af);color:#fff;border:none;' +
     'border-radius:8px;padding:10px 24px;font-size:12px;font-weight:700;letter-spacing:2px;' +
@@ -563,15 +598,34 @@ function checkReadyDefault() {
 /* ══════════════════════════════════════════
    PUBLICAR — gera dashboard e salva no banco
 ══════════════════════════════════════════ */
+/* Sincroniza RAW_HW / RAW_AS → RAW_CLIENTS (caso usuário nunca trocou de aba) */
+function syncRawToClients() {
+  if (typeof RAW_HW !== 'undefined' && (RAW_HW.outL6 || RAW_HW.outL10)) {
+    RAW_CLIENTS['huawei'] = RAW_CLIENTS['huawei'] || {};
+    if (RAW_HW.outL6)  RAW_CLIENTS['huawei'].outL6  = RAW_HW.outL6;
+    if (RAW_HW.defL6)  RAW_CLIENTS['huawei'].defL6  = RAW_HW.defL6;
+    if (RAW_HW.outL10) RAW_CLIENTS['huawei'].outL10 = RAW_HW.outL10;
+    if (RAW_HW.defL10) RAW_CLIENTS['huawei'].defL10 = RAW_HW.defL10;
+  }
+  if (typeof RAW_AS !== 'undefined' && (RAW_AS.outL6 || RAW_AS.outL10)) {
+    RAW_CLIENTS['asus'] = RAW_CLIENTS['asus'] || {};
+    if (RAW_AS.outL6)  RAW_CLIENTS['asus'].outL6  = RAW_AS.outL6;
+    if (RAW_AS.defL6)  RAW_CLIENTS['asus'].defL6  = RAW_AS.defL6;
+    if (RAW_AS.outL10) RAW_CLIENTS['asus'].outL10 = RAW_AS.outL10;
+    if (RAW_AS.defL10) RAW_CLIENTS['asus'].defL10 = RAW_AS.defL10;
+  }
+}
+
 /* Publicar TODOS os clientes carregados de uma vez */
 async function adminGenerateAndPublishAll() {
+  syncRawToClients();
   var toPublish = CLIENTS.filter(function (c) {
-    if (c.id === 'asus') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
-    if (c.id === 'huawei') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
+    if (c.id === 'asus') return RAW_CLIENTS[c.id] && (RAW_CLIENTS[c.id].outL6 || RAW_CLIENTS[c.id].outL10);
+    if (c.id === 'huawei') return RAW_CLIENTS[c.id] && (RAW_CLIENTS[c.id].outL6 || RAW_CLIENTS[c.id].outL10);
     return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out;
   });
   if (toPublish.length === 0) {
-    showToast('⚠ Carregue ao menos um arquivo de output (OUT.xlsx) antes de publicar', 'err');
+    showToast('⚠ Carregue ao menos um arquivo de output antes de publicar', 'err');
     return;
   }
 
@@ -586,6 +640,12 @@ async function adminGenerateAndPublishAll() {
       ADMIN_CLIENT = c.id;
       /* Configura RAW para o cliente atual */
       if (c.id === 'asus') {
+        /* Restaura RAW_AS a partir de RAW_CLIENTS (necessário se RAW_AS foi limpo após publish anterior) */
+        var _asSrc = RAW_CLIENTS['asus'] || {};
+        if (_asSrc.outL6)  RAW_AS.outL6  = _asSrc.outL6;
+        if (_asSrc.defL6)  RAW_AS.defL6  = _asSrc.defL6;
+        if (_asSrc.outL10) RAW_AS.outL10 = _asSrc.outL10;
+        if (_asSrc.defL10) RAW_AS.defL10 = _asSrc.defL10;
         await new Promise(function (resolve) {
           var _orig = showPublishBar;
           showPublishBar = function () { resolve(); showPublishBar = _orig; };
@@ -594,7 +654,16 @@ async function adminGenerateAndPublishAll() {
         /* Salva dados combinados no Supabase */
         await saveClientToSupabase('asus', RAW_CLIENTS['asus'] && RAW_CLIENTS['asus'].filters || '{}');
         CLIENT_CACHE['asus'] = { out: RAW_CLIENTS['asus'].out, def: RAW_CLIENTS['asus'].def, updated_at: new Date().toISOString() };
+        /* Limpa raw files do RAW_CLIENTS para não re-publicar em sessão futura */
+        RAW_CLIENTS['asus'].outL6 = null; RAW_CLIENTS['asus'].defL6 = null;
+        RAW_CLIENTS['asus'].outL10 = null; RAW_CLIENTS['asus'].defL10 = null;
       } else if (c.id === 'huawei') {
+        /* Restaura RAW_HW a partir de RAW_CLIENTS (necessário se RAW_HW foi limpo após publish anterior) */
+        var _hwSrc = RAW_CLIENTS['huawei'] || {};
+        if (_hwSrc.outL6)  RAW_HW.outL6  = _hwSrc.outL6;
+        if (_hwSrc.defL6)  RAW_HW.defL6  = _hwSrc.defL6;
+        if (_hwSrc.outL10) RAW_HW.outL10 = _hwSrc.outL10;
+        if (_hwSrc.defL10) RAW_HW.defL10 = _hwSrc.defL10;
         await new Promise(function (resolve) {
           var _orig = showPublishBar;
           showPublishBar = function () { resolve(); showPublishBar = _orig; };
@@ -603,6 +672,9 @@ async function adminGenerateAndPublishAll() {
         /* Salva dados combinados no Supabase */
         await saveClientToSupabase('huawei', RAW_CLIENTS['huawei'] && RAW_CLIENTS['huawei'].filters || '{}');
         CLIENT_CACHE['huawei'] = { out: RAW_CLIENTS['huawei'].out, def: RAW_CLIENTS['huawei'].def, updated_at: new Date().toISOString() };
+        /* Limpa raw files do RAW_CLIENTS para não re-publicar em sessão futura */
+        RAW_CLIENTS['huawei'].outL6 = null; RAW_CLIENTS['huawei'].defL6 = null;
+        RAW_CLIENTS['huawei'].outL10 = null; RAW_CLIENTS['huawei'].defL10 = null;
       } else {
         RAW.out = RAW_CLIENTS[c.id].out;
         RAW.def = RAW_CLIENTS[c.id].def || { headers: [], rows: [] };
@@ -720,12 +792,13 @@ function updateFixedPublishBtn() {
     }
   }
 
+  syncRawToClients();
   /* Garante cliente atual em RAW_CLIENTS */
   if (RAW.out && RAW.def) RAW_CLIENTS[ADMIN_CLIENT] = RAW_CLIENTS[ADMIN_CLIENT] || { out: RAW.out, def: RAW.def };
 
   var loadedClients = CLIENTS.filter(function (c) {
-    if (c.id === 'asus') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
-    if (c.id === 'huawei') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
+    if (c.id === 'asus') return RAW_CLIENTS[c.id] && (RAW_CLIENTS[c.id].outL6 || RAW_CLIENTS[c.id].outL10);
+    if (c.id === 'huawei') return RAW_CLIENTS[c.id] && (RAW_CLIENTS[c.id].outL6 || RAW_CLIENTS[c.id].outL10);
     return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out;
   });
 
@@ -799,6 +872,7 @@ function goBackToAdminUpload() {
 }
 
 function publishAllClients(noFilters) {
+  syncRawToClients();
   /* Filtros do cliente visível agora */
   var currentFilters = noFilters ? '{}' : captureFilterState();
   if (RAW.out && RAW.def) RAW_CLIENTS[ADMIN_CLIENT] = RAW_CLIENTS[ADMIN_CLIENT] || { out: RAW.out, def: RAW.def };
@@ -806,8 +880,8 @@ function publishAllClients(noFilters) {
   RAW_CLIENTS[ADMIN_CLIENT].filters = currentFilters;
 
   var toPublish = CLIENTS.filter(function (c) {
-    if (c.id === 'asus') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
-    if (c.id === 'huawei') return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].outL6;
+    if (c.id === 'asus') return RAW_CLIENTS[c.id] && (RAW_CLIENTS[c.id].outL6 || RAW_CLIENTS[c.id].outL10);
+    if (c.id === 'huawei') return RAW_CLIENTS[c.id] && (RAW_CLIENTS[c.id].outL6 || RAW_CLIENTS[c.id].outL10);
     return RAW_CLIENTS[c.id] && RAW_CLIENTS[c.id].out;
   });
   toPublish.forEach(function (c) {
@@ -1153,15 +1227,11 @@ function startAutoRefresh() {
    INIT
 ══════════════════════════════════════════ */
 function initSupabase() {
-  var params = new URLSearchParams(window.location.search);
-  if (params.get('admin') === '1') {
-    history.replaceState(null, '', window.location.pathname);
-    show('upZone'); hide('dash');
-    showSubPanel('adminLoginBox');
-    setTimeout(function () { var inp = document.getElementById('adminPwdInput'); if (inp) inp.focus(); }, 100);
-  } else {
-    loadAllClients();
-  }
+  /* Sempre inicia na tela de login — tanto no primeiro acesso quanto ao recarregar */
+  history.replaceState(null, '', window.location.pathname);
+  show('upZone'); hide('dash');
+  showSubPanel('adminLoginBox');
+  setTimeout(function () { var inp = document.getElementById('adminPwdInput'); if (inp) inp.focus(); }, 100);
 }
 
 /* ── Fullscreen ── */

@@ -200,10 +200,11 @@ function normTurnoHW(v) {
 
 /* ── adminGenerateHuawei ── */
 function adminGenerateHuawei() {
-  if (!RAW_HW.outL6) {
-    showToast('⚠ Carregue pelo menos o Output L6 Huawei', 'err'); return;
+  if (!RAW_HW.outL6 && !RAW_HW.outL10) {
+    showToast('⚠ Carregue pelo menos o Output L6 ou Output L10 Huawei', 'err'); return;
   }
-  /* Garante estruturas vazias para arquivos opcionais não carregados */
+  /* Garante estruturas vazias para arquivos não carregados */
+  if (!RAW_HW.outL6)  RAW_HW.outL6  = { headers: [], rows: [] };
   if (!RAW_HW.outL10) RAW_HW.outL10 = { headers: [], rows: [] };
   if (!RAW_HW.defL6)  RAW_HW.defL6  = { headers: [], rows: [] };
   if (!RAW_HW.defL10) RAW_HW.defL10 = { headers: [], rows: [] };
@@ -327,7 +328,7 @@ function checkReady() {
     return;
   }
   if (typeof ADMIN_CLIENT !== 'undefined' && ADMIN_CLIENT === 'huawei') {
-    var ok = !!(RAW_HW.outL6);
+    var ok = !!(RAW_HW.outL6 || RAW_HW.outL10);
     var btn = document.getElementById('btnGo');
     if (btn) {
       btn.disabled = !ok;
@@ -337,17 +338,15 @@ function checkReady() {
     var hint = document.getElementById('hint');
     if (hint) {
       if (!ok) {
-        hint.textContent = 'Aguardando: Output L6 Huawei (obrigatório)';
+        hint.textContent = 'Aguardando: Output L6 ou Output L10 Huawei';
       } else {
         var noFiles = [];
+        if (!RAW_HW.outL6)  noFiles.push('Output L6');
         if (!RAW_HW.outL10) noFiles.push('Output L10');
         if (!RAW_HW.defL6)  noFiles.push('Falhas L6');
         if (!RAW_HW.defL10) noFiles.push('Falhas L10');
-        if (!RAW_HW.outL10) RAW_HW.outL10 = { headers: [], rows: [] };
-        if (!RAW_HW.defL6)  RAW_HW.defL6  = { headers: [], rows: [] };
-        if (!RAW_HW.defL10) RAW_HW.defL10 = { headers: [], rows: [] };
         hint.textContent = noFiles.length
-          ? '✓ Sem ' + noFiles.join(' / ') + ' — OK, zero defeitos assumido. Clique em GERAR'
+          ? '✓ Sem ' + noFiles.join(' / ') + ' — OK, zero assumido. Clique em GERAR'
           : '✓ Todos os arquivos prontos — clique em GERAR DASHBOARD';
       }
     }

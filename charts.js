@@ -847,7 +847,14 @@ function renderDashRow2(d, forcedSO, forcedSD) {
       /* Arrays completos: FPY + issues + Total */
       var allOff = [0].concat(dataWF.map(function (dw) { return dw.prevAcc; })).concat([0]);
       var allVal = [wfCurFPY].concat(dataWF.map(function (dw) { return dw.loss; })).concat([wfFinalAcc]);
-      var allClr = ['#8b1a1a'].concat(dataWF.map(function () { return '#dc2f02'; })).concat(['#047857']);
+      var WF_TARGET_LINE = 99;
+      /* FPY bar: verde se acima da meta, vermelho se abaixo
+         Loss bars: verde se o FPY ainda estava acima da meta antes do defeito, vermelho se já estava abaixo */
+      var allClr = [wfCurFPY >= WF_TARGET_LINE ? '#047857' : '#991b1b']
+        .concat(dataWF.map(function (dw) {
+          return dw.prevAcc >= WF_TARGET_LINE ? '#059669' : '#dc2f02';
+        }))
+        .concat(['#047857']);
       var allBarLbl = [wfCurFPY.toFixed(2) + '%']
                       .concat(dataWF.map(function (dw) { return '-' + dw.loss.toFixed(2) + '%'; }))
                       .concat([wfFinalAcc.toFixed(2) + '%']);
