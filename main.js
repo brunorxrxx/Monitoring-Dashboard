@@ -685,9 +685,26 @@ function render(d) {
   if (DATA) DATA._sD = sD;
   if (DATA) DATA._defDedup = defDedup; /* salva defDedup para waterfall usar */
   function parc(st) { var df = sD[st] || 0, t = sO[st] ? sO[st].total : 0; return t ? 1 - df / t : null; }
-  function yc(v) { return !v ? 'var(--t3)' : v >= THRESH.green ? 'var(--green)' : v >= THRESH.warn ? 'var(--amber)' : v >= THRESH.amber ? 'var(--amber)' : 'var(--red)'; }
-  /* kpiCls: abaixo 99% = warn (amarelo), abaixo 98% = kpi-crit (vermelho piscando) */
-  function kpiCls(v) { if (!v || v === null) return ''; if (v < THRESH.warn) return ' kpi-crit'; if (v < THRESH.green) return ' warn'; return ''; }
+  function yc(v) {
+    if (!v) return 'var(--t3)';
+    if (CURRENT_CLIENT === 'hp') {
+      return v >= 0.985 ? 'var(--green)' : v >= 0.915 ? 'var(--amber)' : 'var(--red)';
+    }
+    return v >= THRESH.green ? 'var(--green)' : v >= THRESH.warn ? 'var(--amber)' : v >= THRESH.amber ? 'var(--amber)' : 'var(--red)';
+  }
+  /* kpiCls: HP: ≥98,50% verde | ≥91,50% amarelo | <91,50% vermelho
+             Padrão: abaixo 99% = warn, abaixo 98% = kpi-crit */
+  function kpiCls(v) {
+    if (!v || v === null) return '';
+    if (CURRENT_CLIENT === 'hp') {
+      if (v < 0.915) return ' kpi-crit';
+      if (v < 0.985) return ' warn';
+      return ' kpi-ok';
+    }
+    if (v < THRESH.warn) return ' kpi-crit';
+    if (v < THRESH.green) return ' warn';
+    return '';
+  }
   function yct(v) { return v === null ? 'var(--t3)' : v <= 0.01 ? 'var(--green)' : v <= 0.03 ? 'var(--amber)' : 'var(--red)'; }
 
   /* ── Produção SMT = total do último estágio SMT ── */

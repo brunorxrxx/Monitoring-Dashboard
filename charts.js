@@ -148,13 +148,28 @@ function makePareto(canvasId, labels, values, barColor, lineColor) {
   });
 }
 
-function getYieldColor(v) { return !v ? 'var(--t3)' : v >= THRESH.green ? 'var(--green)' : v >= THRESH.warn ? 'var(--amber)' : v >= THRESH.amber ? 'var(--amber)' : 'var(--red)'; }
+function getYieldColor(v) {
+  if (!v) return 'var(--t3)';
+  if (CURRENT_CLIENT === 'hp') {
+    return v >= 0.985 ? 'var(--green)' : v >= 0.915 ? 'var(--amber)' : 'var(--red)';
+  }
+  return v >= THRESH.green ? 'var(--green)' : v >= THRESH.warn ? 'var(--amber)' : v >= THRESH.amber ? 'var(--amber)' : 'var(--red)';
+}
 
 /* kpiCls: define classe de fundo do card por threshold
-   ≥ 99%        → kpi-ok   (fundo verde   #49c351)
-   < 99% ≥ 98%  → warn     (fundo amarelo #FFFF00)
-   < 98%        → kpi-crit (fundo vermelho #FF0000) */
-function kpiCls(v) { if (!v || v === null) return ''; if (v < 0.98) return ' kpi-crit'; if (v < THRESH.green) return ' warn'; return ' kpi-ok'; }
+   Padrão:  ≥ 99% → kpi-ok | ≥ 98% → warn | < 98% → kpi-crit
+   HP:      ≥ 98,50% → kpi-ok | ≥ 91,50% → warn | < 91,50% → kpi-crit */
+function kpiCls(v) {
+  if (!v || v === null) return '';
+  if (CURRENT_CLIENT === 'hp') {
+    if (v < 0.915) return ' kpi-crit';
+    if (v < 0.985) return ' warn';
+    return ' kpi-ok';
+  }
+  if (v < 0.98) return ' kpi-crit';
+  if (v < THRESH.green) return ' warn';
+  return ' kpi-ok';
+}
 
 function getTaxaColor(v) { return v === null ? 'var(--t3)' : v <= 0.01 ? 'var(--green)' : v <= 0.03 ? 'var(--amber)' : 'var(--red)'; }
 

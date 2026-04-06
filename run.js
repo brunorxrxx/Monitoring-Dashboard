@@ -66,6 +66,28 @@ async function run() {
       });
     }
 
+    /* ── REGRA ACER / HP: serial repetido → mantém só a penúltima ocorrência ── */
+    if (CURRENT_CLIENT === 'acer' || CURRENT_CLIENT === 'hp') {
+      var _serIdx = {};
+      defRows.forEach(function(r, i) {
+        var s = S(r[F.serial]);
+        if (!s) return;
+        if (!_serIdx[s]) _serIdx[s] = [];
+        _serIdx[s].push(i);
+      });
+      var _keepSet = {};
+      Object.keys(_serIdx).forEach(function(s) {
+        var idxs = _serIdx[s];
+        // serial único → mantém; repetido → pega penúltimo (length-2)
+        _keepSet[idxs.length === 1 ? idxs[0] : idxs[idxs.length - 2]] = true;
+      });
+      defRows = defRows.filter(function(r, i) {
+        var s = S(r[F.serial]);
+        if (!s || s === '') return true; // sem serial → mantém
+        return !!_keepSet[i];
+      });
+    }
+
     /* ── WO → modelo/linha (join para tabela pareto) ── */
     var woMap = {};
     outRows.forEach(function(r) {
