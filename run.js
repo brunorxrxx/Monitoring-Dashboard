@@ -141,7 +141,7 @@ async function run() {
       st:  uniq(outRows.map(function(r) { return S(r[O.st]); }).concat(defRows.map(function(r) { return S(r[F.st]); }))).filter(Boolean).sort(),
       fd:  uniq(defRows.map(function(r) { return S(r[F.failDesc]) || 'TBA'; })).sort(),
       itm: uniq(defRows.map(function(r) { return S(r[F.item]) || 'TBA'; })).sort(),
-      dtc: uniq(defRows.map(function(r) { var v = S(r[F.descTec]); return v && v !== 'Sem Cadastro' ? v : ''; })).filter(Boolean).sort()
+      dtc: uniq(defRows.map(function(r) { return S(r[F.descTec]) || ''; })).filter(Boolean).sort()
     };
 
     DATA = {
