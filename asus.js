@@ -429,6 +429,10 @@ function adminGenerateAsus() {
   var defL10Norm = (function() {
     var result = [];
     RAW_AS.defL10.rows.forEach(function(r) {
+      /* LINESEQNO 2 ou 3 → ignora (não conta no yield nem nos gráficos) */
+      var lineSeq = parseInt(r['LINESEQNO'] || '1', 10);
+      if (lineSeq === 2 || lineSeq === 3) return;
+
       var desc      = String(r['DESCRIPTION'] || '').trim();
       var st        = String(r['FAILUREEVENTPOINT'] || '').trim();
       var dtFull    = String(r['FAILUREDATE'] || '').trim();
@@ -441,6 +445,9 @@ function adminGenerateAsus() {
       var failDate;
       var hrMatch = hr.match(/^(\d{1,2}):(\d{2})/);
       var hrNum   = hrMatch ? parseInt(hrMatch[1]) : 99;
+      var minNum  = hrMatch ? parseInt(hrMatch[2]) : 0;
+      /* 00:00 ~ 05:55 → terceiro turno */
+      var turno   = (hrNum >= 0 && hrNum <= 4) || (hrNum === 5 && minNum <= 55) ? '3ºT' : '1ºT';
       if (hrNum >= 0 && hrNum <= 5 && dtFull) {
         /* Subtrai 1 dia da data */
         var parts = dtFull.match(/(\d{4})-(\d{2})-(\d{2})/);
@@ -520,12 +527,33 @@ function adminGenerateAsus() {
         'Description_1':   rc.desc,   /* Fail Description (pareto) */
         'Item':            rc.item,
         '_modelo':         woJoin,
-        '_turno':          '1ºT',
+        '_turno':          turno,
         '_desc_produto':   desc,
         '_eventpoint':     st
       });
     });
     return result;
+  })();
+
+  /* ── ASUS L10: serial duplicado → mantém só a penúltima ocorrência ── */
+  (function() {
+    var _serIdx = {};
+    defL10Norm.forEach(function(r, i) {
+      var s = String(r['Serial'] || '').trim();
+      if (!s) return;
+      if (!_serIdx[s]) _serIdx[s] = [];
+      _serIdx[s].push(i);
+    });
+    var _keepSet = {};
+    Object.keys(_serIdx).forEach(function(s) {
+      var idxs = _serIdx[s];
+      _keepSet[idxs.length === 1 ? idxs[0] : idxs[idxs.length - 2]] = true;
+    });
+    defL10Norm = defL10Norm.filter(function(r, i) {
+      var s = String(r['Serial'] || '').trim();
+      if (!s) return true;
+      return !!_keepSet[i];
+    });
   })();
 
   /* ── Combina L6 + L10 ── */
