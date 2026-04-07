@@ -471,29 +471,21 @@ function adminGenerateAsus() {
       rcRaw = normalizarAcentos(rcRaw);
 
       /* ── Regras NOTE / REPAIRCOMMENT ──
-         A) REPAIRCOMMENT contém NDF:
-            → Item e Description_1: parseRepairComment(rcRaw) → ex: item='NDF', desc='TBA'
-            → NOTE: SEMPRE vira 'Screening', independente do que estiver escrito
-              (ex: 'CHK_PCIE' → 'Screening', vazio → 'Screening')
-         B) REPAIRCOMMENT vazio:
-            → Item = TBA, Description_1 = TBA
-            → NOTE: mantém o que veio, senão 'Sem Cadastro'
-         C) REPAIRCOMMENT preenchido (sem NDF):
-            → Item e Description_1: parseRepairComment(rcRaw)
-            → NOTE: mantém o que veio, senão 'Sem Cadastro' */
-      var isNDF   = rcRaw.toUpperCase().indexOf('NDF') !== -1;
-      var rcEmpty = (rcRaw === '');
-
+         SOMENTE quando REPAIRCOMMENT contém NDF → Description = 'Screening'
+         Qualquer outro caso com NOTE vazio       → Description = 'Sem Cadastro'
+         NOTE preenchido                          → Description = valor do NOTE
+         Description_1 usa 'Screening' para NDF (evita override do run.js para 'Screening Input BE') */
+      var isNDF = rcRaw.toUpperCase().indexOf('NDF') !== -1;
       var rc, noteVal;
+
       if (isNDF) {
-        rc = {item: 'NDF', desc: 'NDF'};  /* REPAIRCOMMENT=NDF → item e Description_1 = NDF */
-        noteVal = 'Screening';            /* NOTE desta linha SEMPRE vira Screening */
-      } else if (rcEmpty) {
-        rc = {item: 'TBA', desc: 'TBA'};
-        noteVal = noteRaw !== '' ? noteRaw : 'Sem Cadastro';
+        /* REPAIRCOMMENT tem NDF → Descrição Técnica = 'Screening' */
+        noteVal = 'Screening';
+        rc = { item: 'NDF', desc: 'Screening' };
       } else {
-        rc = parseRepairComment(rcRaw);
+        /* Todos os outros casos: NOTE define a Descrição Técnica */
         noteVal = noteRaw !== '' ? noteRaw : 'Sem Cadastro';
+        rc = rcRaw !== '' ? parseRepairComment(rcRaw) : { item: 'TBA', desc: 'TBA' };
       }
 
       /* Modelo via SKUNO com replace PN → nome real */
