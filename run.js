@@ -137,6 +137,7 @@ async function run() {
         defRows.map(function(r) { var wo = S(r[F.wo]); return (woMap[wo] && woMap[wo].modelo) ? woMap[wo].modelo : (S(r['_modelo']) || ''); })
       )).filter(Boolean).sort(),
       ser: uniq(outRows.map(function(r) { return S(r[O.serial]); })).filter(Boolean).sort(),
+      bser: uniq(defRows.map(function(r) { return S(r[F.serial]); })).filter(Boolean).sort(),
       lin: uniq(outRows.map(function(r) { return S(r[O.linha]); })).sort(),
       st:  uniq(outRows.map(function(r) { return S(r[O.st]); }).concat(defRows.map(function(r) { return S(r[F.st]); }))).filter(Boolean).sort(),
       fd:  uniq(defRows.map(function(r) { return S(r[F.failDesc]) || 'TBA'; })).sort(),
@@ -157,10 +158,11 @@ async function run() {
     };
 
     await step('Construindo filtros...', 80);
-    buildMultiSelect('ms-wo',  'wo',  opts.wo,  'Todos');
-    buildMultiSelect('ms-mod', 'mod', opts.mod, 'Todos');
-    buildMultiSelect('ms-ser', 'ser', opts.ser, 'Todos');
-    buildMultiSelect('ms-lin', 'lin', opts.lin, 'Todas');
+    buildMultiSelect('ms-wo',   'wo',   opts.wo,   'Todos');
+    buildMultiSelect('ms-mod',  'mod',  opts.mod,  'Todos');
+    buildMultiSelect('ms-ser',  'ser',  opts.ser,  'Todos');
+    buildMultiSelect('ms-bser', 'bser', opts.bser, 'Todos');
+    buildMultiSelect('ms-lin',  'lin',  opts.lin,  'Todas');
     buildMultiSelect('ms-st',  'st',  opts.st,  'Todas');
     buildMultiSelect('ms-fd',  'fd',  opts.fd,  'Todas');
     buildMultiSelect('ms-itm', 'itm', opts.itm, 'Todos');

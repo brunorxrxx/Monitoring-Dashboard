@@ -163,6 +163,7 @@ function applyF() {
       var serMatch = !MS_STATE['ser'] || MS_STATE['ser'].size === 0 ||
         rawOut.filter(function (o) { return S(o[O.wo]) === wo && MS_STATE['ser'].has(S(o[O.serial])); }).length > 0;
       return inSel('wo', wo) && inSel('mod', modDef) && serMatch &&
+        inSel('bser', S(r[F.serial])) &&
         inSel('lin', S(r[F.linha]) || m.linha || '') &&
         inSel('st', S(r[F.st])) && inSel('fd', fdv) && inSel('itm', itv) &&
         inSelDtc(S(r[F.descTec])) &&
@@ -181,7 +182,7 @@ function applyF() {
 }
 
 function clearAllF() {
-  ['wo', 'mod', 'ser', 'lin', 'st', 'fd', 'itm', 'trn', 'dtc'].forEach(function (key) {
+  ['wo', 'mod', 'ser', 'bser', 'lin', 'st', 'fd', 'itm', 'trn', 'dtc'].forEach(function (key) {
     if (MS_STATE[key]) MS_STATE[key].clear();
     var allEl = document.getElementById('msall-' + key);
     if (allEl) { allEl.classList.add('active'); allEl.querySelector('.ms-cb').textContent = '✓'; }
